@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/samples/">
+    <Project Path="samples/Retro.Crt.Demo/Retro.Crt.Demo.csproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Retro.Crt/Retro.Crt.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Retro.Crt.Tests/Retro.Crt.Tests.csproj" />
+  </Folder>
+</Solution>
