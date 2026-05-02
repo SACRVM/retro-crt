@@ -1,13 +1,16 @@
 using Retro.Crt;
 
 // A quick tour of what Retro.Crt can do today. Run with `dotnet run` from
-// samples/Retro.Crt.Demo and you should see colored output, a banner, and a
-// tiny progress bar.
+// samples/Retro.Crt.Demo and you should see colored output, a banner, a tiny
+// progress bar, log output, and a typewriter intro.
 
 Crt.ResetColor();
 Crt.WriteLine();
 
-PrintBanner();
+PrintGradientBanner();
+
+Crt.WriteLine();
+PrintBoxBanner();
 
 Crt.WriteLine();
 PrintStandardPalette();
@@ -19,13 +22,19 @@ Crt.WriteLine();
 PrintWithStyleDemo();
 
 Crt.WriteLine();
-await PrintFakeProgressAsync();
+PrintLogDemo();
+
+Crt.WriteLine();
+PrintTypewriterDemo();
+
+Crt.WriteLine();
+PrintProgressBarDemo();
 
 Crt.WriteLine();
 Crt.ResetColor();
 return 0;
 
-static void PrintBanner()
+static void PrintGradientBanner()
 {
     string[] lines =
     [
@@ -38,16 +47,14 @@ static void PrintBanner()
         " Pascal vibes. Modern .NET. ",
     ];
 
-    for (var i = 0; i < lines.Length; i++)
-    {
-        var t = (double)i / Math.Max(1, lines.Length - 1);
-        var color = Color.Rgb(
-            (byte)(80  + 175 * t),
-            (byte)(220 - 100 * t),
-            (byte)(255 - 80  * t));
-        using (Crt.WithStyle(fg: color, bold: true))
-            Crt.WriteLine(lines[i]);
-    }
+    Banner.Gradient(lines, Color.Rgb(80, 220, 255), Color.Rgb(255, 120, 175));
+}
+
+static void PrintBoxBanner()
+{
+    Banner.Box(
+        ["Retro.Crt 0.2", "Stage 2: Banner / Bar / Log / Typewriter"],
+        fg: Color.LightCyan);
 }
 
 static void PrintStandardPalette()
@@ -110,26 +117,61 @@ static void PrintWithStyleDemo()
         Crt.WriteLine("FAIL");
 }
 
-static async Task PrintFakeProgressAsync()
+static void PrintLogDemo()
+{
+    using (Crt.WithStyle(fg: Color.LightGray))
+        Crt.WriteLine("Log levels:");
+
+    Log.Debug("loading config from /etc/retro");
+    Log.Info("system online");
+    Log.Success("checksum verified");
+    Log.Warn("disk usage at 84%");
+    Log.Error("failed to bind port 8080");
+}
+
+static void PrintTypewriterDemo()
+{
+    using (Crt.WithStyle(fg: Color.LightGray))
+        Crt.WriteLine("Typewriter:");
+
+    Typewriter.TypeLine(
+        " plain typing...",
+        msPerChar: 25,
+        fg: Color.LightCyan);
+
+    Typewriter.TypeLine(
+        " with a fake cursor...",
+        msPerChar: 30,
+        fg: Color.LightGreen,
+        cursor: TypewriterCursor.Block);
+
+    Typewriter.TypeLine(
+        " alpha fade-in (truecolor)...",
+        msPerChar: 50,
+        fg: Color.Rgb(255, 120, 200),
+        fade: TypewriterFade.Alpha);
+
+    Typewriter.TypeLine(
+        " gradient + cursor + alpha fade",
+        msPerChar: 40,
+        cursor: TypewriterCursor.Block,
+        fade: TypewriterFade.Alpha,
+        gradient: (Color.Rgb(80, 220, 255), Color.Rgb(255, 120, 175)));
+}
+
+static void PrintProgressBarDemo()
 {
     using (Crt.WithStyle(fg: Color.LightGray))
         Crt.WriteLine("Fake download:");
 
-    const int width = 30;
     const long total = 4_500_000;
+    using var bar = ProgressBar.Start(total, width: 30, label: " download", color: Color.LightCyan);
 
-    for (var step = 0; step <= width; step++)
+    const int steps = 60;
+    for (var step = 0; step <= steps; step++)
     {
-        var ratio = (double)step / width;
-        var done = (long)(total * ratio);
-        var bar = new string('█', step) + new string('░', width - step);
-        var line = $" [{bar}] {(int)(ratio * 100),3:D}%  {done / 1024.0:F1} / {total / 1024.0:F1} KB";
-
-        Crt.Write("\r");
-        using (Crt.WithStyle(fg: Color.LightCyan))
-            Crt.Write(line);
-
-        await Task.Delay(40);
+        var done = (long)(total * ((double)step / steps));
+        bar.Set(done);
+        Thread.Sleep(120);
     }
-    Crt.WriteLine();
 }

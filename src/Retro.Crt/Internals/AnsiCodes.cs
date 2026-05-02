@@ -16,6 +16,17 @@ internal static class AnsiCodes
     public const string Underline   = Csi + "4m";
     public const string ClearScreen = Csi + "2J" + Csi + "H";
     public const string ClearToEol  = Csi + "K";
+    public const string CursorLeft1 = Csi + "D";
+    public const string CarriageReturnAndClear = "\r" + Csi + "K";
+    public const string HideCursor  = Csi + "?25l";
+    public const string ShowCursor  = Csi + "?25h";
+
+    public static string CursorLeft(int n)
+    {
+        if (n <= 0) return "";
+        if (n == 1) return CursorLeft1;
+        return string.Create(CultureInfo.InvariantCulture, $"{Csi}{n}D");
+    }
 
     public static string Foreground(Color c) => c.Mode switch
     {
@@ -39,17 +50,25 @@ internal static class AnsiCodes
         return string.Create(CultureInfo.InvariantCulture, $"{Csi}{rw};{col}H");
     }
 
+    // IBM PC BIOS color order is (Black, Blue, Green, Cyan, Red, Magenta,
+    // Brown, LightGray); ANSI SGR order is (Black, Red, Green, Yellow,
+    // Blue, Magenta, Cyan, White) — Blue/Red and Cyan/Yellow are swapped.
+    // This table maps a BIOS color index 0..7 onto its SGR offset.
+    private static readonly byte[] BiosToSgr = [0, 4, 2, 6, 1, 5, 3, 7];
+
     private static string Standard16Fg(byte index)
     {
-        // 0..7 -> 30..37, 8..15 -> 90..97
-        var code = index < 8 ? 30 + index : 90 + (index - 8);
+        var bright = index >= 8;
+        var sgr = BiosToSgr[index & 0x7];
+        var code = bright ? 90 + sgr : 30 + sgr;
         return string.Create(CultureInfo.InvariantCulture, $"{Csi}{code}m");
     }
 
     private static string Standard16Bg(byte index)
     {
-        // 0..7 -> 40..47, 8..15 -> 100..107
-        var code = index < 8 ? 40 + index : 100 + (index - 8);
+        var bright = index >= 8;
+        var sgr = BiosToSgr[index & 0x7];
+        var code = bright ? 100 + sgr : 40 + sgr;
         return string.Create(CultureInfo.InvariantCulture, $"{Csi}{code}m");
     }
 }

@@ -19,10 +19,23 @@ public class AnsiCodesTests
     }
 
     [Theory]
-    [InlineData(0, "\x1b[30m")]
-    [InlineData(7, "\x1b[37m")]
-    [InlineData(8, "\x1b[90m")]
-    [InlineData(15, "\x1b[97m")]
+    // BIOS index → SGR foreground. BIOS swaps Blue/Red and Cyan/Yellow vs ANSI.
+    [InlineData(0,  "\x1b[30m")]   // Black
+    [InlineData(1,  "\x1b[34m")]   // DarkBlue   -> SGR Blue
+    [InlineData(2,  "\x1b[32m")]   // DarkGreen
+    [InlineData(3,  "\x1b[36m")]   // DarkCyan   -> SGR Cyan
+    [InlineData(4,  "\x1b[31m")]   // DarkRed    -> SGR Red
+    [InlineData(5,  "\x1b[35m")]   // DarkMagenta
+    [InlineData(6,  "\x1b[33m")]   // Brown      -> SGR Yellow
+    [InlineData(7,  "\x1b[37m")]   // LightGray
+    [InlineData(8,  "\x1b[90m")]   // DarkGray
+    [InlineData(9,  "\x1b[94m")]   // LightBlue
+    [InlineData(10, "\x1b[92m")]   // LightGreen
+    [InlineData(11, "\x1b[96m")]   // LightCyan
+    [InlineData(12, "\x1b[91m")]   // LightRed
+    [InlineData(13, "\x1b[95m")]   // LightMagenta
+    [InlineData(14, "\x1b[93m")]   // Yellow
+    [InlineData(15, "\x1b[97m")]   // White
     public void Foreground_standard16_picks_correct_sgr(byte index, string expected)
     {
         var s = AnsiCodes.Foreground(Color.Standard(index));
@@ -30,9 +43,21 @@ public class AnsiCodesTests
     }
 
     [Theory]
-    [InlineData(0, "\x1b[40m")]
-    [InlineData(7, "\x1b[47m")]
-    [InlineData(8, "\x1b[100m")]
+    [InlineData(0,  "\x1b[40m")]
+    [InlineData(1,  "\x1b[44m")]
+    [InlineData(2,  "\x1b[42m")]
+    [InlineData(3,  "\x1b[46m")]
+    [InlineData(4,  "\x1b[41m")]
+    [InlineData(5,  "\x1b[45m")]
+    [InlineData(6,  "\x1b[43m")]
+    [InlineData(7,  "\x1b[47m")]
+    [InlineData(8,  "\x1b[100m")]
+    [InlineData(9,  "\x1b[104m")]
+    [InlineData(10, "\x1b[102m")]
+    [InlineData(11, "\x1b[106m")]
+    [InlineData(12, "\x1b[101m")]
+    [InlineData(13, "\x1b[105m")]
+    [InlineData(14, "\x1b[103m")]
     [InlineData(15, "\x1b[107m")]
     public void Background_standard16_picks_correct_sgr(byte index, string expected)
     {
