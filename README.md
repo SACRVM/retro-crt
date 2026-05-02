@@ -54,6 +54,29 @@ terminal (false when output is redirected, `NO_COLOR` is set, or VT
 enablement failed on Windows). `FORCE_COLOR=1` overrides redirection
 detection.
 
+`Color.TryParse`, `Color.TryFromHex`, and `Color.TryFromName` accept
+hex strings (`#RRGGBB`, `#RGB`, with or without the leading hash) and
+the canonical DOS palette names (`LightCyan`, `Brown`, …, case
+insensitive). Useful for reading colors from config files.
+
+```csharp
+if (Color.TryParse(userInput, out var c))
+    Crt.TextColor(c);
+```
+
+### Diagnostics
+
+```csharp
+var report = Diagnostics.Capture();
+Console.WriteLine(report);
+// ansi=on unicode=on redirected=no TERM=xterm-256color
+//   enc=utf-8(65001) os=linux
+```
+
+Use this in a startup hook when a user reports "I don't see colors" — the
+one-line summary usually contains the answer (`NO_COLOR=set`,
+`redirected=stdout`, `enc=us-ascii`, …).
+
 ### Pascal CRT verbs
 
 ```csharp
@@ -160,6 +183,23 @@ still typed, but without animation residue in logs.
 The cursor and fade animations assume one terminal cell per `char`, so
 emoji (surrogate pairs), combining marks, and wide CJK glyphs aren't
 correctly tracked. Stick to BMP single-cell characters when animating.
+
+`TypeAsync` / `TypeLineAsync` are the awaitable variants — same shape,
+plus a `CancellationToken`. Cancellation aborts the reveal mid-string;
+the `finally` block still erases the trailing cursor, restores color,
+and re-shows the terminal cursor before the
+`OperationCanceledException` propagates.
+
+```csharp
+using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(2));
+try
+{
+    await Typewriter.TypeLineAsync(
+        "running...", msPerChar: 40, fg: Color.LightCyan,
+        cancellationToken: cts.Token);
+}
+catch (OperationCanceledException) { /* terminal is in a clean state */ }
+```
 
 ## Building from source
 

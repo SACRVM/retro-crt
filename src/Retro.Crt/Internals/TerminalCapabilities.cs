@@ -55,6 +55,19 @@ internal static class TerminalCapabilities
         }
     }
 
+    /// <summary>
+    /// Force the cached values for testing — bypasses real detection.
+    /// Pass <c>null</c> to keep the default behaviour for that capability.
+    /// </summary>
+    internal static void OverrideForTests(bool? ansi = null, bool? unicode = null)
+    {
+        lock (Gate)
+        {
+            if (ansi is { } a) _supportsAnsi = a;
+            if (unicode is { } u) _supportsUnicode = u;
+        }
+    }
+
     private static bool Detect()
     {
         // https://no-color.org — if set (any value), opt out.

@@ -39,7 +39,7 @@ jobs:
         run: dotnet build Retro.Crt.slnx --configuration Release --no-restore
 
       - name: Test
-        run: dotnet test Retro.Crt.slnx --configuration Release --no-build --logger "trx" --results-directory TestResults
+        run: dotnet test Retro.Crt.slnx --configuration Release --no-build --logger "trx" --results-directory TestResults --collect:"XPlat Code Coverage"
 
       - name: Pack (sanity check NuGet metadata)
         if: matrix.os == 'ubuntu-latest'
@@ -60,3 +60,67 @@ jobs:
           name: retro-crt-nupkg
           path: nupkg/*.*nupkg
           if-no-files-found: ignore
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.os }}
+          path: TestResults/**/coverage.cobertura.xml
+          if-no-files-found: ignore
+
+  trim-smoke:
+    name: trim publish (${{ matrix.os }})
+    needs: build-test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Publish demo trimmed
+        run: |
+          dotnet publish samples/Retro.Crt.Demo/Retro.Crt.Demo.csproj \
+            --configuration Release \
+            -p:PublishTrimmed=true \
+            -p:TrimMode=full \
+            -p:IsAotCompatible=true \
+            --nologo \
+            /warnaserror
+
+  aot-smoke:
+    name: AOT publish (${{ matrix.os }})
+    needs: build-test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Publish demo AOT
+        run: |
+          dotnet publish samples/Retro.Crt.Demo/Retro.Crt.Demo.csproj \
+            --configuration Release \
+            -p:PublishAot=true \
+            --nologo \
+            /warnaserror
+
+      - name: Show binary size
+        run: |
+          find samples/Retro.Crt.Demo/bin/Release -type f -name 'Retro.Crt.Demo*' -exec ls -lh {} \;

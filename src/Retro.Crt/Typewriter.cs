@@ -36,44 +36,15 @@ public static class Typewriter
     {
         if (string.IsNullOrEmpty(text)) return;
 
-        // Cursor and fade animations rely on CSI cursor-left to overwrite
-        // the previous frame in place. With ANSI off (output redirected,
-        // NO_COLOR, dumb terminal) those escapes don't apply, so we'd leave
-        // every intermediate glyph on screen. Disable the animations and
-        // dump the final string instead — readable in logs, still typed.
-        var ansi = Crt.ColorEnabled;
-        if (!ansi)
-        {
-            cursor = TypewriterCursor.None;
-            fade = TypewriterFade.None;
-        }
+        var ansi = ResolveAnsi(ref cursor, ref fade);
 
-        // Fast path: no pacing requested, just dump the line.
         if (msPerChar <= 0)
         {
-            if (gradient is { } g0 && g0.from.Mode == ColorMode.Truecolor && g0.to.Mode == ColorMode.Truecolor)
-            {
-                for (var i = 0; i < text.Length; i++)
-                    WriteWithColor(text[i].ToString(), Banner.Interpolate(g0.from, g0.to, i, text.Length));
-            }
-            else if (fg is { } f0)
-            {
-                WriteWithColor(text, f0);
-            }
-            else
-            {
-                Console.Out.Write(text);
-            }
+            DumpInstantly(text, fg, gradient);
             return;
         }
 
-        var hasGradient = gradient is { } g
-            && g.from.Mode == ColorMode.Truecolor
-            && g.to.Mode == ColorMode.Truecolor;
-
-        // Hide the terminal's native cursor for the whole reveal. Otherwise
-        // it blinks at the write position between frames — visible as a
-        // jittering caret on every character, even without our fake cursor.
+        var hasGradient = HasGradient(gradient);
         var hidCursor = false;
         if (ansi)
         {
@@ -84,76 +55,101 @@ public static class Typewriter
         var colorActive = false;
         var prevCursor = false;
 
-        for (var i = 0; i < text.Length; i++)
+        try
         {
-            if (prevCursor)
+            for (var i = 0; i < text.Length; i++)
             {
-                Console.Out.Write(AnsiCodes.CursorLeft1);
-                prevCursor = false;
-            }
-
-            var c = text[i];
-            Color? color = hasGradient
-                ? Banner.Interpolate(gradient!.Value.from, gradient.Value.to, i, text.Length)
-                : fg;
-
-            // Whitespace and non-printing chars: no fade (looks weird on
-            // spaces, and \r / \n move the cursor anyway).
-            if (c is ' ' or '\t' or '\r' or '\n' || char.IsControl(c))
-            {
-                if (ansi && color is { } w) { ApplyColor(w); colorActive = true; }
-                Console.Out.Write(c);
-                Sleep(msPerChar);
-            }
-            else
-            {
-                // Alpha fade only works in truecolor — Standard16 has no
-                // brightness scaling. Outside truecolor we fall through to
-                // the no-fade path so the timing still feels right.
-                var canAlpha = fade == TypewriterFade.Alpha
-                    && ansi
-                    && color is { Mode: ColorMode.Truecolor };
-
-                if (canAlpha)
+                if (prevCursor)
                 {
-                    DoAlphaFade(c, color!.Value, msPerChar);
-                    colorActive = true;
+                    Console.Out.Write(AnsiCodes.CursorLeft1);
+                    prevCursor = false;
                 }
-                else
+
+                var c = text[i];
+                var color = ResolveColor(i, text.Length, hasGradient, gradient, fg);
+                EmitChar(c, color, ansi, fade, ref colorActive, msSync: msPerChar);
+
+                if (ShouldEmitCursor(c, cursor, i, text.Length))
                 {
-                    if (ansi && color is { } n) { ApplyColor(n); colorActive = true; }
-                    Console.Out.Write(c);
-                    Sleep(msPerChar);
+                    Console.Out.Write(GlyphFor(cursor));
+                    prevCursor = true;
                 }
             }
-
-            // After CR/LF cursor-left tracking points at the new line, so a
-            // fake cursor would clobber whatever was already there. Skip the
-            // cursor for this step — the next char overwrites cleanly.
-            var isLineBreak = c is '\r' or '\n';
-
-            if (cursor != TypewriterCursor.None && i < text.Length - 1 && !isLineBreak)
-            {
-                Console.Out.Write(GlyphFor(cursor));
-                prevCursor = true;
-            }
         }
-
-        // Always end without a trailing cursor.
-        if (prevCursor)
+        finally
         {
-            // Erase the cursor glyph: move back, write space, move back.
-            Console.Out.Write(AnsiCodes.CursorLeft1);
-            Console.Out.Write(' ');
-            Console.Out.Write(AnsiCodes.CursorLeft1);
+            FinishReveal(prevCursor, colorActive, hidCursor);
         }
-        if (colorActive) Console.Out.Write(AnsiCodes.Reset);
-        if (hidCursor) Console.Out.Write(AnsiCodes.ShowCursor);
     }
 
     /// <summary>
-    /// <see cref="Type"/> followed by a newline.
+    /// Async variant of <see cref="Type"/>. Pauses with
+    /// <see cref="Task.Delay(int, CancellationToken)"/>, so cancellation
+    /// aborts the reveal immediately and the <c>finally</c> block restores
+    /// the cursor and color before propagating
+    /// <see cref="OperationCanceledException"/>.
     /// </summary>
+    public static async Task TypeAsync(
+        string text,
+        int msPerChar = 30,
+        Color? fg = null,
+        TypewriterCursor cursor = TypewriterCursor.None,
+        TypewriterFade fade = TypewriterFade.None,
+        (Color from, Color to)? gradient = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrEmpty(text)) return;
+
+        var ansi = ResolveAnsi(ref cursor, ref fade);
+
+        if (msPerChar <= 0)
+        {
+            DumpInstantly(text, fg, gradient);
+            return;
+        }
+
+        var hasGradient = HasGradient(gradient);
+        var hidCursor = false;
+        if (ansi)
+        {
+            Console.Out.Write(AnsiCodes.HideCursor);
+            hidCursor = true;
+        }
+
+        var colorActive = false;
+        var prevCursor = false;
+
+        try
+        {
+            for (var i = 0; i < text.Length; i++)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (prevCursor)
+                {
+                    Console.Out.Write(AnsiCodes.CursorLeft1);
+                    prevCursor = false;
+                }
+
+                var c = text[i];
+                var color = ResolveColor(i, text.Length, hasGradient, gradient, fg);
+                await EmitCharAsync(c, color, ansi, fade, msPerChar, cancellationToken).ConfigureAwait(false);
+                if (color is not null && ansi) colorActive = true;
+
+                if (ShouldEmitCursor(c, cursor, i, text.Length))
+                {
+                    Console.Out.Write(GlyphFor(cursor));
+                    prevCursor = true;
+                }
+            }
+        }
+        finally
+        {
+            FinishReveal(prevCursor, colorActive, hidCursor);
+        }
+    }
+
+    /// <summary><see cref="Type"/> followed by a newline.</summary>
     public static void TypeLine(
         string text,
         int msPerChar = 30,
@@ -166,6 +162,125 @@ public static class Typewriter
         Console.Out.WriteLine();
     }
 
+    /// <summary><see cref="TypeAsync"/> followed by a newline.</summary>
+    public static async Task TypeLineAsync(
+        string text,
+        int msPerChar = 30,
+        Color? fg = null,
+        TypewriterCursor cursor = TypewriterCursor.None,
+        TypewriterFade fade = TypewriterFade.None,
+        (Color from, Color to)? gradient = null,
+        CancellationToken cancellationToken = default)
+    {
+        await TypeAsync(text, msPerChar, fg, cursor, fade, gradient, cancellationToken).ConfigureAwait(false);
+        Console.Out.WriteLine();
+    }
+
+    // ─── shared helpers ──────────────────────────────────────────────────
+
+    private static bool ResolveAnsi(ref TypewriterCursor cursor, ref TypewriterFade fade)
+    {
+        // Cursor and fade animations rely on CSI cursor-left to overwrite
+        // the previous frame in place. With ANSI off (output redirected,
+        // NO_COLOR, dumb terminal) those escapes don't apply, so we'd leave
+        // every intermediate glyph on screen. Disable the animations and
+        // dump the final string instead — readable in logs, still typed.
+        var ansi = Crt.ColorEnabled;
+        if (!ansi)
+        {
+            cursor = TypewriterCursor.None;
+            fade = TypewriterFade.None;
+        }
+        return ansi;
+    }
+
+    private static bool HasGradient((Color from, Color to)? gradient)
+        => gradient is { } g
+            && g.from.Mode == ColorMode.Truecolor
+            && g.to.Mode == ColorMode.Truecolor;
+
+    private static Color? ResolveColor(int i, int n, bool hasGradient, (Color from, Color to)? gradient, Color? fg)
+        => hasGradient
+            ? Banner.Interpolate(gradient!.Value.from, gradient.Value.to, i, n)
+            : fg;
+
+    private static bool ShouldEmitCursor(char c, TypewriterCursor cursor, int i, int n)
+    {
+        // After CR/LF cursor-left tracking points at the new line, so a
+        // fake cursor would clobber whatever was already there. Skip the
+        // cursor for this step — the next char overwrites cleanly.
+        if (c is '\r' or '\n') return false;
+        return cursor != TypewriterCursor.None && i < n - 1;
+    }
+
+    private static void DumpInstantly(string text, Color? fg, (Color from, Color to)? gradient)
+    {
+        if (gradient is { } g0 && g0.from.Mode == ColorMode.Truecolor && g0.to.Mode == ColorMode.Truecolor)
+        {
+            for (var i = 0; i < text.Length; i++)
+                WriteWithColor(text[i].ToString(), Banner.Interpolate(g0.from, g0.to, i, text.Length));
+        }
+        else if (fg is { } f0)
+        {
+            WriteWithColor(text, f0);
+        }
+        else
+        {
+            Console.Out.Write(text);
+        }
+    }
+
+    private static void EmitChar(char c, Color? color, bool ansi, TypewriterFade fade,
+                                 ref bool colorActive, int msSync)
+    {
+        // Whitespace and control: no fade, just write and pace.
+        if (c is ' ' or '\t' or '\r' or '\n' || char.IsControl(c))
+        {
+            if (ansi && color is { } w) { ApplyColor(w); colorActive = true; }
+            Console.Out.Write(c);
+            Sleep(msSync);
+            return;
+        }
+
+        if (CanAlpha(fade, ansi, color))
+        {
+            DoAlphaFade(c, color!.Value, msSync);
+            colorActive = true;
+            return;
+        }
+
+        if (ansi && color is { } n) { ApplyColor(n); colorActive = true; }
+        Console.Out.Write(c);
+        Sleep(msSync);
+    }
+
+    private static async Task EmitCharAsync(char c, Color? color, bool ansi, TypewriterFade fade,
+                                            int msPerChar, CancellationToken ct)
+    {
+        if (c is ' ' or '\t' or '\r' or '\n' || char.IsControl(c))
+        {
+            if (ansi && color is { } w) ApplyColor(w);
+            Console.Out.Write(c);
+            await DelayAsync(msPerChar, ct).ConfigureAwait(false);
+            return;
+        }
+
+        if (CanAlpha(fade, ansi, color))
+        {
+            await DoAlphaFadeAsync(c, color!.Value, msPerChar, ct).ConfigureAwait(false);
+            return;
+        }
+
+        if (ansi && color is { } n) ApplyColor(n);
+        Console.Out.Write(c);
+        await DelayAsync(msPerChar, ct).ConfigureAwait(false);
+    }
+
+    private static bool CanAlpha(TypewriterFade fade, bool ansi, Color? color)
+        => fade == TypewriterFade.Alpha
+            && ansi
+            && color is { Mode: ColorMode.Truecolor };
+
     private static void DoAlphaFade(char c, Color target, int totalMs)
     {
         const int frames = 4;
@@ -175,18 +290,49 @@ public static class Typewriter
         for (var i = 0; i < frames; i++)
         {
             if (i > 0) Console.Out.Write(AnsiCodes.CursorLeft1);
-
-            // Brightness ramp: 0.25, 0.5, 0.75, 1.0. Final frame lands on
-            // the real target color so any later styling reads correctly.
-            var t = (i + 1) / (double)frames;
-            var dim = Color.Rgb(
-                (byte)(target.R * t),
-                (byte)(target.G * t),
-                (byte)(target.B * t));
-            ApplyColor(dim);
+            ApplyColor(DimColor(target, i, frames));
             Console.Out.Write(c);
             Sleep(per);
         }
+    }
+
+    private static async Task DoAlphaFadeAsync(char c, Color target, int totalMs, CancellationToken ct)
+    {
+        const int frames = 4;
+        var per = totalMs / frames;
+        if (per < 1) per = 1;
+
+        for (var i = 0; i < frames; i++)
+        {
+            if (i > 0) Console.Out.Write(AnsiCodes.CursorLeft1);
+            ApplyColor(DimColor(target, i, frames));
+            Console.Out.Write(c);
+            await DelayAsync(per, ct).ConfigureAwait(false);
+        }
+    }
+
+    private static Color DimColor(Color target, int frameIndex, int frames)
+    {
+        // Brightness ramp: 0.25, 0.5, 0.75, 1.0. Final frame lands on the
+        // real target color so any later styling reads correctly.
+        var t = (frameIndex + 1) / (double)frames;
+        return Color.Rgb(
+            (byte)(target.R * t),
+            (byte)(target.G * t),
+            (byte)(target.B * t));
+    }
+
+    private static void FinishReveal(bool prevCursor, bool colorActive, bool hidCursor)
+    {
+        if (prevCursor)
+        {
+            // Erase the cursor glyph: move back, write space, move back.
+            Console.Out.Write(AnsiCodes.CursorLeft1);
+            Console.Out.Write(' ');
+            Console.Out.Write(AnsiCodes.CursorLeft1);
+        }
+        if (colorActive) Console.Out.Write(AnsiCodes.Reset);
+        if (hidCursor) Console.Out.Write(AnsiCodes.ShowCursor);
     }
 
     private static char GlyphFor(TypewriterCursor cursor) => cursor switch
@@ -217,4 +363,7 @@ public static class Typewriter
     {
         if (ms > 0) Thread.Sleep(ms);
     }
+
+    private static Task DelayAsync(int ms, CancellationToken ct)
+        => ms > 0 ? Task.Delay(ms, ct) : Task.CompletedTask;
 }
