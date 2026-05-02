@@ -1,0 +1,40 @@
+name: mutation
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Run weekly on Mondays at 04:00 UTC. Mutation testing is too slow
+    # for every PR but valuable as a periodic quality probe.
+    - cron: '0 4 * * 1'
+
+permissions:
+  contents: read
+
+jobs:
+  stryker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore tools
+        run: dotnet tool restore
+
+      - name: Restore packages
+        run: dotnet restore Retro.Crt.slnx
+
+      - name: Run Stryker
+        run: dotnet stryker --config-file stryker-config.json
+
+      - name: Upload mutation report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stryker-report
+          path: StrykerOutput/**/reports/mutation-report.html
+          if-no-files-found: warn

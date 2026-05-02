@@ -1,0 +1,51 @@
+name: Feature request
+description: Suggest an addition that fits the Retro.Crt vibe.
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before opening: Retro.Crt is intentionally tiny. Please skim
+        [CONTRIBUTING.md](../blob/main/CONTRIBUTING.md) — there's a list
+        of "what fits / probably no". The Roadmap also covers a few
+        items that are already planned.
+
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation
+      description: |
+        What problem are you trying to solve? Concrete use case, not
+        "wouldn't it be nice if".
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed API
+      description: How should this look from the caller's side?
+      render: csharp
+      placeholder: |
+        Crt.NewMethod(...);
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Why not solve this with the existing API or a different library?
+
+  - type: checkboxes
+    id: vibe-check
+    attributes:
+      label: Vibe check
+      description: Confirm that your idea fits Retro.Crt's scope.
+      options:
+        - label: Does not require a NuGet dependency in the library project.
+          required: true
+        - label: Trim/AOT clean — no reflection, no JSON without source-gen.
+          required: true
+        - label: Belongs in a tiny console library, not a full TUI framework.
+          required: true

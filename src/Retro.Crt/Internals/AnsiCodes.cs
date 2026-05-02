@@ -55,19 +55,28 @@ internal static class AnsiCodes
     // This table maps a BIOS color index 0..7 onto its SGR offset.
     private static readonly byte[] BiosToSgr = [0, 4, 2, 6, 1, 5, 3, 7];
 
-    private static string Standard16Fg(byte index)
+    // Pre-built SGR sequences for the 16 standard palette slots, indexed
+    // by BIOS color index. These are the most frequently emitted escapes
+    // (Log levels, themed CRT-style output) and caching kills the
+    // string.Create allocation that otherwise happens on every emit.
+    private static readonly string[] Standard16FgCache = BuildStandard16(isFg: true);
+    private static readonly string[] Standard16BgCache = BuildStandard16(isFg: false);
+
+    private static string[] BuildStandard16(bool isFg)
     {
-        var bright = index >= 8;
-        var sgr = BiosToSgr[index & 0x7];
-        var code = bright ? 90 + sgr : 30 + sgr;
-        return string.Create(CultureInfo.InvariantCulture, $"{Csi}{code}m");
+        var result = new string[16];
+        for (var i = 0; i < 16; i++)
+        {
+            var bright = i >= 8;
+            var sgr = BiosToSgr[i & 0x7];
+            var baseCode = isFg
+                ? (bright ? 90 : 30)
+                : (bright ? 100 : 40);
+            result[i] = string.Create(CultureInfo.InvariantCulture, $"{Csi}{baseCode + sgr}m");
+        }
+        return result;
     }
 
-    private static string Standard16Bg(byte index)
-    {
-        var bright = index >= 8;
-        var sgr = BiosToSgr[index & 0x7];
-        var code = bright ? 100 + sgr : 40 + sgr;
-        return string.Create(CultureInfo.InvariantCulture, $"{Csi}{code}m");
-    }
+    private static string Standard16Fg(byte index) => Standard16FgCache[index];
+    private static string Standard16Bg(byte index) => Standard16BgCache[index];
 }

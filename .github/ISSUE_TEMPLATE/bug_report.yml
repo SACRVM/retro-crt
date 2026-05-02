@@ -1,0 +1,75 @@
+name: Bug report
+description: Something Retro.Crt does is wrong.
+labels: [bug]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A short, factual description.
+      placeholder: |
+        I called Banner.Box("hi") on macOS and saw …
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Reproduction
+      description: Smallest possible code snippet that reproduces the bug.
+      render: csharp
+      placeholder: |
+        using Retro.Crt;
+        Banner.Box("hi");
+    validations:
+      required: true
+
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics output
+      description: |
+        Output of `Diagnostics.Capture().ToString()` from the affected
+        process. This is the single most useful piece of information
+        for terminal-related issues.
+      placeholder: |
+        ansi=on unicode=on redirected=no TERM=xterm-256color enc=utf-8(65001) os=linux
+      render: text
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Retro.Crt version
+      placeholder: "0.2.0"
+    validations:
+      required: true
+
+  - type: input
+    id: dotnet
+    attributes:
+      label: .NET SDK version
+      description: Output of `dotnet --version`.
+      placeholder: "10.0.100"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - Linux
+        - macOS
+        - Windows
+        - Other (specify in description)
+    validations:
+      required: true

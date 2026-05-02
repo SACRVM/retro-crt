@@ -40,3 +40,14 @@ desktop.ini
 *.stackdump
 *.tmp
 *.log
+
+# DocFX output
+docs/_site/
+docs/api/
+docs/obj/
+
+# Stryker output
+StrykerOutput/
+
+# BenchmarkDotNet output
+BenchmarkDotNet.Artifacts/

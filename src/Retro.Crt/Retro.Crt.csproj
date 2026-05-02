@@ -38,6 +38,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="Retro.Crt.Tests" />
+    <InternalsVisibleTo Include="Retro.Crt.Bench" />
   </ItemGroup>
 
 </Project>

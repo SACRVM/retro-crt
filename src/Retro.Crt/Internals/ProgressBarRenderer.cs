@@ -49,7 +49,8 @@ internal static class ProgressBarRenderer
 
     /// <summary>
     /// Optional label, then the bar, then optional percent. Leading space
-    /// after the label so callers don't need to.
+    /// after the label so callers don't need to. Single allocation per
+    /// call (the returned string itself).
     /// </summary>
     public static string RenderFrame(
         string? label,
@@ -59,15 +60,80 @@ internal static class ProgressBarRenderer
         char emptyChar,
         bool showPercent)
     {
+        if (width <= 0) width = 0;
+        if (width > MaxWidth) width = MaxWidth;
+
         var filled = FilledCells(ratio, width);
-        var bar = RenderBar(filled, width, fullChar, emptyChar);
+        var labelLen = string.IsNullOrEmpty(label) ? 0 : label!.Length;
+        var labelSpace = labelLen > 0 ? 1 : 0;
+        var pct = showPercent ? Clamp01Percent(ratio) : 0;
+        // Percent suffix is " ddd%" — five chars total, with the percent
+        // value right-aligned in three.
+        const int pctLen = 5;
+        var pctTotal = showPercent ? pctLen : 0;
+        var totalLen = labelLen + labelSpace + width + pctTotal;
 
-        if (string.IsNullOrEmpty(label) && !showPercent) return bar;
+        if (totalLen == 0) return string.Empty;
 
-        var pct = showPercent
-            ? " " + ((int)(ratio * 100)).ToString(CultureInfo.InvariantCulture).PadLeft(3) + "%"
-            : "";
-        var lbl = string.IsNullOrEmpty(label) ? "" : label + " ";
-        return lbl + bar + pct;
+        return string.Create(totalLen,
+            new FrameState(label, labelLen, width, filled, fullChar, emptyChar, showPercent, pct),
+            static (span, s) =>
+            {
+                var pos = 0;
+
+                if (s.LabelLen > 0)
+                {
+                    s.Label!.AsSpan().CopyTo(span);
+                    pos += s.LabelLen;
+                    span[pos++] = ' ';
+                }
+
+                for (var i = 0; i < s.Width; i++)
+                    span[pos + i] = i < s.Filled ? s.FullChar : s.EmptyChar;
+                pos += s.Width;
+
+                if (s.ShowPercent)
+                {
+                    var p = s.Pct;
+                    span[pos++] = ' ';
+                    if (p < 10)
+                    {
+                        span[pos++] = ' ';
+                        span[pos++] = ' ';
+                        span[pos++] = (char)('0' + p);
+                    }
+                    else if (p < 100)
+                    {
+                        span[pos++] = ' ';
+                        span[pos++] = (char)('0' + p / 10);
+                        span[pos++] = (char)('0' + p % 10);
+                    }
+                    else
+                    {
+                        span[pos++] = (char)('0' + p / 100);
+                        span[pos++] = (char)('0' + (p / 10) % 10);
+                        span[pos++] = (char)('0' + p % 10);
+                    }
+                    span[pos++] = '%';
+                }
+            });
     }
+
+    private static int Clamp01Percent(double ratio)
+    {
+        if (ratio <= 0) return 0;
+        if (ratio >= 1) return 100;
+        var p = (int)(ratio * 100);
+        return p < 0 ? 0 : p > 100 ? 100 : p;
+    }
+
+    private readonly record struct FrameState(
+        string? Label,
+        int LabelLen,
+        int Width,
+        int Filled,
+        char FullChar,
+        char EmptyChar,
+        bool ShowPercent,
+        int Pct);
 }

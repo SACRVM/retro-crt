@@ -1,0 +1,28 @@
+{
+  "stryker-config": {
+    "project": "src/Retro.Crt/Retro.Crt.csproj",
+    "test-projects": [
+      "tests/Retro.Crt.Tests/Retro.Crt.Tests.csproj"
+    ],
+    "reporters": [
+      "html",
+      "json",
+      "progress",
+      "cleartext"
+    ],
+    "thresholds": {
+      "high": 85,
+      "low": 70,
+      "break": 65
+    },
+    "language-version": "Latest",
+    "concurrency": 4,
+    "mutate": [
+      "src/Retro.Crt/**/*.cs",
+      "!src/Retro.Crt/Internals/WindowsVt.cs"
+    ],
+    "ignore-mutations": [
+      "string"
+    ]
+  }
+}

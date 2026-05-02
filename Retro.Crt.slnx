@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/bench/">
+    <Project Path="bench/Retro.Crt.Bench/Retro.Crt.Bench.csproj" />
+  </Folder>
   <Folder Name="/samples/">
     <Project Path="samples/Retro.Crt.Demo/Retro.Crt.Demo.csproj" />
   </Folder>

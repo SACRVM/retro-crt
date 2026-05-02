@@ -1,5 +1,10 @@
 # Retro.Crt
 
+[![ci](https://github.com/chloe-dream/retro-crt/actions/workflows/ci.yml/badge.svg)](https://github.com/chloe-dream/retro-crt/actions/workflows/ci.yml)
+[![docs](https://github.com/chloe-dream/retro-crt/actions/workflows/docs.yml/badge.svg)](https://chloe-dream.github.io/retro-crt)
+[![nuget](https://img.shields.io/nuget/v/Retro.Crt.svg)](https://www.nuget.org/packages/Retro.Crt)
+[![license](https://img.shields.io/github/license/chloe-dream/retro-crt.svg)](LICENSE)
+
 A Pascal CRT-Unit-style console library for modern .NET. Tiny, dependency-
 free, trim- and AOT-clean. ANSI styling, classic `TextColor` / `GotoXY` /
 `ClrScr` verbs, truecolor with graceful 16-color and `NO_COLOR` fallback,
@@ -17,11 +22,16 @@ using (Crt.WithStyle(Color.Yellow, bold: true))
     Crt.WriteLine("> ready.");
 ```
 
+<!-- Demo cast goes here once recorded. To re-record, see CONTRIBUTING.md. -->
+<!-- ![Demo](docs/images/demo.gif) -->
+
 ## Install
 
 ```bash
 dotnet add package Retro.Crt
 ```
+
+API reference: <https://chloe-dream.github.io/retro-crt>
 
 Targets `net10.0`. No third-party dependencies.
 
@@ -31,6 +41,26 @@ Spectre.Console is great, but it does not trim or AOT cleanly, and a
 launcher that ships as a 12 MB single binary cannot afford the runtime
 weight. Retro.Crt is the small, opinionated alternative for tools that
 want curated colored output, a banner, a progress bar, and nothing else.
+
+### Comparison
+
+|                        | Retro.Crt  | Spectre.Console | Pastel    | Crayon |
+|------------------------|------------|-----------------|-----------|--------|
+| Trim / AOT clean       | ✅          | ❌              | ✅        | ✅      |
+| Runtime dependencies   | 0          | many            | 0         | 0      |
+| Truecolor              | ✅          | ✅              | ✅        | ❌      |
+| Pascal-flavoured verbs | ✅          | ❌              | ❌        | ❌      |
+| Framed banner          | ✅          | ✅              | ❌        | ❌      |
+| Progress bar           | ✅ (single)| ✅ (multi/live) | ❌        | ❌      |
+| Tables / trees / forms | ❌          | ✅              | ❌        | ❌      |
+| Live regions / layout  | ❌          | ✅              | ❌        | ❌      |
+| Markup language        | ❌          | ✅              | ❌        | ❌      |
+| Built-in logger        | ✅ (tiny)  | ❌              | ❌        | ❌      |
+
+If you need tables, trees, forms, layouts, or a markup language —
+**use Spectre.Console**. If you need a 12 MB AOT launcher with a
+charming splash screen, four log levels, and a single progress bar —
+this library.
 
 ## How to use
 
