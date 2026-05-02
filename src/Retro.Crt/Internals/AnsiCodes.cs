@@ -17,7 +17,6 @@ internal static class AnsiCodes
     public const string ClearScreen = Csi + "2J" + Csi + "H";
     public const string ClearToEol  = Csi + "K";
     public const string CursorLeft1 = Csi + "D";
-    public const string CarriageReturnAndClear = "\r" + Csi + "K";
     public const string HideCursor  = Csi + "?25l";
     public const string ShowCursor  = Csi + "?25h";
 

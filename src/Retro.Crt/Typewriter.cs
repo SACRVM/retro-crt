@@ -7,6 +7,12 @@ namespace Retro.Crt;
 /// characters and optional <see cref="TypewriterFade.Alpha"/> fade-in
 /// (brightness ramp on the final glyph). The trailing cursor, if any, is
 /// always erased before <see cref="Type"/> returns.
+/// <para>
+/// Assumes one terminal cell per <see cref="char"/>: surrogate pairs
+/// (emoji), combining marks, and wide CJK glyphs break the
+/// cursor-overwrite tracking used by cursor mode and alpha fade. Stick
+/// to BMP single-cell characters for animated reveals.
+/// </para>
 /// </summary>
 public static class Typewriter
 {
@@ -121,7 +127,12 @@ public static class Typewriter
                 }
             }
 
-            if (cursor != TypewriterCursor.None && i < text.Length - 1)
+            // After CR/LF cursor-left tracking points at the new line, so a
+            // fake cursor would clobber whatever was already there. Skip the
+            // cursor for this step — the next char overwrites cleanly.
+            var isLineBreak = c is '\r' or '\n';
+
+            if (cursor != TypewriterCursor.None && i < text.Length - 1 && !isLineBreak)
             {
                 Console.Out.Write(GlyphFor(cursor));
                 prevCursor = true;

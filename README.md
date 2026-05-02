@@ -157,6 +157,10 @@ no fade (Standard16 has no brightness scaling). When ANSI is off both
 cursor and fade are skipped and the string is dumped at full speed —
 still typed, but without animation residue in logs.
 
+The cursor and fade animations assume one terminal cell per `char`, so
+emoji (surrogate pairs), combining marks, and wide CJK glyphs aren't
+correctly tracked. Stick to BMP single-cell characters when animating.
+
 ## Building from source
 
 ```bash

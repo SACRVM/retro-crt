@@ -11,9 +11,10 @@ internal static class ProgressBarRenderer
 {
     /// <summary>
     /// Maximum permitted bar width. Anything larger is clamped — guards
-    /// against accidental terminal-width overflow and string-build blowups.
+    /// against accidental terminal-width overflow (no real terminal is
+    /// wider than ~150 columns) and string-build blowups.
     /// </summary>
-    public const int MaxWidth = 1024;
+    public const int MaxWidth = 200;
 
     /// <summary>
     /// How many of <paramref name="width"/> cells should be filled for a
