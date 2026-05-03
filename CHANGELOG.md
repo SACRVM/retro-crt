@@ -12,6 +12,11 @@ versions; breaking changes are called out below.
 
 ### Fixed
 
+- `TypewriterFade.Alpha` ramp now starts at 0 (invisible against dark
+  terminal backgrounds) instead of 25%, so the fade-in is actually
+  perceivable at typical per-char paces. The narrow 25%→100% band
+  often read as "no fade" on common monitors. Final frame still
+  lands on the exact target color so subsequent styling matches.
 - `Typewriter.Type` cursor visibility: the fake cursor (`Block`,
   `Underline`, `MatrixBlock`) was emitted *after* the per-char dwell,
   not before, which meant it flashed for ~0 ms before the next

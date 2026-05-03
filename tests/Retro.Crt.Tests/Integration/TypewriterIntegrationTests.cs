@@ -243,6 +243,25 @@ public class TypewriterIntegrationTests
     }
 
     [Fact]
+    public void Alpha_fade_first_frame_is_black_so_char_starts_invisible()
+    {
+        // Regression: previously the ramp was 0.25 → 1.0 which read
+        // as "no fade" at fast paces because the contrast band was too
+        // narrow. New ramp starts at 0 (invisible against dark bg) so
+        // the fade is perceivable even at msPerChar = 50.
+        using var c = ConsoleCapture.Start(ansi: true);
+
+        Typewriter.Type("X", msPerChar: 4,
+            fg: Color.Rgb(200, 100, 50),
+            fade: TypewriterFade.Alpha);
+
+        // First foreground SGR must be all-zero RGB.
+        Assert.Contains("\x1b[38;2;0;0;0m", c.Out);
+        // Last frame must hit the target color exactly.
+        Assert.Contains("\x1b[38;2;200;100;50m", c.Out);
+    }
+
+    [Fact]
     public void Alpha_fade_uses_cursor_left_to_overwrite_previous_frame()
     {
         using var c = ConsoleCapture.Start(ansi: true);

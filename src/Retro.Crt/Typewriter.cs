@@ -443,9 +443,13 @@ public static class Typewriter
 
     private static Color DimColor(Color target, int frameIndex, int frames)
     {
-        // Brightness ramp: 0.25, 0.5, 0.75, 1.0. Final frame lands on the
-        // real target color so any later styling reads correctly.
-        var t = (frameIndex + 1) / (double)frames;
+        // Linear ramp from 0 (invisible against a dark terminal bg) on
+        // the first frame to the full target on the last frame. The
+        // wide invisible→full contrast makes the fade perceivable even
+        // at very fast per-char paces, where a 25%→100% ramp reads as
+        // "no fade" on most monitors. Final frame lands exactly on the
+        // target so subsequent styling matches.
+        var t = frames <= 1 ? 1.0 : (double)frameIndex / (frames - 1);
         return Color.Rgb(
             (byte)(target.R * t),
             (byte)(target.G * t),

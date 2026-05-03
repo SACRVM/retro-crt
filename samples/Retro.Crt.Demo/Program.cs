@@ -185,13 +185,13 @@ static void PrintTypewriterDemo()
 
     Typewriter.TypeLine(
         " alpha fade-in (truecolor)...",
-        msPerChar: 50,
+        msPerChar: 80,
         fg: Color.Rgb(255, 120, 200),
         fade: TypewriterFade.Alpha);
 
     Typewriter.TypeLine(
         " gradient + cursor + alpha fade",
-        msPerChar: 35,
+        msPerChar: 55,
         cursor: TypewriterCursor.Underline,
         fade: TypewriterFade.Alpha,
         gradient: (Color.Rgb(80, 220, 255), Color.Rgb(255, 120, 175)));
