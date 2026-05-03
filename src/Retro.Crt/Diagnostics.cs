@@ -18,23 +18,11 @@ public readonly record struct TerminalReport
     public string? TermEnv { get; init; }
     public bool NoColorSet { get; init; }
     public bool ForceColorSet { get; init; }
-    public string OutputEncoding { get; init; }
+    public string OutputEncoding { get; init; } = "";
     public int OutputCodePage { get; init; }
-    public string OperatingSystem { get; init; }
+    public string OperatingSystem { get; init; } = "";
 
-    public TerminalReport()
-    {
-        SupportsAnsi = false;
-        SupportsUnicode = false;
-        IsOutputRedirected = false;
-        IsErrorRedirected = false;
-        TermEnv = null;
-        NoColorSet = false;
-        ForceColorSet = false;
-        OutputEncoding = "";
-        OutputCodePage = 0;
-        OperatingSystem = "";
-    }
+    public TerminalReport() { }
 
     /// <summary>One-line dense summary, friendly for log output.</summary>
     public override string ToString()
@@ -74,7 +62,7 @@ public static class Diagnostics
         {
             SupportsAnsi = TerminalCapabilities.SupportsAnsi,
             SupportsUnicode = TerminalCapabilities.SupportsUnicode,
-            IsOutputRedirected = SafeIsRedirected(out var stdoutR) && stdoutR,
+            IsOutputRedirected = SafeIsOutRedirected(),
             IsErrorRedirected = SafeIsErrRedirected(),
             TermEnv = Environment.GetEnvironmentVariable("TERM"),
             NoColorSet = HasEnv("NO_COLOR"),
@@ -85,10 +73,10 @@ public static class Diagnostics
         };
     }
 
-    private static bool SafeIsRedirected(out bool redirected)
+    private static bool SafeIsOutRedirected()
     {
-        try { redirected = Console.IsOutputRedirected; return true; }
-        catch { redirected = false; return false; }
+        try { return Console.IsOutputRedirected; }
+        catch { return false; }
     }
 
     private static bool SafeIsErrRedirected()

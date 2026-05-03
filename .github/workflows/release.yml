@@ -1,0 +1,86 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Pack only, do not push to nuget.org'
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  pack-publish:
+    name: pack + publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Verify tag matches csproj <Version>
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          ver=$(grep -oPm1 '(?<=<Version>)[^<]+' src/Retro.Crt/Retro.Crt.csproj)
+          echo "tag=$tag csproj=$ver"
+          if [ "$tag" != "$ver" ]; then
+            echo "::error::Tag v$tag does not match csproj <Version>$ver"
+            exit 1
+          fi
+
+      - name: Restore
+        run: dotnet restore Retro.Crt.slnx
+
+      - name: Build
+        run: dotnet build Retro.Crt.slnx --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test Retro.Crt.slnx --configuration Release --no-build --nologo
+
+      - name: Pack
+        run: dotnet pack src/Retro.Crt/Retro.Crt.csproj --configuration Release --no-build --output nupkg
+
+      - name: Upload nupkg artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: retro-crt-nupkg
+          path: nupkg/*.*nupkg
+
+      - name: Push to nuget.org
+        if: startsWith(github.ref, 'refs/tags/v') || github.event.inputs.dry_run == 'false'
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: |
+          if [ -z "$NUGET_API_KEY" ]; then
+            echo "::error::NUGET_API_KEY secret is not set"
+            exit 1
+          fi
+          dotnet nuget push 'nupkg/*.nupkg' \
+            --source https://api.nuget.org/v3/index.json \
+            --api-key "$NUGET_API_KEY" \
+            --skip-duplicate
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: nupkg/*.*nupkg
+          generate_release_notes: true
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-') }}

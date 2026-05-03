@@ -8,6 +8,8 @@ versions; breaking changes are called out below.
 
 ## [Unreleased]
 
+## [0.2.1] — 2026-05-03
+
 ### Added
 
 - `Color.TryParse`, `TryFromHex`, `TryFromName`, `FromHex` — parse
@@ -24,6 +26,9 @@ versions; breaking changes are called out below.
 - DocFX site under `docs/`, deployed to GitHub Pages via
   `.github/workflows/docs.yml`.
 - Stryker mutation-testing config + scheduled CI workflow.
+- Release pipeline: `.github/workflows/release.yml` packs and publishes
+  to nuget.org on `v*.*.*` tag pushes, with tag↔csproj version check
+  and a GitHub Release artifact.
 - Issue and PR templates, security policy, contributing guide,
   dependabot config.
 
@@ -34,6 +39,10 @@ versions; breaking changes are called out below.
   frame (-65 %), wall-clock from ~84 ns to ~29 ns (-66 %).
 - `AnsiCodes.Foreground` / `Background` for the 16 standard palette
   slots are now zero-alloc (precomputed strings).
+- `Diagnostics.Capture` redirection check simplified
+  (`SafeIsOutRedirected` mirrors `SafeIsErrRedirected`); `TerminalReport`
+  uses property initializers instead of duplicating defaults in the
+  parameterless constructor.
 - CI workflow extended with trim-publish and AOT-publish smoke jobs on
   Linux + macOS, plus per-OS coverage upload.
 
@@ -77,6 +86,7 @@ versions; breaking changes are called out below.
   verbs (`TextColor`, `TextBackground`, `GotoXY`, `ClrScr`, `ClrEol`,
   `WithStyle`), Windows VT enablement via `LibraryImport`.
 
-[Unreleased]: https://github.com/chloe-dream/retro-crt/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/chloe-dream/retro-crt/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/chloe-dream/retro-crt/releases/tag/v0.2.1
 [0.2.0]: https://github.com/chloe-dream/retro-crt/releases/tag/v0.2.0
 [0.1.0]: https://github.com/chloe-dream/retro-crt/releases/tag/v0.1.0
