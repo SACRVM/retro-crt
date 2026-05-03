@@ -191,6 +191,45 @@ When ANSI is unavailable (output redirected, `NO_COLOR`, dumb terminal)
 intermediate updates are suppressed and only the final frame is written —
 so log files do not end up with sixty progress lines in a row.
 
+### Spinner
+
+Single-line animated spinner for "this might take a moment" gestures.
+
+```csharp
+using var s = Spinner.Show("connecting…");
+// ... do work ...
+s.Stop("connected", Color.LightGreen);
+```
+
+`SpinnerStyle` picks the frame set:
+
+- `Pipe` — classic ASCII rotator `| / - \` (default; works everywhere)
+- `Dots` — three trailing dots
+- `Braille` — smooth 10-frame unicode spinner
+- `Block` — rotating quarter blocks
+- `Arc` — rotating quarter-circle arcs
+
+The unicode styles silently fall back to `Pipe` on terminals without
+unicode support.
+
+```csharp
+using var s = Spinner.Show(
+    "downloading",
+    style: SpinnerStyle.Braille,
+    color: Color.LightCyan,
+    msPerFrame: 80);
+
+s.Update("downloading… 50%");
+// later:
+s.Stop("downloaded 4.5 MB", Color.LightGreen);
+```
+
+The spinner owns its line for its lifetime — route writes through
+`Update` / `Stop` rather than calling `Crt.Write` while it spins, or
+your output gets clobbered. Without ANSI support (output redirected,
+`NO_COLOR`, dumb terminal) the spinner does not animate: it writes the
+label once and a newline on `Stop`, so log files stay clean.
+
 ### Log
 
 ```csharp

@@ -10,6 +10,13 @@ versions; breaking changes are called out below.
 
 ### Added
 
+- `Spinner` — single-line animated spinner with five frame styles
+  (`Pipe`, `Dots`, `Braille`, `Block`, `Arc`). `using var s =
+  Spinner.Show("…")` ergonomics; `Update` to change the label
+  mid-spin; `Stop(finalLabel, finalColor)` to leave a closing state in
+  place. Unicode styles fall back to `Pipe` on non-unicode terminals.
+  Without ANSI the label is written once and the spinner does not
+  animate, keeping log files clean.
 - `Theme` record + `Themes` static class with six era-faithful presets:
   `Dos`, `AmberCrt`, `GreenCrt`, `Amiga`, `C64`, `NortonCommander`. Pure
   data (no global state); compose with any color-accepting API. All
