@@ -10,6 +10,19 @@ versions; breaking changes are called out below.
 
 ### Added
 
+### Fixed
+
+- `Typewriter.Type` cursor visibility: the fake cursor (`Block`,
+  `Underline`, `MatrixBlock`) was emitted *after* the per-char dwell,
+  not before, which meant it flashed for ~0 ms before the next
+  iteration overwrote it via cursor-left. The per-char `Sleep` /
+  `Task.Delay` now happens *after* the cursor glyph is written, so
+  it's actually visible during the dwell and visibly trails each
+  character as expected. Alpha-fade chars still consume their own time
+  internally and are excluded from the extra sleep.
+
+### Added
+
 - `TypewriterCursor.MatrixBlock` — chunky full-block (`█`) cursor for
   the "Wake up, Neo" aesthetic. ASCII fallback `#` on non-unicode
   terminals.

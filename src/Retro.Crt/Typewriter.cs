@@ -67,13 +67,19 @@ public static class Typewriter
 
                 var c = text[i];
                 var color = ResolveColor(i, text.Length, hasGradient, gradient, fg);
-                EmitChar(c, color, ansi, fade, ref colorActive, msSync: msPerChar);
+                EmitChar(c, color, ansi, fade, ref colorActive, msPerChar);
 
                 if (ShouldEmitCursor(c, cursor, i, text.Length))
                 {
                     Console.Out.Write(GlyphFor(cursor));
                     prevCursor = true;
                 }
+
+                // Sleep AFTER the cursor emit so the cursor is visible
+                // during the dwell. Alpha fade already consumed
+                // msPerChar internally — skip the extra sleep.
+                if (!ConsumesOwnTime(c, fade, ansi, color))
+                    Sleep(msPerChar);
             }
         }
         finally
@@ -141,6 +147,9 @@ public static class Typewriter
                     Console.Out.Write(GlyphFor(cursor));
                     prevCursor = true;
                 }
+
+                if (!ConsumesOwnTime(c, fade, ansi, color))
+                    await DelayAsync(msPerChar, cancellationToken).ConfigureAwait(false);
             }
         }
         finally
@@ -339,28 +348,31 @@ public static class Typewriter
         }
     }
 
+    // EmitChar writes the glyph (with alpha fade if applicable). The
+    // outer loop is responsible for the post-char sleep so that a fake
+    // cursor written after the char is actually visible during the
+    // dwell, not flashed-and-overwritten between iterations. Alpha
+    // fade does its own internal pacing and consumes the per-char
+    // budget itself — see <see cref="ConsumesOwnTime"/>.
     private static void EmitChar(char c, Color? color, bool ansi, TypewriterFade fade,
-                                 ref bool colorActive, int msSync)
+                                 ref bool colorActive, int msPerChar)
     {
-        // Whitespace and control: no fade, just write and pace.
         if (c is ' ' or '\t' or '\r' or '\n' || char.IsControl(c))
         {
             if (ansi && color is { } w) { ApplyColor(w); colorActive = true; }
             Console.Out.Write(c);
-            Sleep(msSync);
             return;
         }
 
         if (CanAlpha(fade, ansi, color))
         {
-            DoAlphaFade(c, color!.Value, msSync);
+            DoAlphaFade(c, color!.Value, msPerChar);
             colorActive = true;
             return;
         }
 
         if (ansi && color is { } n) { ApplyColor(n); colorActive = true; }
         Console.Out.Write(c);
-        Sleep(msSync);
     }
 
     private static async Task EmitCharAsync(char c, Color? color, bool ansi, TypewriterFade fade,
@@ -370,7 +382,6 @@ public static class Typewriter
         {
             if (ansi && color is { } w) ApplyColor(w);
             Console.Out.Write(c);
-            await DelayAsync(msPerChar, ct).ConfigureAwait(false);
             return;
         }
 
@@ -382,7 +393,17 @@ public static class Typewriter
 
         if (ansi && color is { } n) ApplyColor(n);
         Console.Out.Write(c);
-        await DelayAsync(msPerChar, ct).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// True when the EmitChar path internally consumes <c>msPerChar</c>
+    /// (e.g. alpha fade renders four sub-frames). The outer loop must
+    /// not sleep again, otherwise the per-char time doubles.
+    /// </summary>
+    private static bool ConsumesOwnTime(char c, TypewriterFade fade, bool ansi, Color? color)
+    {
+        if (c is ' ' or '\t' or '\r' or '\n' || char.IsControl(c)) return false;
+        return CanAlpha(fade, ansi, color);
     }
 
     private static bool CanAlpha(TypewriterFade fade, bool ansi, Color? color)

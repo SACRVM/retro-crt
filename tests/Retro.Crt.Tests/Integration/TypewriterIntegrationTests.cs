@@ -93,6 +93,35 @@ public class TypewriterIntegrationTests
     }
 
     [Fact]
+    public void Cursor_is_written_before_per_char_dwell_so_it_remains_visible()
+    {
+        // Regression: previously the per-char Sleep happened inside
+        // EmitChar, which meant the fake cursor was emitted only AFTER
+        // the dwell ended — flashed for ~0 ms before the next iteration
+        // overwrote it via cursor-left. The fix moves the sleep to AFTER
+        // the cursor write. This test pins the resulting byte order:
+        // for each non-final char, the cursor glyph must appear BEFORE
+        // the cursor-left of the next iteration.
+        using var c = ConsoleCapture.Start(ansi: true, unicode: true);
+
+        Typewriter.Type("ab", msPerChar: 1, fg: Color.LightGreen,
+            cursor: TypewriterCursor.MatrixBlock);
+
+        // The order of relevant tokens after writing 'a':
+        //   'a' → cursor glyph '█' → cursor-left → 'b'
+        var output = c.Out;
+        var aIdx = output.IndexOf('a');
+        var glyphIdx = output.IndexOf('█');
+        var leftIdx = output.IndexOf("\x1b[D", aIdx);
+        var bIdx = output.IndexOf('b');
+
+        Assert.True(aIdx >= 0,    "'a' should be in output");
+        Assert.True(glyphIdx > aIdx, "cursor glyph should be written after 'a'");
+        Assert.True(leftIdx > glyphIdx, "cursor-left should follow the cursor glyph");
+        Assert.True(bIdx > leftIdx, "'b' should be written after cursor-left");
+    }
+
+    [Fact]
     public void Type_with_MatrixBlock_cursor_emits_full_block_glyph()
     {
         using var c = ConsoleCapture.Start(ansi: true, unicode: true);
