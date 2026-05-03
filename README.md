@@ -26,9 +26,15 @@ using (Crt.WithStyle(Color.Yellow, bold: true))
     Crt.WriteLine("> ready.");
 ```
 
-> **Demo cast coming soon** — `samples/Retro.Crt.Demo` is the live tour
-> in the meantime: `dotnet run --project samples/Retro.Crt.Demo`.
-<!-- TODO: record asciinema cast → docs/images/demo.cast — see CONTRIBUTING.md -->
+> **Demos to run live** (cast recordings coming soon):
+>
+> ```bash
+> dotnet run --project samples/Retro.Crt.Demo            # 25 s feature tour
+> dotnet run --project samples/Retro.Crt.Themes.Demo     # all 6 themes side by side
+> dotnet run --project samples/Retro.Crt.Matrix.Demo     # "Wake up, Neo" cinematic
+> dotnet run --project samples/Retro.Crt.Boot.Demo       # fake AMIBIOS POST + DOS prompt
+> ```
+<!-- TODO: record asciinema casts via ./scripts/record-demo.{ps1,sh} — see CONTRIBUTING.md -->
 
 API reference: <https://chloe-dream.github.io/retro-crt>.
 Targets `net10.0`. No third-party dependencies.

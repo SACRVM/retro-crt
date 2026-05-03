@@ -23,6 +23,18 @@ versions; breaking changes are called out below.
 
 ### Added
 
+- Three new sample showcases under `samples/`:
+  - `Retro.Crt.Themes.Demo` — walks through every built-in theme
+    side by side so the palette differences are immediately visible.
+  - `Retro.Crt.Matrix.Demo` — the iconic "Wake up, Neo" cinematic
+    using `MatrixBlock` cursor + `Blink` + `GreenCrt` theme.
+  - `Retro.Crt.Boot.Demo` — fake AMIBIOS POST sequence with
+    Banner, Typewriter, Spinner, ProgressBar, Log, and a blinking
+    `C:\>` shell prompt. Comprehensive feature usage in one
+    nostalgia-bath.
+- `scripts/record-demo.ps1` and `record-demo.sh` now accept a `-Demo`
+  parameter (`tour` / `themes` / `matrix` / `boot`) to record any of
+  the showcases as `docs/images/<demo>.cast` plus an animated GIF.
 - `Prompt` — tiny interactive prompts: `Confirm` (yes/no, single
   keystroke), `Ask` (full line with optional default echoed in
   brackets), `Select` (arrow-key menu, returns the chosen index).

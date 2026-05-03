@@ -86,21 +86,35 @@ dotnet publish samples/Retro.Crt.Demo \
   `Log`), include a before/after table from
   `bench/Retro.Crt.Bench` in the PR description.
 
-## Recording the demo cast
+## Recording the demo casts
 
-The demo is shipped as an asciinema cast in `docs/images/demo.cast`
-plus a rendered GIF in `docs/images/demo.gif`. Both are version-
-controlled; the cast is the canonical source.
+Retro.Crt ships **four** sample showcases under `samples/`, each with
+its own asciinema cast in `docs/images/<demo>.cast` plus a rendered
+GIF in `docs/images/<demo>.gif`. Both are version-controlled; the
+cast is the canonical source.
 
-Use the helper scripts (they build the demo, record at 80×24 to match
-DOS-era terminals, and render the GIF if `agg` is on PATH):
+| `-Demo`  | Project                         | Vibe                                      |
+|----------|---------------------------------|-------------------------------------------|
+| `tour`   | `Retro.Crt.Demo`                | The 25-second feature tour (default)      |
+| `themes` | `Retro.Crt.Themes.Demo`         | All six built-in themes side by side      |
+| `matrix` | `Retro.Crt.Matrix.Demo`         | "Wake up, Neo" cinematic                  |
+| `boot`   | `Retro.Crt.Boot.Demo`           | Fake AMIBIOS POST + DOS prompt            |
+
+Use the helper scripts (they build the chosen demo, record at 80×24
+to match DOS-era terminals, and render the GIF if `agg` is on PATH):
 
 ```powershell
-pwsh ./scripts/record-demo.ps1     # Windows / cross-platform
+pwsh ./scripts/record-demo.ps1                      # default: tour
+pwsh ./scripts/record-demo.ps1 -Demo matrix
+pwsh ./scripts/record-demo.ps1 -Demo themes
+pwsh ./scripts/record-demo.ps1 -Demo boot
 ```
 
 ```bash
-./scripts/record-demo.sh           # Linux / macOS / WSL
+./scripts/record-demo.sh                            # default: tour
+./scripts/record-demo.sh matrix
+./scripts/record-demo.sh themes
+./scripts/record-demo.sh boot
 ```
 
 Prereqs (install once):
