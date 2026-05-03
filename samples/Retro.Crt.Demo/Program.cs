@@ -1,38 +1,41 @@
 using Retro.Crt;
 
-// A quick tour of what Retro.Crt can do today. Run with `dotnet run` from
-// samples/Retro.Crt.Demo and you should see colored output, a banner, a tiny
-// progress bar, log output, and a typewriter intro.
+// A quick tour of what Retro.Crt can do. Tuned to record well as an
+// asciinema cast (~20 s end-to-end) while still reading fine live —
+// short Pause() calls between sections give the viewer time to absorb
+// each block without making the live run feel slow.
 
 Crt.ResetColor();
 Crt.WriteLine();
 
 PrintGradientBanner();
+Pause();
 
-Crt.WriteLine();
 PrintBoxBanner();
+Pause();
 
-Crt.WriteLine();
 PrintStandardPalette();
+Pause();
 
-Crt.WriteLine();
 PrintTruecolorGradient();
+Pause();
 
-Crt.WriteLine();
-PrintWithStyleDemo();
+PrintStatusLine();
+Pause();
 
-Crt.WriteLine();
 PrintLogDemo();
+Pause();
 
-Crt.WriteLine();
 PrintTypewriterDemo();
+Pause();
 
-Crt.WriteLine();
 PrintProgressBarDemo();
 
 Crt.WriteLine();
 Crt.ResetColor();
 return 0;
+
+static void Pause() => Thread.Sleep(550);
 
 static void PrintGradientBanner()
 {
@@ -53,7 +56,7 @@ static void PrintGradientBanner()
 static void PrintBoxBanner()
 {
     Banner.Box(
-        ["Retro.Crt 0.2", "Stage 2: Banner / Bar / Log / Typewriter"],
+        ["Retro.Crt", "tiny  ·  zero-dep  ·  AOT-clean"],
         fg: Color.LightCyan);
 }
 
@@ -75,7 +78,7 @@ static void PrintStandardPalette()
     ];
 
     using (Crt.WithStyle(fg: Color.LightGray))
-        Crt.WriteLine("Standard16 palette (terminal-themed):");
+        Crt.WriteLine("Standard16 palette:");
 
     for (var i = 0; i < palette.Length; i++)
     {
@@ -88,9 +91,9 @@ static void PrintStandardPalette()
 static void PrintTruecolorGradient()
 {
     using (Crt.WithStyle(fg: Color.LightGray))
-        Crt.WriteLine("Truecolor gradient:");
+        Crt.WriteLine("Truecolor:");
 
-    const int width = 60;
+    const int width = 50;
     for (var x = 0; x < width; x++)
     {
         var t = (double)x / (width - 1);
@@ -104,7 +107,7 @@ static void PrintTruecolorGradient()
     Crt.WriteLine();
 }
 
-static void PrintWithStyleDemo()
+static void PrintStatusLine()
 {
     Crt.Write(" status: ");
     using (Crt.WithStyle(fg: Color.LightGreen, bold: true))
@@ -120,7 +123,7 @@ static void PrintWithStyleDemo()
 static void PrintLogDemo()
 {
     using (Crt.WithStyle(fg: Color.LightGray))
-        Crt.WriteLine("Log levels:");
+        Crt.WriteLine("Log:");
 
     Log.Debug("loading config from /etc/retro");
     Log.Info("system online");
@@ -136,24 +139,18 @@ static void PrintTypewriterDemo()
 
     Typewriter.TypeLine(
         " plain typing...",
-        msPerChar: 25,
+        msPerChar: 22,
         fg: Color.LightCyan);
 
     Typewriter.TypeLine(
         " with a fake cursor...",
-        msPerChar: 30,
+        msPerChar: 26,
         fg: Color.LightGreen,
         cursor: TypewriterCursor.Block);
 
     Typewriter.TypeLine(
-        " alpha fade-in (truecolor)...",
-        msPerChar: 50,
-        fg: Color.Rgb(255, 120, 200),
-        fade: TypewriterFade.Alpha);
-
-    Typewriter.TypeLine(
         " gradient + cursor + alpha fade",
-        msPerChar: 40,
+        msPerChar: 32,
         cursor: TypewriterCursor.Block,
         fade: TypewriterFade.Alpha,
         gradient: (Color.Rgb(80, 220, 255), Color.Rgb(255, 120, 175)));
@@ -167,11 +164,11 @@ static void PrintProgressBarDemo()
     const long total = 4_500_000;
     using var bar = ProgressBar.Start(total, width: 30, label: " download", color: Color.LightCyan);
 
-    const int steps = 60;
+    const int steps = 40;
     for (var step = 0; step <= steps; step++)
     {
         var done = (long)(total * ((double)step / steps));
         bar.Set(done);
-        Thread.Sleep(120);
+        Thread.Sleep(75);
     }
 }

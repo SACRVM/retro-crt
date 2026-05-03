@@ -88,18 +88,33 @@ dotnet publish samples/Retro.Crt.Demo \
 
 ## Recording the demo cast
 
-The demo is shipped as an asciinema cast in `docs/images/demo.cast`.
-To re-record after API changes:
+The demo is shipped as an asciinema cast in `docs/images/demo.cast`
+plus a rendered GIF in `docs/images/demo.gif`. Both are version-
+controlled; the cast is the canonical source.
 
-```bash
-asciinema rec docs/images/demo.cast \
-    -c "dotnet run --project samples/Retro.Crt.Demo -c Release" \
-    --overwrite \
-    --idle-time-limit 1
+Use the helper scripts (they build the demo, record at 80×24 to match
+DOS-era terminals, and render the GIF if `agg` is on PATH):
+
+```powershell
+pwsh ./scripts/record-demo.ps1     # Windows / cross-platform
 ```
 
-The README embeds the cast via `asciinema-player`. Keep the cast under
-60 s — anything longer reads as bloat.
+```bash
+./scripts/record-demo.sh           # Linux / macOS / WSL
+```
+
+Prereqs (install once):
+
+- `asciinema` — `winget install asciinema` on Windows, package manager
+  on Linux/macOS.
+- `agg` — `cargo install --git https://github.com/asciinema/agg`.
+  Without it the script still records the cast; only the GIF is
+  skipped.
+
+Tuning knobs are environment variables (POSIX) or parameters
+(PowerShell): `COLS`, `ROWS`, `THEME`, `SPEED`, `FONT_SIZE`. Keep the
+cast under 60 s — anything longer reads as bloat. The current demo
+program is tuned to ~20 s end-to-end.
 
 ## Commit messages
 
