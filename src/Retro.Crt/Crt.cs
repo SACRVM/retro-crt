@@ -226,6 +226,18 @@ public static class Crt
             if (_disposed) return;
             _disposed = true;
             Sink.Write(AnsiCodes.Reset);
+
+            // Reset clears every SGR including the active theme's
+            // foreground / background. Re-apply them so subsequent
+            // plain Crt.Write calls keep rendering in the theme's
+            // colors — the README promises "Crt.Write inside a theme
+            // renders in theme.Foreground on theme.Background", and
+            // a Banner / WithStyle nest must not break that promise.
+            if (_currentTheme is { } t)
+            {
+                Sink.Write(Emit.Fg(t.Foreground));
+                Sink.Write(Emit.Bg(t.Background));
+            }
         }
     }
 

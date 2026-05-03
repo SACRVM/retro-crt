@@ -146,6 +146,38 @@ public class UseThemeIntegrationTests
     }
 
     [Fact]
+    public void Nested_WithStyle_inside_theme_restores_theme_colors_on_dispose()
+    {
+        // The README promises: "Crt.Write inside a theme renders in
+        // theme.Foreground on theme.Background". A nested Banner /
+        // WithStyle would emit Reset on Dispose and clobber the theme's
+        // SGR — so StyleScope.Dispose re-applies the theme afterwards.
+        // Verify the bytes actually appear in the right order.
+        using var c = ConsoleCapture.Start(ansi: true);
+        var t = Themes.AmberCrt;
+
+        using (Crt.UseTheme(t))
+        {
+            using (Crt.WithStyle(fg: Color.LightCyan))
+                Crt.Write("inside");
+            // After this dispose: Reset + theme.fg + theme.bg should
+            // hit the buffer so the next Write is themed.
+            Crt.Write("after");
+        }
+
+        // The reset for the WithStyle scope must be followed by a
+        // re-application of the theme's fg AND bg before "after" is
+        // written. We don't assume position, just that the sequence
+        // appears between the inner-style write and the outer reset.
+        var fg = "\x1b[38;2;255;176;0m";   // AmberCrt.Foreground
+        var bg = "\x1b[48;2;20;10;0m";     // AmberCrt.Background
+
+        // The full expected suffix once the inner scope has disposed:
+        // Reset, then theme fg+bg, then "after".
+        Assert.Contains("\x1b[0m" + fg + bg + "after", c.Out);
+    }
+
+    [Fact]
     public void UseTheme_without_ansi_only_tracks_state_no_escapes()
     {
         using var c = ConsoleCapture.Start(ansi: false);
