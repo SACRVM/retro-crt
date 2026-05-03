@@ -50,7 +50,7 @@ screen.Flush();                     // emits only changed cells
 
 What this unlocks (all the things DOS apps used to do):
 
-- **Shadow-wurf** without mutating the underlying text — set attr only.
+- **Shadow casting** without mutating the underlying text — set attr only.
 - **Save/restore rectangles** for popups, dialogs, command palettes.
 - **Flicker-free repaint** via dirty-cell diffing instead of full redraws.
 - **Double buffer / backbuffer flip** semantics with explicit `Flush()`.
