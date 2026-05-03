@@ -127,6 +127,12 @@ tests/.../TypewriterIntegrationTests.cs.
 3. PRs that fail CI are not reviewed until green.
 4. One approval is enough; please squash-merge so `main` stays linear.
 
+## Releasing
+
+Maintainers only. The full release loop — version bump, changelog,
+tag, automated publish to nuget.org and GitHub Releases — is documented
+in [RELEASING.md](RELEASING.md).
+
 ## Code of conduct
 
 By participating you agree to follow the
