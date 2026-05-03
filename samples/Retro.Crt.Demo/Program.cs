@@ -26,6 +26,9 @@ Pause();
 PrintLogDemo();
 Pause();
 
+PrintTableDemo();
+Pause();
+
 PrintSpinnerDemo();
 Pause();
 
@@ -133,6 +136,23 @@ static void PrintLogDemo()
     Log.Success("checksum verified");
     Log.Warn("disk usage at 84%");
     Log.Error("failed to bind port 8080");
+}
+
+static void PrintTableDemo()
+{
+    using (Crt.WithStyle(fg: Color.LightGray))
+        Crt.WriteLine("Table:");
+
+    Table.Print(
+        ["Demo",   "Time", "Vibe"],
+        [
+            ["tour",   "24s", "feature tour"],
+            ["themes", "16s", "all 6 themes"],
+            ["matrix", "25s", "wake up, neo"],
+            ["boot",   "22s", "AMIBIOS POST"],
+        ],
+        headerColor: Color.LightCyan,
+        borderColor: Color.DarkGray);
 }
 
 static void PrintSpinnerDemo()
