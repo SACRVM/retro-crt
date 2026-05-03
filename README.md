@@ -92,6 +92,41 @@ if (Color.TryParse(userInput, out var c))
     Crt.TextColor(c);
 ```
 
+### Themes
+
+Six built-in palettes that evoke specific eras, all in truecolor:
+
+- `Themes.Dos` — classic IBM PC / DOS prompt
+- `Themes.AmberCrt` — amber phosphor monochrome terminal
+- `Themes.GreenCrt` — green phosphor monochrome terminal
+- `Themes.Amiga` — Workbench 1.x orange-on-blue
+- `Themes.C64` — Commodore 64 boot screen
+- `Themes.NortonCommander` — deep blue with yellow highlights
+
+Themes are **pure data** — pick the colors you want and pass them to
+any color-accepting API. No global state, no theme manager.
+
+```csharp
+var t = Themes.AmberCrt;
+
+Banner.Box(["RETRO TERMINAL", "v1.0"], fg: t.Accent);
+
+using (Crt.WithStyle(fg: t.Foreground, bg: t.Background))
+    Crt.WriteLine(" system online");
+
+using (Crt.WithStyle(fg: t.Error, bold: true))
+    Crt.WriteLine(" disk i/o failure");
+```
+
+Each theme exposes `Background`, `Foreground`, `Accent`, `Muted`,
+`Success`, `Warn`, and `Error` slots. `Themes.All` returns the full
+list — handy for theme pickers and demos.
+
+Truecolor only. On Standard16-only terminals the closest SGR slot is
+used, which means the *user's* terminal theme tints the result. For a
+faithful retro look, viewers need a truecolor terminal (Windows
+Terminal, iTerm2, modern xterm).
+
 ### Diagnostics
 
 ```csharp

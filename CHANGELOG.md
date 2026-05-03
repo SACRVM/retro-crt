@@ -8,6 +8,14 @@ versions; breaking changes are called out below.
 
 ## [Unreleased]
 
+### Added
+
+- `Theme` record + `Themes` static class with six era-faithful presets:
+  `Dos`, `AmberCrt`, `GreenCrt`, `Amiga`, `C64`, `NortonCommander`. Pure
+  data (no global state); compose with any color-accepting API. All
+  truecolor, with documented graceful fallback on Standard16-only
+  terminals. `Themes.All` exposes the full list for pickers and demos.
+
 ## [0.2.1] — 2026-05-03
 
 ### Added
