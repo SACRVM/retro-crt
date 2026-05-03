@@ -158,7 +158,8 @@ static void PrintTypewriterDemo()
         Crt.WriteLine("Typewriter:");
 
     // Underline cursor (`_`) is universal; Block (`▌`) needs a font with
-    // the U+258C glyph (Cascadia Code, JetBrains Mono).
+    // the U+258C glyph (Cascadia Code, JetBrains Mono). MatrixBlock
+    // (`█`) needs U+2588.
     Typewriter.TypeLine(
         " plain typing...",
         msPerChar: 22,
@@ -169,6 +170,18 @@ static void PrintTypewriterDemo()
         msPerChar: 26,
         fg: Color.LightGreen,
         cursor: TypewriterCursor.Underline);
+
+    // Matrix-style: chunky block cursor blinks for a beat, then types
+    // a phrase, blinks again at the end. Pure Wachowski.
+    Crt.Write(" ");
+    Typewriter.Blink(800, TypewriterCursor.MatrixBlock, fg: Color.LightGreen);
+    Typewriter.Type(
+        "wake up, neo...",
+        msPerChar: 70,
+        fg: Color.LightGreen,
+        cursor: TypewriterCursor.MatrixBlock);
+    Typewriter.Blink(900, TypewriterCursor.MatrixBlock, fg: Color.LightGreen);
+    Crt.WriteLine();
 
     Typewriter.TypeLine(
         " alpha fade-in (truecolor)...",

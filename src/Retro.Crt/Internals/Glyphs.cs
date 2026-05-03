@@ -24,4 +24,5 @@ internal static class Glyphs
     // Typewriter cursor.
     public static char CursorBlock     => Unicode ? '▌' : '|';
     public static char CursorUnderline => '_';
+    public static char CursorMatrix    => Unicode ? '█' : '#';
 }

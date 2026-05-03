@@ -286,6 +286,21 @@ no fade (Standard16 has no brightness scaling). When ANSI is off both
 cursor and fade are skipped and the string is dumped at full speed —
 still typed, but without animation residue in logs.
 
+For Matrix-style "Wake up, Neo" beats, pair `TypewriterCursor.MatrixBlock`
+(the chunky `█`) with `Typewriter.Blink` between phrases:
+
+```csharp
+Typewriter.Blink(800, TypewriterCursor.MatrixBlock, fg: Color.LightGreen);
+Typewriter.Type("wake up, neo...", msPerChar: 70,
+    fg: Color.LightGreen, cursor: TypewriterCursor.MatrixBlock);
+Typewriter.Blink(900, TypewriterCursor.MatrixBlock, fg: Color.LightGreen);
+```
+
+`Blink` sits at the current cursor position and toggles the cursor
+glyph on/off for the requested duration, then erases it. With ANSI
+off it falls back to a plain sleep. `BlinkAsync` is the cancellable
+variant.
+
 The cursor and fade animations assume one terminal cell per `char`, so
 emoji (surrogate pairs), combining marks, and wide CJK glyphs aren't
 correctly tracked. Stick to BMP single-cell characters when animating.

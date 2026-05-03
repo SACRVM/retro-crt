@@ -162,6 +162,115 @@ public static class Typewriter
         Console.Out.WriteLine();
     }
 
+    /// <summary>
+    /// Sit at the current cursor position and blink a fake cursor for
+    /// <paramref name="totalMs"/> milliseconds — useful for the Matrix-
+    /// style "pause before the next phrase" beats. The glyph is erased
+    /// before this method returns, so the next write starts on a clean
+    /// cell. Without ANSI support the call is a plain
+    /// <see cref="Thread.Sleep(int)"/>.
+    /// </summary>
+    /// <param name="totalMs">How long to blink, in total. Values ≤0 return immediately.</param>
+    /// <param name="cursor">Glyph to blink. <see cref="TypewriterCursor.None"/> just sleeps.</param>
+    /// <param name="fg">Optional color for the cursor.</param>
+    /// <param name="blinkRateMs">Half-period of the blink — time the cursor stays in each on/off state.</param>
+    public static void Blink(
+        int totalMs,
+        TypewriterCursor cursor = TypewriterCursor.MatrixBlock,
+        Color? fg = null,
+        int blinkRateMs = 500)
+    {
+        if (totalMs <= 0) return;
+
+        var ansi = Crt.ColorEnabled;
+        if (!ansi || cursor == TypewriterCursor.None)
+        {
+            Sleep(totalMs);
+            return;
+        }
+
+        if (blinkRateMs < 1) blinkRateMs = 1;
+        var glyph = GlyphFor(cursor);
+
+        Console.Out.Write(AnsiCodes.HideCursor);
+        var colorActive = false;
+        try
+        {
+            var elapsed = 0;
+            var on = true;
+            while (elapsed < totalMs)
+            {
+                if (fg is { } c) { ApplyColor(c); colorActive = true; }
+                Console.Out.Write(on ? glyph : ' ');
+                Console.Out.Write(AnsiCodes.CursorLeft1);
+
+                var step = Math.Min(blinkRateMs, totalMs - elapsed);
+                Sleep(step);
+                elapsed += step;
+                on = !on;
+            }
+
+            // Land on a clean cell so the next write starts fresh.
+            Console.Out.Write(' ');
+            Console.Out.Write(AnsiCodes.CursorLeft1);
+        }
+        finally
+        {
+            if (colorActive) Console.Out.Write(AnsiCodes.Reset);
+            Console.Out.Write(AnsiCodes.ShowCursor);
+        }
+    }
+
+    /// <summary>Async variant of <see cref="Blink"/> with cancellation support.</summary>
+    public static async Task BlinkAsync(
+        int totalMs,
+        TypewriterCursor cursor = TypewriterCursor.MatrixBlock,
+        Color? fg = null,
+        int blinkRateMs = 500,
+        CancellationToken cancellationToken = default)
+    {
+        if (totalMs <= 0) return;
+
+        var ansi = Crt.ColorEnabled;
+        if (!ansi || cursor == TypewriterCursor.None)
+        {
+            await DelayAsync(totalMs, cancellationToken).ConfigureAwait(false);
+            return;
+        }
+
+        if (blinkRateMs < 1) blinkRateMs = 1;
+        var glyph = GlyphFor(cursor);
+
+        Console.Out.Write(AnsiCodes.HideCursor);
+        var colorActive = false;
+        try
+        {
+            var elapsed = 0;
+            var on = true;
+            while (elapsed < totalMs)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (fg is { } c) { ApplyColor(c); colorActive = true; }
+                Console.Out.Write(on ? glyph : ' ');
+                Console.Out.Write(AnsiCodes.CursorLeft1);
+
+                var step = Math.Min(blinkRateMs, totalMs - elapsed);
+                await DelayAsync(step, cancellationToken).ConfigureAwait(false);
+                elapsed += step;
+                on = !on;
+            }
+
+            Console.Out.Write(' ');
+            Console.Out.Write(AnsiCodes.CursorLeft1);
+        }
+        finally
+        {
+            if (colorActive) Console.Out.Write(AnsiCodes.Reset);
+            Console.Out.Write(AnsiCodes.ShowCursor);
+        }
+    }
+
     /// <summary><see cref="TypeAsync"/> followed by a newline.</summary>
     public static async Task TypeLineAsync(
         string text,
@@ -337,9 +446,10 @@ public static class Typewriter
 
     private static char GlyphFor(TypewriterCursor cursor) => cursor switch
     {
-        TypewriterCursor.Block     => Glyphs.CursorBlock,
-        TypewriterCursor.Underline => Glyphs.CursorUnderline,
-        _                          => ' ',
+        TypewriterCursor.Block       => Glyphs.CursorBlock,
+        TypewriterCursor.Underline   => Glyphs.CursorUnderline,
+        TypewriterCursor.MatrixBlock => Glyphs.CursorMatrix,
+        _                            => ' ',
     };
 
     private static void ApplyColor(Color c)

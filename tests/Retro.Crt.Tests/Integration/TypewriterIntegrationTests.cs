@@ -6,6 +6,106 @@ namespace Retro.Crt.Tests.Integration;
 public class TypewriterIntegrationTests
 {
     [Fact]
+    public void Blink_with_zero_or_negative_total_returns_immediately()
+    {
+        using var c = ConsoleCapture.Start(ansi: true);
+
+        Typewriter.Blink(0);
+        Typewriter.Blink(-100);
+
+        Assert.Equal(string.Empty, c.Out);
+    }
+
+    [Fact]
+    public void Blink_emits_cursor_glyph_and_hide_show_cursor()
+    {
+        using var c = ConsoleCapture.Start(ansi: true, unicode: true);
+
+        // Tiny total + tiny rate so the test runs fast and predictably.
+        Typewriter.Blink(20, TypewriterCursor.MatrixBlock,
+            fg: Color.LightGreen, blinkRateMs: 5);
+
+        Assert.Contains("\x1b[?25l", c.Out);   // hide cursor
+        Assert.Contains("\x1b[?25h", c.Out);   // show cursor
+        Assert.Contains("█", c.Out);            // matrix glyph
+        Assert.Contains("\x1b[D", c.Out);       // cursor-left to come back
+    }
+
+    [Fact]
+    public void Blink_without_ansi_just_sleeps_emits_nothing()
+    {
+        using var c = ConsoleCapture.Start(ansi: false);
+
+        Typewriter.Blink(5, TypewriterCursor.MatrixBlock, blinkRateMs: 1);
+
+        Assert.Equal(string.Empty, c.Out);
+    }
+
+    [Fact]
+    public void Blink_with_None_cursor_just_sleeps()
+    {
+        using var c = ConsoleCapture.Start(ansi: true);
+
+        Typewriter.Blink(5, TypewriterCursor.None, blinkRateMs: 1);
+
+        Assert.Equal(string.Empty, c.Out);
+    }
+
+    [Fact]
+    public void Blink_uses_matrix_full_block_glyph_when_unicode_supported()
+    {
+        using var c = ConsoleCapture.Start(ansi: true, unicode: true);
+
+        Typewriter.Blink(5, TypewriterCursor.MatrixBlock, blinkRateMs: 1);
+
+        Assert.Contains("█", c.Out);
+    }
+
+    [Fact]
+    public void Blink_falls_back_to_ascii_hash_without_unicode()
+    {
+        using var c = ConsoleCapture.Start(ansi: true, unicode: false);
+
+        Typewriter.Blink(5, TypewriterCursor.MatrixBlock, blinkRateMs: 1);
+
+        Assert.Contains("#", c.Out);
+        Assert.DoesNotContain("█", c.Out);
+    }
+
+    [Fact]
+    public async Task BlinkAsync_cancelable_mid_blink()
+    {
+        using var c = ConsoleCapture.Start(ansi: true);
+
+        using var cts = new CancellationTokenSource();
+        cts.CancelAfter(5);
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(
+            () => Typewriter.BlinkAsync(
+                10_000,
+                TypewriterCursor.MatrixBlock,
+                fg: Color.LightGreen,
+                blinkRateMs: 5,
+                cancellationToken: cts.Token));
+
+        // Even on cancellation the finally block must restore the cursor.
+        Assert.Contains("\x1b[?25h", c.Out);
+    }
+
+    [Fact]
+    public void Type_with_MatrixBlock_cursor_emits_full_block_glyph()
+    {
+        using var c = ConsoleCapture.Start(ansi: true, unicode: true);
+
+        Typewriter.Type("ab", msPerChar: 1, fg: Color.LightGreen,
+            cursor: TypewriterCursor.MatrixBlock);
+
+        // The fake cursor is shown after the first char, before the
+        // second overwrites it via cursor-left.
+        Assert.Contains("█", c.Out);
+    }
+
+    [Fact]
     public void Empty_text_writes_nothing()
     {
         using var c = ConsoleCapture.Start(ansi: true);

@@ -10,6 +10,14 @@ versions; breaking changes are called out below.
 
 ### Added
 
+- `TypewriterCursor.MatrixBlock` — chunky full-block (`█`) cursor for
+  the "Wake up, Neo" aesthetic. ASCII fallback `#` on non-unicode
+  terminals.
+- `Typewriter.Blink(totalMs, cursor, fg, blinkRateMs)` and
+  `Typewriter.BlinkAsync(...)` — sit at the current cursor position
+  and toggle a fake cursor on/off for the requested duration, then
+  leave a clean cell. Useful for Matrix-style pause-and-blink beats
+  between typed phrases. Without ANSI it degrades to a plain sleep.
 - `Spinner` — single-line animated spinner with five frame styles
   (`Pipe`, `Dots`, `Braille`, `Block`, `Arc`). `using var s =
   Spinner.Show("…")` ergonomics; `Update` to change the label
