@@ -140,10 +140,13 @@ static void PrintSpinnerDemo()
     using (Crt.WithStyle(fg: Color.LightGray))
         Crt.WriteLine("Spinner:");
 
-    using (var s = Spinner.Show(" connecting…", SpinnerStyle.Braille, color: Color.LightCyan, msPerFrame: 80))
+    // Pipe (ASCII) is the safe default — every font has it, and it suits
+    // the BIOS/Pascal vibe. Braille / Block / Arc need a font with the
+    // matching unicode range (e.g. Cascadia Code, JetBrains Mono).
+    using (var s = Spinner.Show(" connecting...", SpinnerStyle.Pipe, color: Color.LightCyan, msPerFrame: 80))
     {
         Thread.Sleep(900);
-        s.Update(" handshake…");
+        s.Update(" handshake...");
         Thread.Sleep(900);
         s.Stop(" connected.", finalColor: Color.LightGreen);
     }

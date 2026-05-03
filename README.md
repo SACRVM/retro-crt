@@ -210,7 +210,11 @@ s.Stop("connected", Color.LightGreen);
 - `Arc` — rotating quarter-circle arcs
 
 The unicode styles silently fall back to `Pipe` on terminals without
-unicode support.
+unicode encoding support. Note: `Braille`, `Block`, and `Arc` also
+require the **font** to ship the relevant unicode ranges — Cascadia
+Code, JetBrains Mono, and Fira Code all do; many system defaults do
+not. If you see `?` instead of glyphs, switch font or stick with
+`Pipe` / `Dots`.
 
 ```csharp
 using var s = Spinner.Show(
