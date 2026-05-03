@@ -5,12 +5,16 @@
 [![nuget](https://img.shields.io/nuget/v/Retro.Crt.svg)](https://www.nuget.org/packages/Retro.Crt)
 [![license](https://img.shields.io/github/license/chloe-dream/retro-crt.svg)](LICENSE)
 
-A Pascal CRT-Unit-style console library for modern .NET. Tiny, dependency-
-free, trim- and AOT-clean. ANSI styling, classic `TextColor` / `GotoXY` /
-`ClrScr` verbs, truecolor with graceful 16-color and `NO_COLOR` fallback,
-plus a small set of Pascal-flavoured output building blocks: framed
-banners, in-place progress bars, semantic logging, and a typewriter that
-fades characters in.
+**Tiny, zero-dep, AOT-clean Pascal-CRT charm for .NET CLIs.**
+
+Pascal CRT-Unit verbs (`TextColor`, `GotoXY`, `ClrScr`, `ClrEol`),
+truecolor with graceful 16-color and `NO_COLOR` fallback, and a small
+set of curated output blocks — framed banners, in-place progress bars,
+a five-level logger, and a typewriter that fades characters in.
+
+```bash
+dotnet add package Retro.Crt
+```
 
 ```csharp
 using Retro.Crt;
@@ -22,17 +26,11 @@ using (Crt.WithStyle(Color.Yellow, bold: true))
     Crt.WriteLine("> ready.");
 ```
 
-<!-- Demo cast goes here once recorded. To re-record, see CONTRIBUTING.md. -->
-<!-- ![Demo](docs/images/demo.gif) -->
+> **Demo cast coming soon** — `samples/Retro.Crt.Demo` is the live tour
+> in the meantime: `dotnet run --project samples/Retro.Crt.Demo`.
+<!-- TODO: record asciinema cast → docs/images/demo.cast — see CONTRIBUTING.md -->
 
-## Install
-
-```bash
-dotnet add package Retro.Crt
-```
-
-API reference: <https://chloe-dream.github.io/retro-crt>
-
+API reference: <https://chloe-dream.github.io/retro-crt>.
 Targets `net10.0`. No third-party dependencies.
 
 ## Why
@@ -243,25 +241,20 @@ dotnet run --project samples/Retro.Crt.Demo
 
 ## NuGet package
 
-The library project is already packable. Build a `.nupkg` locally with:
+Published on nuget.org:
+[**Retro.Crt**](https://www.nuget.org/packages/Retro.Crt). Install with:
 
 ```bash
-dotnet pack src/Retro.Crt/Retro.Crt.csproj -c Release
+dotnet add package Retro.Crt
 ```
 
-Output lands in `src/Retro.Crt/bin/Release/Retro.Crt.<version>.nupkg`
-(plus a `.snupkg` symbol package — `IncludeSymbols` is on).
+Symbols are shipped as a `.snupkg` so `Source Link` and step-into
+debugging work out of the box.
 
-To publish to nuget.org, set up an API key and:
-
-```bash
-dotnet nuget push src/Retro.Crt/bin/Release/Retro.Crt.0.2.0.nupkg \
-    --api-key $NUGET_API_KEY \
-    --source https://api.nuget.org/v3/index.json
-```
-
-The package is not published yet — version 0.2.0 is the first one worth
-shipping (Stage 1 was barely a library).
+For maintainers: the full release loop (version bump, changelog, tag,
+automated publish) lives in [RELEASING.md](RELEASING.md). Tagging
+`vX.Y.Z` triggers `.github/workflows/release.yml`, which packs, pushes
+to nuget.org, and creates a GitHub Release with the artifacts attached.
 
 ## Roadmap
 
