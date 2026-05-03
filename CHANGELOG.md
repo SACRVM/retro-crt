@@ -23,6 +23,14 @@ versions; breaking changes are called out below.
 
 ### Added
 
+- `Prompt` — tiny interactive prompts: `Confirm` (yes/no, single
+  keystroke), `Ask` (full line with optional default echoed in
+  brackets), `Select` (arrow-key menu, returns the chosen index).
+  All zero-dependency. `Confirm` and `Ask` work everywhere; `Select`
+  uses ANSI cursor moves to redraw the active option in place and
+  silently falls back to a numbered list with `Console.ReadLine`
+  when ANSI is unavailable, so it stays useful in pipes and dumb
+  terminals.
 - `TypewriterCursor.MatrixBlock` — chunky full-block (`█`) cursor for
   the "Wake up, Neo" aesthetic. ASCII fallback `#` on non-unicode
   terminals.

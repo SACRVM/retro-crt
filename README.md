@@ -234,6 +234,37 @@ your output gets clobbered. Without ANSI support (output redirected,
 `NO_COLOR`, dumb terminal) the spinner does not animate: it writes the
 label once and a newline on `Stop`, so log files stay clean.
 
+### Prompt
+
+Interactive prompts that stay tiny and dependency-free.
+
+```csharp
+if (!Prompt.Confirm("Continue?", defaultYes: true))
+    return;
+
+var name = Prompt.Ask("Your name?", defaultValue: "guest");
+
+var idx = Prompt.Select(
+    "Pick a color:",
+    ["Red", "Green", "Blue"],
+    initialIndex: 1,
+    color: Color.LightCyan);
+```
+
+- `Confirm` reads a single keystroke (no Enter required); `y` / `Y` →
+  true, `n` / `N` → false, Enter → `defaultYes`. Other keys are
+  ignored. The chosen letter is echoed before the line ends.
+- `Ask` reads a full line. If `defaultValue` is set it appears in the
+  prompt as `[default]` and is returned when the user presses Enter
+  on empty input.
+- `Select` is an arrow-key menu — Up/Down to move, Enter to choose.
+  The active option is prefixed with `>` and rendered in `color`
+  + bold. Without ANSI it falls back to a numbered list with
+  `Console.ReadLine` so it works in pipes and dumb terminals.
+
+`Confirm` and `Ask` work everywhere; `Select`'s animated mode requires
+ANSI escape support.
+
 ### Log
 
 ```csharp
