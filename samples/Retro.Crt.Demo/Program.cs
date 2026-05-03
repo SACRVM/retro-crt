@@ -157,6 +157,8 @@ static void PrintTypewriterDemo()
     using (Crt.WithStyle(fg: Color.LightGray))
         Crt.WriteLine("Typewriter:");
 
+    // Underline cursor (`_`) is universal; Block (`▌`) needs a font with
+    // the U+258C glyph (Cascadia Code, JetBrains Mono).
     Typewriter.TypeLine(
         " plain typing...",
         msPerChar: 22,
@@ -166,12 +168,18 @@ static void PrintTypewriterDemo()
         " with a fake cursor...",
         msPerChar: 26,
         fg: Color.LightGreen,
-        cursor: TypewriterCursor.Block);
+        cursor: TypewriterCursor.Underline);
+
+    Typewriter.TypeLine(
+        " alpha fade-in (truecolor)...",
+        msPerChar: 50,
+        fg: Color.Rgb(255, 120, 200),
+        fade: TypewriterFade.Alpha);
 
     Typewriter.TypeLine(
         " gradient + cursor + alpha fade",
-        msPerChar: 32,
-        cursor: TypewriterCursor.Block,
+        msPerChar: 35,
+        cursor: TypewriterCursor.Underline,
         fade: TypewriterFade.Alpha,
         gradient: (Color.Rgb(80, 220, 255), Color.Rgb(255, 120, 175)));
 }
