@@ -26,6 +26,9 @@ Pause();
 PrintLogDemo();
 Pause();
 
+PrintSpinnerDemo();
+Pause();
+
 PrintTypewriterDemo();
 Pause();
 
@@ -130,6 +133,20 @@ static void PrintLogDemo()
     Log.Success("checksum verified");
     Log.Warn("disk usage at 84%");
     Log.Error("failed to bind port 8080");
+}
+
+static void PrintSpinnerDemo()
+{
+    using (Crt.WithStyle(fg: Color.LightGray))
+        Crt.WriteLine("Spinner:");
+
+    using (var s = Spinner.Show(" connecting…", SpinnerStyle.Braille, color: Color.LightCyan, msPerFrame: 80))
+    {
+        Thread.Sleep(900);
+        s.Update(" handshake…");
+        Thread.Sleep(900);
+        s.Stop(" connected.", finalColor: Color.LightGreen);
+    }
 }
 
 static void PrintTypewriterDemo()
