@@ -23,6 +23,15 @@ versions; breaking changes are called out below.
 
 ### Added
 
+- `Table.Print(headers, rows, border, headerColor, borderColor)` —
+  tiny aligned-column table renderer. Box-drawing borders by default
+  (`TableBorder.Box`), borderless variant (`TableBorder.None`), header
+  rendered bold, optional foreground colors for header and borders.
+  Columns auto-resize to their widest cell. ASCII fallback
+  (`+`/`-`/`|`) on non-unicode terminals; plain-text emission when
+  ANSI is off so the table survives redirection. Deliberately small
+  surface: no row borders between body rows, no alignment options, no
+  multi-line cells.
 - Three new sample showcases under `samples/`:
   - `Retro.Crt.Themes.Demo` — walks through every built-in theme
     side by side so the palette differences are immediately visible.

@@ -240,6 +240,53 @@ your output gets clobbered. Without ANSI support (output redirected,
 `NO_COLOR`, dumb terminal) the spinner does not animate: it writes the
 label once and a newline on `Stop`, so log files stay clean.
 
+### Table
+
+Tiny aligned-column tables. Box-drawing borders by default, header in
+bold, optional foreground for header and borders. One column auto-
+resizes to its widest cell — no manual width configuration.
+
+```csharp
+Table.Print(
+    headers: ["Demo",   "Time", "Vibe"],
+    rows:    [
+        ["tour",   "24s", "feature tour"],
+        ["themes", "16s", "all 6 themes"],
+        ["matrix", "25s", "wake up, neo"],
+        ["boot",   "22s", "AMIBIOS POST"],
+    ],
+    headerColor: Color.LightCyan,
+    borderColor: Color.DarkGray);
+```
+
+Renders as:
+
+```
+┌────────┬──────┬──────────────┐
+│ Demo   │ Time │ Vibe         │
+├────────┼──────┼──────────────┤
+│ tour   │ 24s  │ feature tour │
+│ themes │ 16s  │ all 6 themes │
+│ matrix │ 25s  │ wake up, neo │
+│ boot   │ 22s  │ AMIBIOS POST │
+└────────┴──────┴──────────────┘
+```
+
+Pass `border: TableBorder.None` for a borderless variant — columns are
+still aligned, header still bold, but no box glyphs:
+
+```csharp
+Table.Print(headers, rows, border: TableBorder.None);
+```
+
+ASCII fallback (`+`/`-`/`|`) on terminals without unicode. When ANSI
+is unavailable the table is emitted as plain text — colors disappear,
+structure stays intact.
+
+Deliberately small surface: no row borders between body rows, no
+alignment options, no multi-line cells. Reach for `Spectre.Console`
+if you need any of that.
+
 ### Prompt
 
 Interactive prompts that stay tiny and dependency-free.

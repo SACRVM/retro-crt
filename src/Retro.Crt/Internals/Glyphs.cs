@@ -17,6 +17,13 @@ internal static class Glyphs
     public static char BoxHorizontal  => Unicode ? '─' : '-';
     public static char BoxVertical    => Unicode ? '│' : '|';
 
+    // Box drawing — table junctions.
+    public static char BoxTeeTop      => Unicode ? '┬' : '+';
+    public static char BoxTeeBottom   => Unicode ? '┴' : '+';
+    public static char BoxTeeLeft     => Unicode ? '├' : '+';
+    public static char BoxTeeRight    => Unicode ? '┤' : '+';
+    public static char BoxCross       => Unicode ? '┼' : '+';
+
     // Progress bar.
     public static char BarFull  => Unicode ? '█' : '#';
     public static char BarEmpty => Unicode ? '░' : '-';
