@@ -33,6 +33,14 @@ public static class Table
     {
         ArgumentNullException.ThrowIfNull(rows);
 
+        // Theme fallbacks: Accent for headers, Muted for the box frame.
+        // Caller-supplied colors always win.
+        if (Crt.CurrentTheme is { } t)
+        {
+            headerColor ??= t.Accent;
+            borderColor ??= t.Muted;
+        }
+
         var widths = TableRenderer.ComputeWidths(headers, rows);
         if (widths.Length == 0) return;
 
@@ -43,7 +51,7 @@ public static class Table
         // so redirection / dumb terminals stay readable.
         if (!Crt.ColorEnabled)
         {
-            Console.Out.Write(TableRenderer.RenderPlain(headers, rows, boxBorders));
+            Crt.Sink.Write(TableRenderer.RenderPlain(headers, rows, boxBorders));
             return;
         }
 
@@ -69,7 +77,7 @@ public static class Table
     {
         var line = TableRenderer.BuildBorder(widths, left, junction, right, horizontal);
         WriteColored(line, borderColor);
-        Console.Out.WriteLine();
+        Crt.Sink.WriteLine();
     }
 
     private static void WriteRow(string[] cells, int[] widths, bool boxBorders,
@@ -81,8 +89,8 @@ public static class Table
             // row in fg / bold without emitting any vertical bars.
             var line = TableRenderer.BuildRow(cells, widths, boxBorders: false);
             using (Crt.WithStyle(fg: fg, bold: bold))
-                Console.Out.Write(line);
-            Console.Out.WriteLine();
+                Crt.Sink.Write(line);
+            Crt.Sink.WriteLine();
             return;
         }
 
@@ -94,12 +102,12 @@ public static class Table
         {
             var content = c < cells.Length ? cells[c] : "";
             using (Crt.WithStyle(fg: fg, bold: bold))
-                Console.Out.Write(pad + content.PadRight(widths[c]) + pad);
+                Crt.Sink.Write(pad + content.PadRight(widths[c]) + pad);
 
             WriteColored(Glyphs.BoxVertical.ToString(), borderColor);
         }
 
-        Console.Out.WriteLine();
+        Crt.Sink.WriteLine();
     }
 
     private static void WriteColored(string text, Color? fg)
@@ -107,11 +115,11 @@ public static class Table
         if (fg is { } c)
         {
             using (Crt.WithStyle(fg: c))
-                Console.Out.Write(text);
+                Crt.Sink.Write(text);
         }
         else
         {
-            Console.Out.Write(text);
+            Crt.Sink.Write(text);
         }
     }
 }

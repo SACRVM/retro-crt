@@ -36,6 +36,8 @@ public static class Typewriter
     {
         if (string.IsNullOrEmpty(text)) return;
 
+        fg ??= Crt.CurrentTheme?.Foreground;
+
         var ansi = ResolveAnsi(ref cursor, ref fade);
 
         if (msPerChar <= 0)
@@ -48,7 +50,7 @@ public static class Typewriter
         var hidCursor = false;
         if (ansi)
         {
-            Console.Out.Write(AnsiCodes.HideCursor);
+            Crt.Sink.Write(AnsiCodes.HideCursor);
             hidCursor = true;
         }
 
@@ -61,7 +63,7 @@ public static class Typewriter
             {
                 if (prevCursor)
                 {
-                    Console.Out.Write(AnsiCodes.CursorLeft1);
+                    Crt.Sink.Write(AnsiCodes.CursorLeft1);
                     prevCursor = false;
                 }
 
@@ -71,7 +73,7 @@ public static class Typewriter
 
                 if (ShouldEmitCursor(c, cursor, i, text.Length))
                 {
-                    Console.Out.Write(GlyphFor(cursor));
+                    Crt.Sink.Write(GlyphFor(cursor));
                     prevCursor = true;
                 }
 
@@ -106,6 +108,8 @@ public static class Typewriter
     {
         if (string.IsNullOrEmpty(text)) return;
 
+        fg ??= Crt.CurrentTheme?.Foreground;
+
         var ansi = ResolveAnsi(ref cursor, ref fade);
 
         if (msPerChar <= 0)
@@ -118,7 +122,7 @@ public static class Typewriter
         var hidCursor = false;
         if (ansi)
         {
-            Console.Out.Write(AnsiCodes.HideCursor);
+            Crt.Sink.Write(AnsiCodes.HideCursor);
             hidCursor = true;
         }
 
@@ -133,7 +137,7 @@ public static class Typewriter
 
                 if (prevCursor)
                 {
-                    Console.Out.Write(AnsiCodes.CursorLeft1);
+                    Crt.Sink.Write(AnsiCodes.CursorLeft1);
                     prevCursor = false;
                 }
 
@@ -144,7 +148,7 @@ public static class Typewriter
 
                 if (ShouldEmitCursor(c, cursor, i, text.Length))
                 {
-                    Console.Out.Write(GlyphFor(cursor));
+                    Crt.Sink.Write(GlyphFor(cursor));
                     prevCursor = true;
                 }
 
@@ -168,7 +172,7 @@ public static class Typewriter
         (Color from, Color to)? gradient = null)
     {
         Type(text, msPerChar, fg, cursor, fade, gradient);
-        Console.Out.WriteLine();
+        Crt.Sink.WriteLine();
     }
 
     /// <summary>
@@ -191,6 +195,8 @@ public static class Typewriter
     {
         if (totalMs <= 0) return;
 
+        fg ??= Crt.CurrentTheme?.Foreground;
+
         var ansi = Crt.ColorEnabled;
         if (!ansi || cursor == TypewriterCursor.None)
         {
@@ -201,7 +207,7 @@ public static class Typewriter
         if (blinkRateMs < 1) blinkRateMs = 1;
         var glyph = GlyphFor(cursor);
 
-        Console.Out.Write(AnsiCodes.HideCursor);
+        Crt.Sink.Write(AnsiCodes.HideCursor);
         var colorActive = false;
         try
         {
@@ -210,8 +216,8 @@ public static class Typewriter
             while (elapsed < totalMs)
             {
                 if (fg is { } c) { ApplyColor(c); colorActive = true; }
-                Console.Out.Write(on ? glyph : ' ');
-                Console.Out.Write(AnsiCodes.CursorLeft1);
+                Crt.Sink.Write(on ? glyph : ' ');
+                Crt.Sink.Write(AnsiCodes.CursorLeft1);
 
                 var step = Math.Min(blinkRateMs, totalMs - elapsed);
                 Sleep(step);
@@ -220,13 +226,13 @@ public static class Typewriter
             }
 
             // Land on a clean cell so the next write starts fresh.
-            Console.Out.Write(' ');
-            Console.Out.Write(AnsiCodes.CursorLeft1);
+            Crt.Sink.Write(' ');
+            Crt.Sink.Write(AnsiCodes.CursorLeft1);
         }
         finally
         {
-            if (colorActive) Console.Out.Write(AnsiCodes.Reset);
-            Console.Out.Write(AnsiCodes.ShowCursor);
+            if (colorActive) Crt.Sink.Write(AnsiCodes.Reset);
+            Crt.Sink.Write(AnsiCodes.ShowCursor);
         }
     }
 
@@ -240,6 +246,8 @@ public static class Typewriter
     {
         if (totalMs <= 0) return;
 
+        fg ??= Crt.CurrentTheme?.Foreground;
+
         var ansi = Crt.ColorEnabled;
         if (!ansi || cursor == TypewriterCursor.None)
         {
@@ -250,7 +258,7 @@ public static class Typewriter
         if (blinkRateMs < 1) blinkRateMs = 1;
         var glyph = GlyphFor(cursor);
 
-        Console.Out.Write(AnsiCodes.HideCursor);
+        Crt.Sink.Write(AnsiCodes.HideCursor);
         var colorActive = false;
         try
         {
@@ -261,8 +269,8 @@ public static class Typewriter
                 cancellationToken.ThrowIfCancellationRequested();
 
                 if (fg is { } c) { ApplyColor(c); colorActive = true; }
-                Console.Out.Write(on ? glyph : ' ');
-                Console.Out.Write(AnsiCodes.CursorLeft1);
+                Crt.Sink.Write(on ? glyph : ' ');
+                Crt.Sink.Write(AnsiCodes.CursorLeft1);
 
                 var step = Math.Min(blinkRateMs, totalMs - elapsed);
                 await DelayAsync(step, cancellationToken).ConfigureAwait(false);
@@ -270,13 +278,13 @@ public static class Typewriter
                 on = !on;
             }
 
-            Console.Out.Write(' ');
-            Console.Out.Write(AnsiCodes.CursorLeft1);
+            Crt.Sink.Write(' ');
+            Crt.Sink.Write(AnsiCodes.CursorLeft1);
         }
         finally
         {
-            if (colorActive) Console.Out.Write(AnsiCodes.Reset);
-            Console.Out.Write(AnsiCodes.ShowCursor);
+            if (colorActive) Crt.Sink.Write(AnsiCodes.Reset);
+            Crt.Sink.Write(AnsiCodes.ShowCursor);
         }
     }
 
@@ -291,7 +299,7 @@ public static class Typewriter
         CancellationToken cancellationToken = default)
     {
         await TypeAsync(text, msPerChar, fg, cursor, fade, gradient, cancellationToken).ConfigureAwait(false);
-        Console.Out.WriteLine();
+        Crt.Sink.WriteLine();
     }
 
     // ─── shared helpers ──────────────────────────────────────────────────
@@ -344,7 +352,7 @@ public static class Typewriter
         }
         else
         {
-            Console.Out.Write(text);
+            Crt.Sink.Write(text);
         }
     }
 
@@ -360,7 +368,7 @@ public static class Typewriter
         if (c is ' ' or '\t' or '\r' or '\n' || char.IsControl(c))
         {
             if (ansi && color is { } w) { ApplyColor(w); colorActive = true; }
-            Console.Out.Write(c);
+            Crt.Sink.Write(c);
             return;
         }
 
@@ -372,7 +380,7 @@ public static class Typewriter
         }
 
         if (ansi && color is { } n) { ApplyColor(n); colorActive = true; }
-        Console.Out.Write(c);
+        Crt.Sink.Write(c);
     }
 
     private static async Task EmitCharAsync(char c, Color? color, bool ansi, TypewriterFade fade,
@@ -381,7 +389,7 @@ public static class Typewriter
         if (c is ' ' or '\t' or '\r' or '\n' || char.IsControl(c))
         {
             if (ansi && color is { } w) ApplyColor(w);
-            Console.Out.Write(c);
+            Crt.Sink.Write(c);
             return;
         }
 
@@ -392,7 +400,7 @@ public static class Typewriter
         }
 
         if (ansi && color is { } n) ApplyColor(n);
-        Console.Out.Write(c);
+        Crt.Sink.Write(c);
     }
 
     /// <summary>
@@ -419,9 +427,9 @@ public static class Typewriter
 
         for (var i = 0; i < frames; i++)
         {
-            if (i > 0) Console.Out.Write(AnsiCodes.CursorLeft1);
+            if (i > 0) Crt.Sink.Write(AnsiCodes.CursorLeft1);
             ApplyColor(DimColor(target, i, frames));
-            Console.Out.Write(c);
+            Crt.Sink.Write(c);
             Sleep(per);
         }
     }
@@ -434,9 +442,9 @@ public static class Typewriter
 
         for (var i = 0; i < frames; i++)
         {
-            if (i > 0) Console.Out.Write(AnsiCodes.CursorLeft1);
+            if (i > 0) Crt.Sink.Write(AnsiCodes.CursorLeft1);
             ApplyColor(DimColor(target, i, frames));
-            Console.Out.Write(c);
+            Crt.Sink.Write(c);
             await DelayAsync(per, ct).ConfigureAwait(false);
         }
     }
@@ -461,12 +469,12 @@ public static class Typewriter
         if (prevCursor)
         {
             // Erase the cursor glyph: move back, write space, move back.
-            Console.Out.Write(AnsiCodes.CursorLeft1);
-            Console.Out.Write(' ');
-            Console.Out.Write(AnsiCodes.CursorLeft1);
+            Crt.Sink.Write(AnsiCodes.CursorLeft1);
+            Crt.Sink.Write(' ');
+            Crt.Sink.Write(AnsiCodes.CursorLeft1);
         }
-        if (colorActive) Console.Out.Write(AnsiCodes.Reset);
-        if (hidCursor) Console.Out.Write(AnsiCodes.ShowCursor);
+        if (colorActive) Crt.Sink.Write(AnsiCodes.Reset);
+        if (hidCursor) Crt.Sink.Write(AnsiCodes.ShowCursor);
     }
 
     private static char GlyphFor(TypewriterCursor cursor) => cursor switch
@@ -478,19 +486,19 @@ public static class Typewriter
     };
 
     private static void ApplyColor(Color c)
-        => Console.Out.Write(AnsiCodes.Foreground(c));
+        => Crt.Sink.Write(Emit.Fg(c));
 
     private static void WriteWithColor(string s, Color c)
     {
         if (Crt.ColorEnabled)
         {
-            Console.Out.Write(AnsiCodes.Foreground(c));
-            Console.Out.Write(s);
-            Console.Out.Write(AnsiCodes.Reset);
+            Crt.Sink.Write(Emit.Fg(c));
+            Crt.Sink.Write(s);
+            Crt.Sink.Write(AnsiCodes.Reset);
         }
         else
         {
-            Console.Out.Write(s);
+            Crt.Sink.Write(s);
         }
     }
 

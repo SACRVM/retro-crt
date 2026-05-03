@@ -47,6 +47,29 @@ Edit `src/Retro.Crt/Retro.Crt.csproj`:
 <Version>0.2.1</Version>
 ```
 
+### 1b. Promote the public API
+
+`Microsoft.CodeAnalysis.PublicApiAnalyzers` tracks every public type and
+member in two sibling files next to the csproj:
+
+- `src/Retro.Crt/PublicAPI.Shipped.txt` — the API frozen at the last
+  release; promotions go here.
+- `src/Retro.Crt/PublicAPI.Unshipped.txt` — additions / changes since
+  the last release.
+
+Move every entry from `Unshipped.txt` (everything except the
+`#nullable enable` header) to the bottom of `Shipped.txt`. After the
+move, `Unshipped.txt` should contain just the header line. The build
+fails if a public symbol exists in neither file, so any drift between
+the source and the tracking files is caught at compile time — not at
+runtime by a confused consumer.
+
+For removals at the API: prefix the line in `Unshipped.txt` with
+`*REMOVED*` instead of deleting it, e.g.
+`*REMOVED*static Retro.Crt.Crt.LegacyMethod() -> void`. After the
+release, drop the matching line from `Shipped.txt` and the marker
+line from `Unshipped.txt` together.
+
 ### 2. Update `CHANGELOG.md`
 
 Move everything currently under `## [Unreleased]` into a new dated

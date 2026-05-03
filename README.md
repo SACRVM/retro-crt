@@ -8,9 +8,10 @@
 **Tiny, zero-dep, AOT-clean Pascal-CRT charm for .NET CLIs.**
 
 Pascal CRT-Unit verbs (`TextColor`, `GotoXY`, `ClrScr`, `ClrEol`),
-truecolor with graceful 16-color and `NO_COLOR` fallback, and a small
-set of curated output blocks — framed banners, in-place progress bars,
-a five-level logger, and a typewriter that fades characters in.
+truecolor with graceful 256-color, 16-color, and `NO_COLOR` fallback,
+and a small set of curated output blocks — framed banners, in-place
+progress bars, a five-level logger, and a typewriter that fades
+characters in.
 
 ```bash
 dotnet add package Retro.Crt
@@ -53,6 +54,7 @@ want curated colored output, a banner, a progress bar, and nothing else.
 | Trim / AOT clean       | ✅          | ❌              | ✅        | ✅      |
 | Runtime dependencies   | 0          | many            | 0         | 0      |
 | Truecolor              | ✅          | ✅              | ✅        | ❌      |
+| 256-color quantization | ✅          | ✅              | ❌        | ❌      |
 | Pascal-flavoured verbs | ✅          | ❌              | ❌        | ❌      |
 | Framed banner          | ✅          | ✅              | ❌        | ❌      |
 | Progress bar           | ✅ (single)| ✅ (multi/live) | ❌        | ❌      |
@@ -85,8 +87,22 @@ using (Crt.WithStyle(fg: Color.Rgb(255, 140, 0), bold: true))
 
 `Crt.ColorEnabled` reflects whether escapes will actually reach the
 terminal (false when output is redirected, `NO_COLOR` is set, or VT
-enablement failed on Windows). `FORCE_COLOR=1` overrides redirection
-detection.
+enablement failed on Windows). `Crt.Depth` reports the actual color
+depth: `Truecolor`, `Xterm256`, `Standard16`, or `None`. Truecolor
+values are quantized to whatever the terminal can render — a
+`Color.Rgb(255, 140, 0)` becomes a 256-cube entry on a `xterm-256color`
+terminal and the closest BIOS-16 anchor on a basic VT.
+
+Detection follows the npm convention:
+
+- `NO_COLOR` (any value) → `None`
+- `TERM=dumb` → `None`
+- `FORCE_COLOR=0` → `None`; `=1` → at least 16; `=2` → 256; `=3` → truecolor
+- `COLORTERM=truecolor` / `=24bit` → `Truecolor`
+- `WT_SESSION` set (Windows Terminal) → `Truecolor`
+- `TERM` contains `truecolor` / `direct` → `Truecolor`
+- `TERM` contains `256` → `Xterm256`
+- otherwise (with ANSI on) → `Standard16`
 
 `Color.TryParse`, `Color.TryFromHex`, and `Color.TryFromName` accept
 hex strings (`#RRGGBB`, `#RGB`, with or without the leading hash) and
@@ -110,35 +126,80 @@ Six built-in palettes that evoke specific eras, all in truecolor:
 - `Themes.NortonCommander` — deep blue with yellow highlights
 
 Themes are **pure data** — pick the colors you want and pass them to
-any color-accepting API. No global state, no theme manager.
+any color-accepting API, or activate one with `Crt.UseTheme(...)` so
+widgets pick their colors from it automatically.
 
 ```csharp
-var t = Themes.AmberCrt;
-
-Banner.Box(["RETRO TERMINAL", "v1.0"], fg: t.Accent);
-
-using (Crt.WithStyle(fg: t.Foreground, bg: t.Background))
-    Crt.WriteLine(" system online");
-
-using (Crt.WithStyle(fg: t.Error, bold: true))
-    Crt.WriteLine(" disk i/o failure");
+using (Crt.UseTheme(Themes.AmberCrt))
+{
+    Banner.Box(["RETRO TERMINAL", "v1.0"]);   // uses theme.Accent
+    Crt.WriteLine(" system online");          // theme.Foreground / theme.Background
+    Log.Warn("disk usage at 84%");            // theme.Warn
+    Log.Error("disk i/o failure");            // theme.Error
+}
 ```
+
+Inside the scope:
+
+- `Crt.Write` / `Crt.WriteLine` render in `theme.Foreground` on
+  `theme.Background` (the SGR is emitted on entry, `RESET` on exit).
+- `Banner.Box`, `ProgressBar.Start`, `Spinner.Show`, `Prompt.*`, and
+  `Typewriter.Type` fall back to `theme.Accent` (or `theme.Foreground`
+  for typed text) when the caller doesn't pass a color.
+- `Table.Print` picks `theme.Accent` for headers and `theme.Muted` for
+  borders.
+- `Log` levels route to `Foreground` / `Warn` / `Error` / `Muted` /
+  `Success`.
+- An explicit `fg` / `color` parameter always wins over the theme.
+
+Themes nest cleanly — disposing the inner scope restores the outer
+theme's SGR. `Crt.CurrentTheme` reflects the active theme (or `null`
+when none is in effect). Without a `UseTheme` scope, the public API is
+unchanged: pure data, you still pass colors yourself.
 
 Each theme exposes `Background`, `Foreground`, `Accent`, `Muted`,
 `Success`, `Warn`, and `Error` slots. `Themes.All` returns the full
 list — handy for theme pickers and demos.
 
-Truecolor only. On Standard16-only terminals the closest SGR slot is
-used, which means the *user's* terminal theme tints the result. For a
-faithful retro look, viewers need a truecolor terminal (Windows
-Terminal, iTerm2, modern xterm).
+Truecolor at the source — Retro.Crt quantizes down to 256-color or
+Standard16 if the terminal can't render the full 24 bits. On
+Standard16 the closest SGR slot is used, which means the *user's*
+terminal theme tints the result. For a faithful retro look, viewers
+need a truecolor terminal (Windows Terminal, iTerm2, modern xterm).
+
+### Routing all output to a TextWriter
+
+`Crt.WithSink(writer)` redirects every Retro.Crt write — Crt itself,
+Banner, ProgressBar, Spinner, Prompt, Table, Typewriter, *and* Log —
+to a single `TextWriter` for the duration of the scope. Useful for
+capturing output in tests, writing to log files, or piping into a
+side-channel without touching `Console.SetOut`.
+
+```csharp
+using var sink = new StringWriter();
+using (Crt.WithSink(sink))
+{
+    Banner.Box("hi");
+    Log.Info("captured");
+    using var bar = ProgressBar.Start(total: 100, width: 20);
+    for (var i = 0; i <= 100; i++) bar.Set(i);
+}
+// `sink` now contains the full ANSI-coloured transcript; Console.Out
+// and Console.Error were never touched.
+```
+
+`Crt.Sink` exposes the active writer (override or `Console.Out`).
+Scopes nest cleanly. Without an active `WithSink`, all output follows
+`Console.Out` / `Console.Error` as before — `Console.SetOut` keeps
+working transparently.
 
 ### Diagnostics
 
 ```csharp
 var report = Diagnostics.Capture();
 Console.WriteLine(report);
-// ansi=on unicode=on redirected=no TERM=xterm-256color
+// ansi=on depth=truecolor unicode=on redirected=no
+//   TERM=xterm-256color COLORTERM=truecolor
 //   enc=utf-8(65001) os=linux
 ```
 
@@ -155,6 +216,30 @@ Crt.Write("hi");
 Crt.ClrEol();
 ```
 
+### Anchoring widgets to a cursor position
+
+`GotoXY` followed by `Banner.Box`, `ProgressBar.Start`, or
+`Spinner.Show` keeps the widget anchored to that column for its entire
+lifetime — multi-line frames stay vertically aligned, and in-place
+redraws (CR-driven) jump back to the anchor instead of column 1.
+
+```csharp
+Crt.GotoXY(20, 5);
+Banner.Box(["RETRO TERMINAL", "v1.0"]);   // both lines start at col 20
+
+Crt.GotoXY(20, 8);
+using var bar = ProgressBar.Start(total: 100, width: 30);
+for (var i = 0; i <= 100; i++) { bar.Tick(); Thread.Sleep(20); }
+// bar redraws stay at column 20 across all frames
+```
+
+`Crt.CursorLeft` exposes the current column (0-based, defaults to 0
+when the host can't report). The widget reads it once at construction;
+later `GotoXY` calls have no effect on its anchor. Caveat: the anchor
+follows the column, not the row — if your terminal scrolls during the
+widget's lifetime, the widget's row drifts (a cell-grid screen buffer
+on the roadmap will fix that).
+
 ### Banner
 
 ```csharp
@@ -164,6 +249,14 @@ Banner.Box(
     ["Retro.Crt 0.2", "Banner / Bar / Log / Typewriter"],
     fg: Color.LightCyan);
 
+// Stretch the frame to the current terminal width:
+Banner.Box("system online", fg: Color.LightGreen, width: Crt.FillWidth);
+
+// Centre or right-align lines that are shorter than the inner width:
+Banner.Box(
+    ["RETRO TERMINAL", "v1.0"],
+    fg: Color.LightCyan, width: 40, align: BoxAlign.Center);
+
 Banner.Gradient(
     asciiArtLines,
     from: Color.Rgb(80, 220, 255),
@@ -171,9 +264,13 @@ Banner.Gradient(
 ```
 
 `Box` uses unicode box-drawing glyphs when the terminal can render them,
-and falls back to `+--+` on legacy ASCII code pages. `Gradient`
-interpolates per line; both endpoints must be truecolor or it falls back
-to `from`.
+and falls back to `+--+` on legacy ASCII code pages. The `width`
+parameter sizes the total frame in cells; values smaller than the
+longest line are clamped to fit. `Crt.FillWidth` (-1) sizes to the
+current terminal. `align` picks how short lines sit inside the inner
+width — `BoxAlign.Left` (default), `Center`, or `Right`. `Gradient`
+interpolates per line; both endpoints must be truecolor or it falls
+back to `from`.
 
 ### ProgressBar
 
@@ -190,6 +287,10 @@ for (var i = 0; i <= 100; i++)
     Thread.Sleep(40);
 }
 ```
+
+Pass `width: Crt.FillWidth` to size the bar to the current terminal —
+label, percent suffix, and a one-cell safety margin are subtracted
+automatically.
 
 The bar redraws in place on every `Set` / `Tick`, hides the terminal
 cursor for its lifetime, and prints a single final frame on `Dispose`.
@@ -331,6 +432,30 @@ Log.Error("failed to bind port 8080");
 Format: `HH:MM:SS  LEVEL  message` with a fixed five-char level tag so
 columns line up. `Warn` and `Error` go to `stderr`; everything else to
 `stdout`.
+
+`Log.MinLevel` filters lines below the threshold:
+
+```csharp
+Log.MinLevel = LogLevel.Warn;
+Log.Info("won't appear");
+Log.Warn("will appear");
+```
+
+Use `Log.IsEnabled(level)` to gate expensive formatting.
+
+Routing log output elsewhere — useful for tests, log files, or
+side-channels — goes through `Log.OutSink` / `Log.ErrSink` (raw
+properties) or `Log.UseSink(writer)` (scoped):
+
+```csharp
+using var sink = new StringWriter();
+using (Log.UseSink(sink))
+{
+    Log.Info("captured");
+    Log.Error("also captured");
+}
+// Both lines landed in `sink`; Console.Out / Console.Error untouched.
+```
 
 ### Typewriter
 

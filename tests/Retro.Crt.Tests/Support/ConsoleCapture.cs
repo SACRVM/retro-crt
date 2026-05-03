@@ -35,7 +35,7 @@ internal sealed class ConsoleCapture : IDisposable
     public string Out => _out.ToString();
     public string Err => _err.ToString();
 
-    public static ConsoleCapture Start(bool ansi, bool unicode = true)
+    public static ConsoleCapture Start(bool ansi, bool unicode = true, ColorDepth? depth = null, bool? interactive = null)
     {
         var prevNoColor    = Environment.GetEnvironmentVariable("NO_COLOR");
         var prevForceColor = Environment.GetEnvironmentVariable("FORCE_COLOR");
@@ -55,8 +55,13 @@ internal sealed class ConsoleCapture : IDisposable
 
         TerminalCapabilities.Reset();
         // Hard override — bypasses Windows VT enablement on redirected
-        // stdout, which always reports false in test runners.
-        TerminalCapabilities.OverrideForTests(ansi: ansi, unicode: unicode);
+        // stdout, which always reports false in test runners. We treat
+        // <c>ansi</c> as the default for <c>interactive</c> too: most
+        // existing tests that pass <c>ansi: true</c> implicitly mean
+        // "real terminal" and want animation paths to fire.
+        TerminalCapabilities.OverrideForTests(
+            ansi: ansi, unicode: unicode, depth: depth,
+            interactive: interactive ?? ansi);
 
         var @out = new StringWriter { NewLine = "\n" };
         var err  = new StringWriter { NewLine = "\n" };
@@ -85,6 +90,15 @@ internal sealed class ConsoleCapture : IDisposable
         TerminalCapabilities.Reset();
     }
 
+    /// <summary>
+    /// Pin <see cref="Crt.CursorLeft"/> to <paramref name="column"/> for
+    /// the duration of the test — simulates "user just called
+    /// <c>GotoXY(column+1, _)</c>" without actually requiring a real
+    /// terminal. Pass <c>null</c> to clear.
+    /// </summary>
+    public static void OverrideCursorLeft(int? column)
+        => CursorState.OverrideForTests(column);
+
     public void Dispose()
     {
         if (_disposed) return;
@@ -98,6 +112,7 @@ internal sealed class ConsoleCapture : IDisposable
         Environment.SetEnvironmentVariable("TERM",        _previousTerm);
 
         TerminalCapabilities.Reset();
+        CursorState.OverrideForTests(null);
         _out.Dispose();
         _err.Dispose();
     }

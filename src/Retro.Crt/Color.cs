@@ -1,10 +1,13 @@
+using Retro.Crt.Internals;
+
 namespace Retro.Crt;
 
 /// <summary>
-/// A console color in either 24-bit truecolor or one of the 16 standard SGR
-/// slots. Use <see cref="Rgb"/> for arbitrary colors and the named static
-/// fields (<see cref="LightCyan"/>, <see cref="Brown"/>, …) for the classic
-/// DOS palette mapped onto the user's terminal theme.
+/// A console color in 24-bit truecolor, an xterm 256-palette index, or
+/// one of the 16 standard SGR slots. Use <see cref="Rgb"/> for arbitrary
+/// colors, <see cref="Indexed256"/> for xterm palette entries, and the
+/// named static fields (<see cref="LightCyan"/>, <see cref="Brown"/>, …)
+/// for the classic DOS palette mapped onto the user's terminal theme.
 /// </summary>
 public readonly record struct Color
 {
@@ -14,7 +17,9 @@ public readonly record struct Color
     public byte B { get; }
 
     /// <summary>
-    /// Index 0..15 for <see cref="ColorMode.Standard16"/>; ignored otherwise.
+    /// Palette index. 0..15 for <see cref="ColorMode.Standard16"/>,
+    /// 0..255 for <see cref="ColorMode.Xterm256"/>; ignored for
+    /// truecolor.
     /// </summary>
     public byte Index { get; }
 
@@ -30,11 +35,20 @@ public readonly record struct Color
     /// <summary>24-bit truecolor.</summary>
     public static Color Rgb(byte r, byte g, byte b) => new(ColorMode.Truecolor, r, g, b, 0);
 
+    /// <summary>
+    /// xterm 256-palette entry. Index 0..15 mirrors the user's terminal
+    /// theme (same as <see cref="Standard"/>); 16..231 is the 6×6×6 RGB
+    /// cube; 232..255 is the 24-step grayscale ramp.
+    /// </summary>
+    public static Color Indexed256(byte index)
+        => new(ColorMode.Xterm256, 0, 0, 0, index);
+
     internal static Color Standard(byte index)
     {
         if (index > 15)
             throw new ArgumentOutOfRangeException(nameof(index), index, "Standard16 index must be 0..15.");
-        return new(ColorMode.Standard16, 0, 0, 0, index);
+        var (r, g, b) = ColorQuantization.BiosPalette[index];
+        return new(ColorMode.Standard16, r, g, b, index);
     }
 
     // Classic DOS palette via the standard SGR slots. Index assignment matches
@@ -55,6 +69,72 @@ public readonly record struct Color
     public static readonly Color LightMagenta = Standard(13);
     public static readonly Color Yellow       = Standard(14);
     public static readonly Color White        = Standard(15);
+
+    /// <summary>
+    /// Return a color that <paramref name="depth"/> can render exactly.
+    /// Truecolor values get quantized to the closest 256-palette entry
+    /// or BIOS-16 anchor; Xterm256 values get folded into Standard16 if
+    /// the depth permits only 16 colors. Standard16 values pass through
+    /// unchanged — they always render correctly. Returns the
+    /// <c>default(Color)</c> sentinel for <see cref="ColorDepth.None"/>;
+    /// callers should check capability before emitting.
+    /// </summary>
+    public Color For(ColorDepth depth) => depth switch
+    {
+        ColorDepth.Truecolor  => this,
+        ColorDepth.Xterm256   => DownTo256(),
+        ColorDepth.Standard16 => DownTo16(),
+        _                     => default,
+    };
+
+    private Color DownTo256() => Mode switch
+    {
+        ColorMode.Truecolor  => Indexed256(ColorQuantization.ToXterm256(R, G, B)),
+        _                    => this,
+    };
+
+    private Color DownTo16() => Mode switch
+    {
+        ColorMode.Standard16 => this,
+        ColorMode.Truecolor  => Standard(ColorQuantization.ToStandard16(R, G, B)),
+        ColorMode.Xterm256   => From256ToStandard16(Index),
+        _                    => this,
+    };
+
+    private static Color From256ToStandard16(byte index)
+    {
+        // Indices 0..15 already are standard slots.
+        if (index < 16) return Standard(index);
+        // Cube entry: convert back to RGB and quantize.
+        if (index < 232)
+        {
+            var i = index - 16;
+            byte[] steps = [0, 95, 135, 175, 215, 255];
+            var r = steps[i / 36];
+            var g = steps[(i / 6) % 6];
+            var b = steps[i % 6];
+            return Standard(ColorQuantization.ToStandard16(r, g, b));
+        }
+        // Grayscale ramp.
+        var v = (byte)(8 + (index - 232) * 10);
+        return Standard(ColorQuantization.ToStandard16(v, v, v));
+    }
+
+    /// <summary>
+    /// Public quantizer — find the closest BIOS-16 anchor for an
+    /// arbitrary RGB triple. Useful when consumers want to pre-render
+    /// theme colors for terminals that lack truecolor.
+    /// </summary>
+    public static byte QuantizeToStandard16(byte r, byte g, byte b)
+        => ColorQuantization.ToStandard16(r, g, b);
+
+    /// <summary>
+    /// Public quantizer — find the closest xterm 256-palette entry for
+    /// an arbitrary RGB triple. Returns an index in 16..255 (never the
+    /// terminal-themed 0..15 slots).
+    /// </summary>
+    public static byte QuantizeToXterm256(byte r, byte g, byte b)
+        => ColorQuantization.ToXterm256(r, g, b);
 
     /// <summary>
     /// Parse a CSS hex string: <c>#RRGGBB</c> or <c>#RGB</c> (case

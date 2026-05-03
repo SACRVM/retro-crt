@@ -3,10 +3,10 @@ using Retro.Crt.Internals;
 namespace Retro.Crt;
 
 /// <summary>
-/// Tiny interactive prompts: yes/no <see cref="Confirm"/>, free-text
-/// <see cref="Ask"/>, arrow-key <see cref="Select(string, string[], int, Color?)"/>.
-/// All zero-dependency, AOT-clean. Without ANSI, <see cref="Select"/>
-/// degrades to a numbered list with <see cref="Console.ReadLine"/>.
+/// Tiny interactive prompts: yes/no <c>Confirm</c>, free-text
+/// <c>Ask</c>, arrow-key <c>Select</c>. All zero-dependency, AOT-clean.
+/// Without ANSI, <c>Select</c> degrades to a numbered list with
+/// <see cref="Console.ReadLine"/>.
 /// </summary>
 public static class Prompt
 {
@@ -24,6 +24,8 @@ public static class Prompt
         Color? color,
         Func<ConsoleKeyInfo> readKey)
     {
+        color ??= Crt.CurrentTheme?.Accent;
+
         var hint = defaultYes ? "[Y/n]" : "[y/N]";
         WritePrompt($"{question} {hint} ", color);
 
@@ -32,17 +34,17 @@ public static class Prompt
             var key = readKey();
             if (key.Key == ConsoleKey.Enter)
             {
-                Console.Out.WriteLine(defaultYes ? "y" : "n");
+                Crt.Sink.WriteLine(defaultYes ? "y" : "n");
                 return defaultYes;
             }
             if (key.KeyChar is 'y' or 'Y')
             {
-                Console.Out.WriteLine("y");
+                Crt.Sink.WriteLine("y");
                 return true;
             }
             if (key.KeyChar is 'n' or 'N')
             {
-                Console.Out.WriteLine("n");
+                Crt.Sink.WriteLine("n");
                 return false;
             }
             // Anything else — keep waiting.
@@ -56,6 +58,8 @@ public static class Prompt
     /// </summary>
     public static string Ask(string question, string? defaultValue = null, Color? color = null)
     {
+        color ??= Crt.CurrentTheme?.Accent;
+
         var prompt = defaultValue is null
             ? $"{question} "
             : $"{question} [{defaultValue}] ";
@@ -95,13 +99,15 @@ public static class Prompt
         if (!Crt.ColorEnabled)
             return SelectFallback(question, options, initialIndex);
 
+        color ??= Crt.CurrentTheme?.Accent;
+
         var active = Math.Clamp(initialIndex, 0, options.Length - 1);
 
-        Console.Out.WriteLine(question);
+        Crt.Sink.WriteLine(question);
         for (var i = 0; i < options.Length; i++)
             WriteOption(options[i], i == active, color);
 
-        Console.Out.Write(AnsiCodes.HideCursor);
+        Crt.Sink.Write(AnsiCodes.HideCursor);
         try
         {
             while (true)
@@ -125,7 +131,7 @@ public static class Prompt
         }
         finally
         {
-            Console.Out.Write(AnsiCodes.ShowCursor);
+            Crt.Sink.Write(AnsiCodes.ShowCursor);
         }
 
         return active;
@@ -133,14 +139,14 @@ public static class Prompt
 
     private static int SelectFallback(string question, string[] options, int initialIndex)
     {
-        Console.Out.WriteLine(question);
+        Crt.Sink.WriteLine(question);
         for (var i = 0; i < options.Length; i++)
-            Console.Out.WriteLine($"  {i + 1}) {options[i]}");
+            Crt.Sink.WriteLine($"  {i + 1}) {options[i]}");
 
         var fallbackInitial = Math.Clamp(initialIndex, 0, options.Length - 1);
         while (true)
         {
-            Console.Out.Write($"choose [1-{options.Length}, default {fallbackInitial + 1}]: ");
+            Crt.Sink.Write($"choose [1-{options.Length}, default {fallbackInitial + 1}]: ");
             var input = Console.In.ReadLine()?.Trim();
             if (string.IsNullOrEmpty(input)) return fallbackInitial;
             if (int.TryParse(input, out var n) && n >= 1 && n <= options.Length)
@@ -154,10 +160,10 @@ public static class Prompt
         // newline). Move back to the top of the menu and rewrite each
         // option line with ClearToEol so trailing chars from a longer
         // previous label don't survive.
-        Console.Out.Write($"\r{AnsiCodes.Csi}{options.Length}A");
+        Crt.Sink.Write($"\r{AnsiCodes.Csi}{options.Length}A");
         for (var i = 0; i < options.Length; i++)
         {
-            Console.Out.Write(AnsiCodes.ClearToEol);
+            Crt.Sink.Write(AnsiCodes.ClearToEol);
             WriteOption(options[i], i == active, color);
         }
     }
@@ -168,18 +174,18 @@ public static class Prompt
 
         if (active)
         {
-            if (color is { } c) Console.Out.Write(AnsiCodes.Foreground(c));
-            Console.Out.Write(AnsiCodes.Bold);
-            Console.Out.Write(prefix);
-            Console.Out.Write(text);
-            Console.Out.Write(AnsiCodes.Reset);
+            if (color is { } c) Crt.Sink.Write(Emit.Fg(c));
+            Crt.Sink.Write(AnsiCodes.Bold);
+            Crt.Sink.Write(prefix);
+            Crt.Sink.Write(text);
+            Crt.Sink.Write(AnsiCodes.Reset);
         }
         else
         {
-            Console.Out.Write(prefix);
-            Console.Out.Write(text);
+            Crt.Sink.Write(prefix);
+            Crt.Sink.Write(text);
         }
-        Console.Out.WriteLine();
+        Crt.Sink.WriteLine();
     }
 
     private static void WritePrompt(string prompt, Color? color)
@@ -187,11 +193,11 @@ public static class Prompt
         if (color is { } c)
         {
             using (Crt.WithStyle(fg: c))
-                Console.Out.Write(prompt);
+                Crt.Sink.Write(prompt);
         }
         else
         {
-            Console.Out.Write(prompt);
+            Crt.Sink.Write(prompt);
         }
     }
 }

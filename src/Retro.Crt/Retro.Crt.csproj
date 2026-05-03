@@ -30,6 +30,17 @@
 
     <!-- LibraryImport source-generated P/Invoke stubs require unsafe code. -->
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+    <!-- Ship XML doc comments in the NuGet package so consumers get
+         IntelliSense, and so DocFX can resolve cross-references. -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- 1591 = "Missing XML comment for publicly visible type or member".
+         We document every public surface, but a stray internal-helper or
+         overload that gets renamed shouldn't break the build.
+         RS0026 = "Do not add multiple overloads with optional parameters" —
+         the Banner.Box(string) / Box(string[]) split is intentional
+         (different parameter types, both shipped together since v0.1). -->
+    <NoWarn>$(NoWarn);1591;RS0026</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -39,6 +50,18 @@
   <ItemGroup>
     <InternalsVisibleTo Include="Retro.Crt.Tests" />
     <InternalsVisibleTo Include="Retro.Crt.Bench" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Locks the public API. New / removed / changed members must be
+         reflected in PublicAPI.Unshipped.txt; releases promote entries
+         to PublicAPI.Shipped.txt. Build fails on accidental drift. -->
+    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="3.3.4">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <AdditionalFiles Include="PublicAPI.Shipped.txt" />
+    <AdditionalFiles Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
 
 </Project>

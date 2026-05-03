@@ -24,6 +24,7 @@ public sealed class Spinner : IDisposable
     private readonly string[] _frames;
     private readonly Color? _color;
     private readonly bool _animated;
+    private readonly int _anchorColumn;
     private readonly Lock _gate = new();
     private readonly Timer? _timer;
 
@@ -36,12 +37,20 @@ public sealed class Spinner : IDisposable
     {
         _label = label;
         _frames = frames;
-        _color = color;
-        _animated = Crt.ColorEnabled;
+        // No explicit color → pick the active theme's accent slot.
+        _color = color ?? Crt.CurrentTheme?.Accent;
+        // Animation needs cursor / CR, not colors: NO_COLOR=1 in a real
+        // TTY still spins. Output-redirected, dumb, or Windows-no-VT
+        // hosts get the static label-once fallback.
+        _animated = Crt.IsInteractive;
+        // Anchor redraws to wherever the cursor sits at construction.
+        // GotoXY before Show → spinner stays at that column for its
+        // lifetime.
+        _anchorColumn = CursorState.GetLeft();
 
         if (_animated)
         {
-            Console.Out.Write(AnsiCodes.HideCursor);
+            Crt.Sink.Write(AnsiCodes.HideCursor);
             RenderLocked();
             _timer = new Timer(OnTick, null, msPerFrame, msPerFrame);
         }
@@ -49,7 +58,7 @@ public sealed class Spinner : IDisposable
         {
             // Non-animated: write the label once, no spinner glyph. The
             // final newline is emitted on Stop / Dispose.
-            Console.Out.Write(label);
+            Crt.Sink.Write(label);
         }
     }
 
@@ -92,42 +101,64 @@ public sealed class Spinner : IDisposable
     public void Stop(string? finalLabel, Color? finalColor = null)
     {
         if (_disposed) return;
+
+        // First-stopper-wins flag, set under the gate so OnTick observes
+        // it on its inner check. We do NOT call Timer.Dispose under the
+        // gate — a callback already blocked waiting on the gate would
+        // never finish, and Timer.Dispose(WaitHandle) would deadlock
+        // forever waiting on it.
         lock (_gate)
         {
             if (_disposed) return;
             _disposed = true;
-            _timer?.Dispose();
+        }
 
-            if (_animated)
+        // Drain any callback that's already running or queued on the
+        // thread pool. Once Dispose(handle) signals, no spinner work is
+        // pending — the final paint below races no one.
+        if (_timer is { } t)
+        {
+            var done = new ManualResetEvent(false);
+            try
             {
-                // Erase the spinner line: CR, fill with spaces up to the
-                // last visible width, CR again. Then optionally print
-                // finalLabel, restore the cursor, newline.
-                var sb = new StringBuilder(64);
-                sb.Append('\r');
-                if (_lastVisibleLength > 0) sb.Append(' ', _lastVisibleLength);
-                sb.Append('\r');
-
-                if (finalLabel is not null)
-                {
-                    if (finalColor is { } fc) sb.Append(AnsiCodes.Foreground(fc));
-                    sb.Append(finalLabel);
-                    if (finalColor is not null) sb.Append(AnsiCodes.Reset);
-                }
-
-                sb.Append(AnsiCodes.ShowCursor);
-                Console.Out.Write(sb.ToString());
-                Console.Out.WriteLine();
+                t.Dispose(done);
+                done.WaitOne();
             }
-            else
+            finally { done.Dispose(); }
+        }
+
+        if (_animated)
+        {
+            // Erase the spinner line: CR, jump back to the anchor
+            // column (if any), fill with spaces up to the last visible
+            // width, then CR + indent again so finalLabel lands at the
+            // anchor too.
+            var sb = new StringBuilder(64);
+            sb.Append('\r');
+            if (_anchorColumn > 0) sb.Append(' ', _anchorColumn);
+            if (_lastVisibleLength > 0) sb.Append(' ', _lastVisibleLength);
+            sb.Append('\r');
+            if (_anchorColumn > 0) sb.Append(' ', _anchorColumn);
+
+            if (finalLabel is not null)
             {
-                // Non-animated: cannot erase the static label. Drop a
-                // newline; if finalLabel is set, write it on the next
-                // line so logs stay readable.
-                Console.Out.WriteLine();
-                if (finalLabel is not null)
-                    Console.Out.WriteLine(finalLabel);
+                if (finalColor is { } fc) sb.Append(Emit.Fg(fc));
+                sb.Append(finalLabel);
+                if (finalColor is not null) sb.Append(AnsiCodes.Reset);
             }
+
+            sb.Append(AnsiCodes.ShowCursor);
+            Crt.Sink.Write(sb.ToString());
+            Crt.Sink.WriteLine();
+        }
+        else
+        {
+            // Non-animated: cannot erase the static label. Drop a
+            // newline; if finalLabel is set, write it on the next line
+            // so logs stay readable.
+            Crt.Sink.WriteLine();
+            if (finalLabel is not null)
+                Crt.Sink.WriteLine(finalLabel);
         }
     }
 
@@ -152,7 +183,8 @@ public sealed class Spinner : IDisposable
         var sb = new StringBuilder(64);
 
         sb.Append('\r');
-        if (_color is { } c) sb.Append(AnsiCodes.Foreground(c));
+        if (_anchorColumn > 0) sb.Append(' ', _anchorColumn);
+        if (_color is { } c) sb.Append(Emit.Fg(c));
         sb.Append(glyph);
         if (_color is not null) sb.Append(AnsiCodes.Reset);
         sb.Append(' ');
@@ -163,7 +195,7 @@ public sealed class Spinner : IDisposable
             sb.Append(' ', _lastVisibleLength - newLength);
 
         _lastVisibleLength = newLength;
-        Console.Out.Write(sb.ToString());
+        Crt.Sink.Write(sb.ToString());
     }
 
     private static string[] ResolveFrames(SpinnerStyle s) => s switch

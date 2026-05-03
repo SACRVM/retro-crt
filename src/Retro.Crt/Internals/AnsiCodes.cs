@@ -31,6 +31,7 @@ internal static class AnsiCodes
     {
         ColorMode.Truecolor  => $"{Csi}38;2;{c.R};{c.G};{c.B}m",
         ColorMode.Standard16 => Standard16Fg(c.Index),
+        ColorMode.Xterm256   => Indexed256Fg(c.Index),
         _                    => Reset,
     };
 
@@ -38,6 +39,7 @@ internal static class AnsiCodes
     {
         ColorMode.Truecolor  => $"{Csi}48;2;{c.R};{c.G};{c.B}m",
         ColorMode.Standard16 => Standard16Bg(c.Index),
+        ColorMode.Xterm256   => Indexed256Bg(c.Index),
         _                    => Reset,
     };
 
@@ -79,4 +81,21 @@ internal static class AnsiCodes
 
     private static string Standard16Fg(byte index) => Standard16FgCache[index];
     private static string Standard16Bg(byte index) => Standard16BgCache[index];
+
+    // 256 entries × two strings is small enough to pre-build at startup.
+    // Building once saves a string.Create per emit at a flat ~9 KB cost.
+    private static readonly string[] Indexed256FgCache = BuildIndexed256(isFg: true);
+    private static readonly string[] Indexed256BgCache = BuildIndexed256(isFg: false);
+
+    private static string[] BuildIndexed256(bool isFg)
+    {
+        var prefix = isFg ? 38 : 48;
+        var result = new string[256];
+        for (var i = 0; i < 256; i++)
+            result[i] = string.Create(CultureInfo.InvariantCulture, $"{Csi}{prefix};5;{i}m");
+        return result;
+    }
+
+    private static string Indexed256Fg(byte index) => Indexed256FgCache[index];
+    private static string Indexed256Bg(byte index) => Indexed256BgCache[index];
 }

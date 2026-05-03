@@ -3,7 +3,7 @@ using Retro.Crt.Internals;
 namespace Retro.Crt;
 
 /// <summary>
-/// Pascal-style banners. Two flavours: a framed <see cref="Box"/> for titles,
+/// Pascal-style banners. Two flavours: a framed <c>Box</c> for titles,
 /// and a per-line <see cref="Gradient"/> for fancier startup screens.
 /// </summary>
 public static class Banner
@@ -13,32 +13,60 @@ public static class Banner
     /// box-drawing glyphs when the terminal can render them, falls back to
     /// <c>+--+</c> otherwise.
     /// </summary>
-    public static void Box(string text, Color? fg = null, int padding = 1)
-        => Box([text], fg, padding);
+    public static void Box(string text, Color? fg = null, int padding = 1, int width = 0, BoxAlign align = BoxAlign.Left)
+        => Box([text], fg, padding, width, align);
 
     /// <summary>
-    /// Print one frame around all <paramref name="lines"/>. The box is sized
-    /// to the longest line.
+    /// Print one frame around all <paramref name="lines"/>. The box is
+    /// sized to the longest line, or to <paramref name="width"/> total
+    /// cells if larger. Pass <see cref="Crt.FillWidth"/> to span the
+    /// current terminal width. <paramref name="align"/> picks how lines
+    /// shorter than the inner content width are positioned.
     /// </summary>
-    public static void Box(string[] lines, Color? fg = null, int padding = 1)
+    public static void Box(string[] lines, Color? fg = null, int padding = 1, int width = 0, BoxAlign align = BoxAlign.Left)
     {
+        var minContent = ResolveContentWidth(width, padding);
+
         var framed = BoxBuilder.Build(
             lines,
             padding,
             Glyphs.BoxTopLeft, Glyphs.BoxTopRight,
             Glyphs.BoxBottomLeft, Glyphs.BoxBottomRight,
-            Glyphs.BoxHorizontal, Glyphs.BoxVertical);
+            Glyphs.BoxHorizontal, Glyphs.BoxVertical,
+            minContentWidth: minContent,
+            align: align);
 
-        if (fg is { } color)
+        // Anchor the frame at whatever column the cursor sits in. The
+        // first line writes inline (caller-positioned); lines 2..n need
+        // explicit leading spaces so the left edge of the frame stays
+        // vertical. CursorLeft returns 0 in pipes/tests, so the default
+        // path is unchanged.
+        var anchor = CursorState.GetLeft();
+        var indent = anchor > 0 ? new string(' ', anchor) : null;
+
+        // No explicit fg → fall back to the active theme's accent slot
+        // so themed output stays consistent without threading colors
+        // through every call site.
+        var resolved = fg ?? Crt.CurrentTheme?.Accent;
+
+        if (resolved is { } color)
         {
             using (Crt.WithStyle(fg: color))
-                for (var i = 0; i < framed.Length; i++)
-                    Crt.WriteLine(framed[i]);
+                WriteFrame(framed, indent);
         }
         else
         {
-            for (var i = 0; i < framed.Length; i++)
-                Crt.WriteLine(framed[i]);
+            WriteFrame(framed, indent);
+        }
+    }
+
+    private static void WriteFrame(string[] framed, string? indent)
+    {
+        Crt.WriteLine(framed[0]);
+        for (var i = 1; i < framed.Length; i++)
+        {
+            if (indent is not null) Crt.Write(indent);
+            Crt.WriteLine(framed[i]);
         }
     }
 
@@ -61,6 +89,21 @@ public static class Banner
             using (Crt.WithStyle(fg: color, bold: bold))
                 Crt.WriteLine(lines[i]);
         }
+    }
+
+    /// <summary>
+    /// Convert a desired total visible width into a min content width
+    /// for <see cref="BoxBuilder"/> (subtracts the two corner glyphs and
+    /// the left/right padding). Returns 0 — no override — when the
+    /// caller passed 0.
+    /// </summary>
+    private static int ResolveContentWidth(int desired, int padding)
+    {
+        if (desired == 0) return 0;
+        var total = desired == Crt.FillWidth ? Crt.WindowWidth : desired;
+        // 2 corner glyphs + 2*padding live outside the inner content.
+        var content = total - 2 - 2 * padding;
+        return content < 0 ? 0 : content;
     }
 
     internal static Color Interpolate(Color from, Color to, int index, int count)

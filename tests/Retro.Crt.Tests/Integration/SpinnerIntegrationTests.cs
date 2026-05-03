@@ -198,4 +198,80 @@ public class SpinnerIntegrationTests
 
         Assert.Contains("\x1b[38;2;255;100;50m", c.Out);
     }
+
+    [Fact]
+    public void Anchored_spinner_indents_after_carriage_return()
+    {
+        using var c = ConsoleCapture.Start(ansi: true);
+        ConsoleCapture.OverrideCursorLeft(4);
+        try
+        {
+            using var s = Spinner.Show("work", msPerFrame: NeverTicks);
+            // Initial render is the only frame we need (timer suppressed).
+        }
+        finally { ConsoleCapture.OverrideCursorLeft(null); }
+
+        // CR followed by 4 spaces, then the glyph.
+        Assert.Contains("\r    ", c.Out);
+    }
+
+    [Fact]
+    public void Stop_drains_timer_callbacks_before_returning()
+    {
+        // Run a fast-ticking spinner long enough that several callbacks
+        // are likely to have fired or be in flight, then stop. After
+        // Stop returns, no further timer-driven writes must reach the
+        // sink — the last bytes in the buffer must be those we wrote
+        // synchronously in the Stop path.
+        using var c = ConsoleCapture.Start(ansi: true);
+
+        var s = Spinner.Show("work", msPerFrame: 1);
+        Thread.Sleep(20);  // let the timer fire many times
+        s.Stop("done", Color.LightGreen);
+
+        // Snapshot immediately after Stop. If the drain didn't work,
+        // a queued callback could still race in here — that race is
+        // what we're proving cannot happen.
+        var snapshot = c.Out;
+
+        // Wait long enough that any leaked callback would surely fire.
+        Thread.Sleep(30);
+
+        Assert.Equal(snapshot, c.Out);
+        Assert.EndsWith("\n", snapshot);
+        Assert.Contains("done", snapshot);
+    }
+
+    [Fact]
+    public void Stop_is_safe_to_call_twice()
+    {
+        using var c = ConsoleCapture.Start(ansi: true);
+
+        var s = Spinner.Show("work", msPerFrame: NeverTicks);
+        s.Stop();
+        // Second call must be a no-op — no exception, no extra writes.
+        var lengthAfterFirst = c.Out.Length;
+        s.Stop();
+
+        Assert.Equal(lengthAfterFirst, c.Out.Length);
+    }
+
+    [Fact]
+    public void Interactive_terminal_without_color_still_animates()
+    {
+        // NO_COLOR on a real TTY → spinner spins, just no SGR colors.
+        using var c = ConsoleCapture.Start(ansi: false, interactive: true);
+
+        using var s = Spinner.Show("work", msPerFrame: 1);
+        Thread.Sleep(15);  // let several ticks fire
+        s.Stop();
+
+        // Multiple frame writes (each starts with CR) prove animation.
+        var crCount = c.Out.Count(ch => ch == '\r');
+        Assert.True(crCount >= 2, $"expected at least 2 CRs (animation), saw {crCount}");
+
+        // No SGR colors emitted.
+        Assert.DoesNotContain("\x1b[38", c.Out);
+        Assert.DoesNotContain("\x1b[0m", c.Out);
+    }
 }

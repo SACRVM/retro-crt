@@ -18,6 +18,7 @@ public sealed class ProgressBar : IDisposable
     private readonly char _empty;
 
     private readonly bool _animated;
+    private readonly int _anchorColumn;
     private long _value;
     private int _lastFilled = -1;
     private int _lastPercent = -1;
@@ -27,20 +28,41 @@ public sealed class ProgressBar : IDisposable
     private ProgressBar(long total, int width, string? label, Color? color, bool showPercent)
     {
         _total = total < 1 ? 1 : total;
-        _width = width < 1 ? 1 : width > ProgressBarRenderer.MaxWidth ? ProgressBarRenderer.MaxWidth : width;
+        _width = ResolveWidth(width, label, showPercent);
         _label = label;
-        _color = color;
+        // No explicit color → pick the active theme's accent.
+        _color = color ?? Crt.CurrentTheme?.Accent;
         _showPercent = showPercent;
         _full = Glyphs.BarFull;
         _empty = Glyphs.BarEmpty;
-        // Without ANSI we cannot redraw in place — so emit only the final
-        // frame on Dispose and skip intermediate updates.
-        _animated = Crt.ColorEnabled;
+        // Animation needs cursor / CR, not colors. NO_COLOR=1 in a
+        // real TTY still redraws in place; only redirected /
+        // dumb-terminal hosts skip intermediate frames so logs don't
+        // collect 60 progress lines in a row.
+        _animated = Crt.IsInteractive;
+        // Anchor the bar's redraw to wherever the cursor sits at Start.
+        // GotoXY(20,8) before Start → bar redraws keep their left edge at
+        // column 20 across the bar's lifetime.
+        _anchorColumn = CursorState.GetLeft();
     }
 
     /// <summary>
     /// Begin a new progress bar and render the empty frame.
     /// </summary>
+    /// <param name="total">Total work units the bar represents (≥1).</param>
+    /// <param name="width">
+    /// Bar cells. Defaults to 30. Pass <see cref="Crt.FillWidth"/> to
+    /// span the terminal — the bar sizes itself to the available space
+    /// after subtracting the label and percent suffix. Clamped to
+    /// <c>[1, ProgressBarRenderer.MaxWidth]</c>.
+    /// </param>
+    /// <param name="label">Optional text written before the bar, with a
+    /// single trailing space. Falls back to no label when null.</param>
+    /// <param name="color">Optional foreground for the bar fill. When
+    /// null, falls back to the active theme's accent slot, or no color
+    /// if no theme is active.</param>
+    /// <param name="showPercent">Append a 5-character percent suffix
+    /// (<c>" ddd%"</c>) to every frame. Defaults to true.</param>
     public static ProgressBar Start(
         long total,
         int width = 30,
@@ -52,6 +74,29 @@ public sealed class ProgressBar : IDisposable
         if (bar._animated) Crt.Write(AnsiCodes.HideCursor);
         bar.Redraw(force: true);
         return bar;
+    }
+
+    /// <summary>
+    /// Resolve the requested bar-cell count, honoring the
+    /// <see cref="Crt.FillWidth"/> sentinel.
+    /// </summary>
+    private static int ResolveWidth(int width, string? label, bool showPercent)
+    {
+        if (width == Crt.FillWidth)
+        {
+            // Total line = label + " " + bar + " ddd%". Reserve those
+            // around the bar; minimum bar width is 1.
+            var reserved = (string.IsNullOrEmpty(label) ? 0 : label!.Length + 1)
+                         + (showPercent ? 5 : 0)
+                         + 1; // safety cell so we don't trigger wrap
+            var w = Crt.WindowWidth - reserved;
+            if (w < 1) w = 1;
+            if (w > ProgressBarRenderer.MaxWidth) w = ProgressBarRenderer.MaxWidth;
+            return w;
+        }
+        if (width < 1) return 1;
+        if (width > ProgressBarRenderer.MaxWidth) return ProgressBarRenderer.MaxWidth;
+        return width;
     }
 
     public long Value => _value;
@@ -102,8 +147,13 @@ public sealed class ProgressBar : IDisposable
         if (_animated)
         {
             var ansi = Crt.ColorEnabled;
-            var prefix = "\r";
-            var fgOn = ansi && _color is { } c ? AnsiCodes.Foreground(c) : "";
+            // CR snaps the cursor to column 1; the indent shifts it back
+            // to whatever column the bar was anchored at, so a bar
+            // started after GotoXY(20,8) keeps redrawing at column 20.
+            var prefix = _anchorColumn > 0
+                ? "\r" + new string(' ', _anchorColumn)
+                : "\r";
+            var fgOn = ansi && _color is { } c ? Emit.Fg(c) : "";
             var fgOff = ansi && _color is not null ? AnsiCodes.Reset : "";
 
             // Pad if the new frame is shorter than the previous one (only
@@ -112,7 +162,7 @@ public sealed class ProgressBar : IDisposable
             if (frame.Length < _lastFrameLength)
                 padding = new string(' ', _lastFrameLength - frame.Length);
 
-            Console.Out.Write(prefix + fgOn + frame + padding + fgOff);
+            Crt.Sink.Write(prefix + fgOn + frame + padding + fgOff);
         }
         else
         {

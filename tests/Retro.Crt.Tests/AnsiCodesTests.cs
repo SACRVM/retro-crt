@@ -66,6 +66,28 @@ public class AnsiCodesTests
     }
 
     [Theory]
+    [InlineData(0,   "\x1b[38;5;0m")]
+    [InlineData(15,  "\x1b[38;5;15m")]
+    [InlineData(196, "\x1b[38;5;196m")]
+    [InlineData(232, "\x1b[38;5;232m")]
+    [InlineData(255, "\x1b[38;5;255m")]
+    public void Foreground_xterm256_emits_38_5_N(byte index, string expected)
+    {
+        var s = AnsiCodes.Foreground(Color.Indexed256(index));
+        Assert.Equal(expected, s);
+    }
+
+    [Theory]
+    [InlineData(0,   "\x1b[48;5;0m")]
+    [InlineData(196, "\x1b[48;5;196m")]
+    [InlineData(255, "\x1b[48;5;255m")]
+    public void Background_xterm256_emits_48_5_N(byte index, string expected)
+    {
+        var s = AnsiCodes.Background(Color.Indexed256(index));
+        Assert.Equal(expected, s);
+    }
+
+    [Theory]
     [InlineData(1, 1, "\x1b[1;1H")]
     [InlineData(10, 5, "\x1b[5;10H")]
     [InlineData(0, 0, "\x1b[1;1H")]    // 0 clamps to 1 (1-based)
