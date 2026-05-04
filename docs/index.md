@@ -1,16 +1,82 @@
 # Retro.Crt
 
-A Pascal CRT-Unit-style console library for modern .NET. Tiny,
-dependency-free, trim- and AOT-clean.
+**Tiny, zero-dep, AOT-clean Pascal-CRT charm for .NET CLIs.**
 
-This site hosts the API reference. The narrative documentation lives in
-the [README on GitHub](https://github.com/chloe-dream/retro-crt) — quick
-links:
+Pascal CRT-Unit verbs (`TextColor`, `GotoXY`, `ClrScr`, `ClrEol`,
+`Bell`), truecolor with graceful 256-color, 16-color, and `NO_COLOR`
+fallback, nine built-in themes (six era-faithful retro presets and
+three modern dark themes), and a small set of curated output blocks —
+framed banners, in-place progress bars, animated spinners, aligned
+tables, interactive prompts, a five-level logger, and a typewriter
+that fades characters in. Plus alt-screen takeover for vim/less-style
+apps.
 
-- [Install + how to use](https://github.com/chloe-dream/retro-crt#how-to-use)
-- [Roadmap](https://github.com/chloe-dream/retro-crt/blob/main/ROADMAP.md)
-- [Benchmarks](https://github.com/chloe-dream/retro-crt/blob/main/bench/BENCHMARKS.md)
-- [Contributing](https://github.com/chloe-dream/retro-crt/blob/main/CONTRIBUTING.md)
+```bash
+dotnet add package Retro.Crt
+```
+
+```csharp
+using Retro.Crt;
+
+Crt.TextColor(Color.LightCyan);
+Crt.WriteLine("system online.");
+
+using (Crt.WithStyle(Color.Yellow, bold: true))
+    Crt.WriteLine("> ready.");
+```
+
+Targets `net10.0`. No third-party dependencies.
+
+## Why
+
+Spectre.Console is great, but it does not trim or AOT cleanly. For a
+small CLI that publishes trim- or AOT-safe — a launcher, a build tool,
+a one-shot installer — pulling Spectre in noticeably bloats the output
+and breaks the trim pass. Retro.Crt is the small, opinionated
+alternative for tools that want curated colored output, themed
+widgets, and nothing more elaborate than a table.
+
+### Comparison
+
+|                        | Retro.Crt  | Spectre.Console | Pastel    | Crayon |
+|------------------------|------------|-----------------|-----------|--------|
+| Trim / AOT clean       | ✅          | ❌              | ✅        | ✅      |
+| Runtime dependencies   | 0          | many            | 0         | 0      |
+| Truecolor              | ✅          | ✅              | ✅        | ❌      |
+| 256-color quantization | ✅          | ✅              | ❌        | ❌      |
+| Pascal-flavoured verbs | ✅          | ❌              | ❌        | ❌      |
+| Framed banner          | ✅          | ✅              | ❌        | ❌      |
+| Progress bar           | ✅ (single)| ✅ (multi/live) | ❌        | ❌      |
+| Spinner                | ✅          | ✅              | ❌        | ❌      |
+| Aligned tables         | ✅ (basic) | ✅ (rich)       | ❌        | ❌      |
+| Interactive prompts    | ✅ (3 verbs)| ✅ (rich)      | ❌        | ❌      |
+| Themes                 | ✅ (9 presets)| ✅          | ❌        | ❌      |
+| Trees / forms / panels | ❌          | ✅              | ❌        | ❌      |
+| Live regions / layout  | ❌          | ✅              | ❌        | ❌      |
+| Markup language        | ❌          | ✅              | ❌        | ❌      |
+| Alt-screen takeover    | ✅          | ❌              | ❌        | ❌      |
+| Built-in logger        | ✅ (tiny)  | ❌              | ❌        | ❌      |
+
+If you need trees, forms, panels, live layouts, or a markup language —
+**use Spectre.Console**. If your CLI publishes trim- or AOT-safe and
+you don't want a single console UI library to be the thing that breaks
+that — and you'd settle for a charming splash screen, themed output, a
+few log levels, a progress bar, a spinner, simple tables, and three
+flavours of prompt — this library.
+
+## Demos
+
+Short live samples under `samples/` on GitHub — clone the repo and run
+any of them:
+
+```bash
+dotnet run --project samples/Retro.Crt.Demo            # 25 s feature tour
+dotnet run --project samples/Retro.Crt.Themes.Demo     # all 9 themes side by side
+dotnet run --project samples/Retro.Crt.Matrix.Demo     # "Wake up, Neo" cinematic
+dotnet run --project samples/Retro.Crt.Boot.Demo       # fake AMIBIOS POST + DOS prompt
+dotnet run --project samples/Retro.Crt.Capabilities.Demo   # color-depth fallback
+dotnet run --project samples/Retro.Crt.AltScreen.Demo  # alt-screen takeover, restores your shell
+```
 
 ## Public surface at a glance
 
@@ -68,3 +134,22 @@ links:
   a one-line dense summary for support tickets.
 
 Browse the full namespace in the [API reference](api/Retro.Crt.html).
+
+## More
+
+- [Full README on GitHub](https://github.com/chloe-dream/retro-crt) —
+  narrative how-to-use guide with code samples for every feature.
+- [Roadmap](https://github.com/chloe-dream/retro-crt/blob/main/ROADMAP.md)
+  — what's shipped, planned, and parked.
+- [Changelog](https://github.com/chloe-dream/retro-crt/blob/main/CHANGELOG.md)
+  — release-by-release diff.
+- [Benchmarks](https://github.com/chloe-dream/retro-crt/blob/main/bench/BENCHMARKS.md)
+  — BenchmarkDotNet baseline numbers.
+- [Contributing](https://github.com/chloe-dream/retro-crt/blob/main/CONTRIBUTING.md)
+  — how to file issues, propose features, and submit PRs.
+- [NuGet package](https://www.nuget.org/packages/Retro.Crt) — released
+  on tag pushes via `.github/workflows/release.yml`.
+
+## License
+
+MIT.
