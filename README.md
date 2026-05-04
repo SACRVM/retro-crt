@@ -7,11 +7,13 @@
 
 **Tiny, zero-dep, AOT-clean Pascal-CRT charm for .NET CLIs.**
 
-Pascal CRT-Unit verbs (`TextColor`, `GotoXY`, `ClrScr`, `ClrEol`),
-truecolor with graceful 256-color, 16-color, and `NO_COLOR` fallback,
-and a small set of curated output blocks — framed banners, in-place
-progress bars, a five-level logger, and a typewriter that fades
-characters in.
+Pascal CRT-Unit verbs (`TextColor`, `GotoXY`, `ClrScr`, `ClrEol`,
+`Bell`), truecolor with graceful 256-color, 16-color, and `NO_COLOR`
+fallback, six era-faithful themes, and a small set of curated output
+blocks — framed banners, in-place progress bars, animated spinners,
+aligned tables, interactive prompts, a five-level logger, and a
+typewriter that fades characters in. Plus alt-screen takeover for
+vim/less-style apps.
 
 ```bash
 dotnet add package Retro.Crt
@@ -52,7 +54,8 @@ Targets `net10.0`. No third-party dependencies.
 Spectre.Console is great, but it does not trim or AOT cleanly, and a
 launcher that ships as a 12 MB single binary cannot afford the runtime
 weight. Retro.Crt is the small, opinionated alternative for tools that
-want curated colored output, a banner, a progress bar, and nothing else.
+want curated colored output, themed widgets, and nothing more
+elaborate than a table.
 
 ### Comparison
 
@@ -65,15 +68,21 @@ want curated colored output, a banner, a progress bar, and nothing else.
 | Pascal-flavoured verbs | ✅          | ❌              | ❌        | ❌      |
 | Framed banner          | ✅          | ✅              | ❌        | ❌      |
 | Progress bar           | ✅ (single)| ✅ (multi/live) | ❌        | ❌      |
-| Tables / trees / forms | ❌          | ✅              | ❌        | ❌      |
+| Spinner                | ✅          | ✅              | ❌        | ❌      |
+| Aligned tables         | ✅ (basic) | ✅ (rich)       | ❌        | ❌      |
+| Interactive prompts    | ✅ (3 verbs)| ✅ (rich)      | ❌        | ❌      |
+| Themes                 | ✅ (6 presets)| ✅          | ❌        | ❌      |
+| Trees / forms / panels | ❌          | ✅              | ❌        | ❌      |
 | Live regions / layout  | ❌          | ✅              | ❌        | ❌      |
 | Markup language        | ❌          | ✅              | ❌        | ❌      |
+| Alt-screen takeover    | ✅          | ❌              | ❌        | ❌      |
 | Built-in logger        | ✅ (tiny)  | ❌              | ❌        | ❌      |
 
-If you need tables, trees, forms, layouts, or a markup language —
+If you need trees, forms, panels, live layouts, or a markup language —
 **use Spectre.Console**. If you need a 12 MB AOT launcher with a
-charming splash screen, four log levels, and a single progress bar —
-this library.
+charming splash screen, themed output, a few log levels, a progress
+bar, a spinner, simple tables, and three flavours of prompt — this
+library.
 
 ## How to use
 
@@ -221,7 +230,39 @@ Crt.ClrScr();
 Crt.GotoXY(10, 5);     // 1-based, like the original CRT unit
 Crt.Write("hi");
 Crt.ClrEol();
+Crt.Bell();            // BEL — Pascal Sound nostalgia
 ```
+
+`Bell` emits `\a` and flushes so the terminal actually rings; gated on
+`Crt.IsInteractive` so piped output stays quiet. Works under `NO_COLOR`
+and on legacy hosts that never enabled VT (BEL predates ANSI).
+
+### Alternate screen
+
+`Crt.UseAlternateScreen()` takes over the terminal with the alternate
+screen buffer for the duration of the returned scope — the user's
+previous shell content is preserved by the terminal itself and restored
+verbatim when the scope disposes. Same trick `vim` / `less` / `htop` use:
+no scrollback leak, no cleared shell, no "where did my prompt go?".
+
+```csharp
+using (Crt.UseAlternateScreen())
+{
+    Crt.ClrScr();
+    Banner.Box("Demo", fg: Color.LightCyan);
+    Typewriter.TypeLine("hello from a clean screen…");
+    Prompt.Confirm("quit?");
+}
+// Shell content above looks exactly as the user left it.
+```
+
+Reference-counted so nesting only flips the buffer on the outermost
+transition. Lazily registers `Console.CancelKeyPress` and
+`AppDomain.ProcessExit` handlers on first use — if the process is
+Ctrl-C'd or killed before the scope disposes, those handlers still emit
+the leave sequence so the user's shell isn't left stuck on the alt
+screen. No-op when output is redirected or the host isn't a real
+terminal.
 
 ### Anchoring widgets to a cursor position
 
@@ -250,10 +291,10 @@ on the roadmap will fix that).
 ### Banner
 
 ```csharp
-Banner.Box("Retro.Crt 0.2", fg: Color.LightCyan);
+Banner.Box("Retro.Crt", fg: Color.LightCyan);
 
 Banner.Box(
-    ["Retro.Crt 0.2", "Banner / Bar / Log / Typewriter"],
+    ["Retro.Crt", "Banner / Bar / Spinner / Table / Prompt / Log / Typewriter"],
     fg: Color.LightCyan);
 
 // Stretch the frame to the current terminal width:
