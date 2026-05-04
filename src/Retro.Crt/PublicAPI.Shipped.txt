@@ -87,8 +87,6 @@ Retro.Crt.TerminalReport.TerminalReport() -> void
 Retro.Crt.Theme
 Retro.Crt.Theme.Accent.get -> Retro.Crt.Color
 Retro.Crt.Theme.Accent.init -> void
-Retro.Crt.Theme.Background.get -> Retro.Crt.Color
-Retro.Crt.Theme.Background.init -> void
 Retro.Crt.Theme.Error.get -> Retro.Crt.Color
 Retro.Crt.Theme.Error.init -> void
 Retro.Crt.Theme.Foreground.get -> Retro.Crt.Color
@@ -130,11 +128,11 @@ static readonly Retro.Crt.Color.White -> Retro.Crt.Color
 static readonly Retro.Crt.Color.Yellow -> Retro.Crt.Color
 static readonly Retro.Crt.Themes.All -> Retro.Crt.Theme[]!
 static readonly Retro.Crt.Themes.AmberCrt -> Retro.Crt.Theme
-static readonly Retro.Crt.Themes.Amiga -> Retro.Crt.Theme
-static readonly Retro.Crt.Themes.C64 -> Retro.Crt.Theme
 static readonly Retro.Crt.Themes.Dos -> Retro.Crt.Theme
 static readonly Retro.Crt.Themes.GreenCrt -> Retro.Crt.Theme
-static readonly Retro.Crt.Themes.NortonCommander -> Retro.Crt.Theme
+static readonly Retro.Crt.Themes.Midnight -> Retro.Crt.Theme
+static readonly Retro.Crt.Themes.Slate -> Retro.Crt.Theme
+static readonly Retro.Crt.Themes.Twilight -> Retro.Crt.Theme
 static Retro.Crt.Banner.Box(string! text, Retro.Crt.Color? fg = null, int padding = 1, int width = 0, Retro.Crt.BoxAlign align = Retro.Crt.BoxAlign.Left) -> void
 static Retro.Crt.Banner.Box(string![]! lines, Retro.Crt.Color? fg = null, int padding = 1, int width = 0, Retro.Crt.BoxAlign align = Retro.Crt.BoxAlign.Left) -> void
 static Retro.Crt.Banner.Gradient(string![]! lines, Retro.Crt.Color from, Retro.Crt.Color to, bool bold = true) -> void
@@ -155,6 +153,7 @@ static Retro.Crt.Crt.CursorLeft.get -> int
 static Retro.Crt.Crt.Depth.get -> Retro.Crt.ColorDepth
 static Retro.Crt.Crt.GotoXY(int column, int row) -> void
 static Retro.Crt.Crt.IsInteractive.get -> bool
+static Retro.Crt.Crt.PaintBackground() -> void
 static Retro.Crt.Crt.ResetColor() -> void
 static Retro.Crt.Crt.Sink.get -> System.IO.TextWriter!
 static Retro.Crt.Crt.TextBackground(Retro.Crt.Color color) -> void
