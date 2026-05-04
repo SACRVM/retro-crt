@@ -17,9 +17,10 @@ links:
 ### Core
 
 - [`Crt`](api/Retro.Crt.Crt.html) — Pascal verbs (`TextColor`, `GotoXY`,
-  `ClrScr`, `ClrEol`, `Bell`), `WithStyle` / `UseTheme` / `WithSink` /
-  `UseAlternateScreen` scopes, capability accessors (`ColorEnabled`,
-  `Depth`, `IsInteractive`, `WindowWidth`, `CursorLeft`, `Sink`).
+  `ClrScr`, `ClrEol`, `Bell`, `PaintBackground`),
+  `WithStyle` / `UseTheme` / `WithSink` / `UseAlternateScreen` scopes,
+  capability accessors (`ColorEnabled`, `Depth`, `IsInteractive`,
+  `WindowWidth`, `CursorLeft`, `Sink`).
 - [`Color`](api/Retro.Crt.Color.html) — DOS palette, truecolor, xterm-256
   via `Color.Indexed256`, depth-aware quantization through `Color.For`,
   hex / name parsing.
@@ -53,8 +54,9 @@ links:
 
 - [`Theme`](api/Retro.Crt.Theme.html) — record struct with seven slots
   (Background, Foreground, Accent, Muted, Success, Warn, Error).
-- [`Themes`](api/Retro.Crt.Themes.html) — built-in palettes (`Dos`,
-  `AmberCrt`, `GreenCrt`, `Amiga`, `C64`, `NortonCommander`).
+- [`Themes`](api/Retro.Crt.Themes.html) — built-in palettes: retro
+  (`Dos`, `AmberCrt`, `GreenCrt`, `Amiga`, `C64`, `NortonCommander`)
+  and modern dark (`Midnight`, `Slate`, `Twilight`).
 - Apply with `Crt.UseTheme(Themes.AmberCrt)` — widgets fall back to the
   theme's slots when no explicit color is passed.
 

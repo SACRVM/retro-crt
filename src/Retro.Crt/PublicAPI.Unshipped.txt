@@ -1,1 +1,5 @@
 #nullable enable
+static readonly Retro.Crt.Themes.Midnight -> Retro.Crt.Theme
+static readonly Retro.Crt.Themes.Slate -> Retro.Crt.Theme
+static readonly Retro.Crt.Themes.Twilight -> Retro.Crt.Theme
+static Retro.Crt.Crt.PaintBackground() -> void

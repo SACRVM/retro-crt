@@ -218,6 +218,39 @@ public static class Crt
     }
 
     /// <summary>
+    /// Fill every visible cell of the terminal viewport with the active
+    /// background color by writing spaces. Use this after
+    /// <see cref="UseTheme"/> when you want the theme's background to
+    /// cover the full screen — ECMA-48 says <see cref="ClrScr"/> erases
+    /// with the current SGR background, but real-world honouring of that
+    /// (the <c>bce</c> capability) varies, so this is the bulletproof
+    /// variant. Pairs naturally with <see cref="UseAlternateScreen"/> for
+    /// vim/less-style fullscreen takeovers without touching the user's
+    /// shell. No-op when ANSI is unavailable. Cursor returns to (1, 1).
+    /// </summary>
+    public static void PaintBackground()
+    {
+        if (!ColorEnabled) return;
+
+        var w = WindowWidth;
+        var h = WindowHeight;
+        if (w <= 0 || h <= 0) return;
+
+        Sink.Write(AnsiCodes.GotoXY(1, 1));
+        var blank = new string(' ', w);
+        for (var row = 0; row < h - 1; row++)
+        {
+            Sink.Write(blank);
+            Sink.Write('\n');
+        }
+        // Last line is one cell short to avoid the auto-scroll some
+        // terminals trigger when a write fills the bottom-right cell.
+        if (w > 1)
+            Sink.Write(blank.AsSpan(0, w - 1));
+        Sink.Write(AnsiCodes.GotoXY(1, 1));
+    }
+
+    /// <summary>
     /// Pascal <c>Sound</c>-flavoured beep — emits <c>BEL</c> (<c>\a</c>)
     /// and flushes so the terminal actually rings. No-op when output is
     /// redirected or the host isn't a real terminal: piping a bell into

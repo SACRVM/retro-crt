@@ -134,7 +134,10 @@ if (Color.TryParse(userInput, out var c))
 
 ### Themes
 
-Six built-in palettes that evoke specific eras, all in truecolor:
+Nine built-in palettes — six era-faithful retro presets and three
+modern dark themes — all in truecolor:
+
+Retro:
 
 - `Themes.Dos` — classic IBM PC / DOS prompt
 - `Themes.AmberCrt` — amber phosphor monochrome terminal
@@ -142,6 +145,12 @@ Six built-in palettes that evoke specific eras, all in truecolor:
 - `Themes.Amiga` — Workbench 1.x orange-on-blue
 - `Themes.C64` — Commodore 64 boot screen
 - `Themes.NortonCommander` — deep blue with yellow highlights
+
+Modern dark:
+
+- `Themes.Midnight` — deep blue-charcoal, periwinkle/mint/coral pastels
+- `Themes.Slate` — neutral charcoal, cool cyan-leaning pastels
+- `Themes.Twilight` — deep aubergine, magenta/orchid pastels
 
 Themes are **pure data** — pick the colors you want and pass them to
 any color-accepting API, or activate one with `Crt.UseTheme(...)` so
@@ -178,6 +187,28 @@ unchanged: pure data, you still pass colors yourself.
 Each theme exposes `Background`, `Foreground`, `Accent`, `Muted`,
 `Success`, `Warn`, and `Error` slots. `Themes.All` returns the full
 list — handy for theme pickers and demos.
+
+**Painting the full screen with the theme background.** A `bg` SGR
+only colors cells you actually write to — empty viewport space keeps
+the terminal's native background. ECMA-48 says `Crt.ClrScr()` should
+erase using the active SGR background and most modern terminals
+(Windows Terminal, iTerm2, kitty, alacritty, gnome-terminal) honor
+that, but real-world compliance varies. `Crt.PaintBackground()` is
+the bulletproof variant: it fills every visible cell with spaces
+under the active SGR, so the theme background covers the whole
+screen regardless of terminal quirks. Pairs naturally with
+`Crt.UseAlternateScreen()` for a vim/less-style fullscreen takeover
+that doesn't pollute the user's shell:
+
+```csharp
+using var alt   = Crt.UseAlternateScreen();
+using var theme = Crt.UseTheme(Themes.Midnight);
+Crt.PaintBackground();    // entire alt-screen now reads as Midnight
+Crt.GotoXY(1, 1);
+Banner.Box("system online", fg: Themes.Midnight.Accent);
+// ... your TUI here ...
+// On dispose: alt-screen restores the user's shell, theme + bg gone
+```
 
 Truecolor at the source — Retro.Crt quantizes down to 256-color or
 Standard16 if the terminal can't render the full 24 bits. On

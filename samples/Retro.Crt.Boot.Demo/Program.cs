@@ -4,11 +4,19 @@ using Retro.Crt;
 // Cycles through Banner, Typewriter, Spinner, ProgressBar, Log, and a
 // blinking final prompt — the everything-bagel of the library, dressed
 // up so it actually looks like a system booting. ~22 s end-to-end.
-
+//
+// Recipe for a real fullscreen retro takeover:
+//   UseAlternateScreen — preserve the user's shell, restore on exit
+//   UseTheme           — set the theme's bg/fg as the active SGR
+//   PaintBackground    — actually fill every cell with that bg
+// The Dos theme is mostly black on black so the painted bg is subtle;
+// switch to AmberCrt / GreenCrt / Midnight to see the full effect.
 var t = Themes.Dos;
 
-Crt.ResetColor();
-Crt.WriteLine();
+using var alt = Crt.UseAlternateScreen();
+using var theme = Crt.UseTheme(t);
+Crt.PaintBackground();
+Crt.GotoXY(1, 1);
 
 PrintBiosBanner();
 Pause();
@@ -28,8 +36,9 @@ Pause();
 PrintReady(t);
 PrintShellPrompt(t);
 
-Crt.WriteLine();
-Crt.ResetColor();
+// Hold the final frame so the user sees it before the alt-screen
+// scope tears down and their shell reappears.
+Thread.Sleep(1200);
 return 0;
 
 static void Pause() => Thread.Sleep(450);
@@ -92,7 +101,7 @@ static void PrintServiceStartup(Theme t)
     Thread.Sleep(250);
     Log.Info("Starting services...");
     Thread.Sleep(450);
-    Log.Success("retro.crt v0.2 ready.");
+    Log.Success("retro.crt v0.4 ready.");
 }
 
 static void PrintReady(Theme t)

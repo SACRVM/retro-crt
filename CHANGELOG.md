@@ -10,6 +10,41 @@ versions; breaking changes are called out below.
 
 ### Added
 
+- `Crt.PaintBackground()` — fills every visible viewport cell with the
+  active SGR background by writing spaces. ECMA-48 says
+  `Crt.ClrScr()` erases with the current bg, but real-world `bce`
+  compliance varies; this is the bulletproof variant. Pairs with
+  `UseTheme` + `UseAlternateScreen` for full-screen retro takeovers.
+  Cursor returns to (1, 1).
+- Three modern dark themes alongside the existing retro presets:
+  `Themes.Midnight` (deep blue-charcoal, periwinkle/mint/coral
+  pastels), `Themes.Slate` (neutral charcoal, cool cyan-leaning
+  pastels), `Themes.Twilight` (deep aubergine, magenta/orchid
+  pastels). All truecolor, all dark-without-being-black, all picked
+  up automatically by `Themes.All`.
+- `samples/Retro.Crt.AltScreen.Demo` — short showcase for
+  `UseAlternateScreen`: takes over the terminal, paints the
+  AmberCrt theme background across every visible cell, prints a
+  themed banner, beeps once, then leaves — and the user's shell
+  content above the demo prompt is exactly as they left it.
+
+### Changed
+
+- `samples/Retro.Crt.Boot.Demo` now wraps the boot sequence in
+  `UseAlternateScreen` + `UseTheme` + `PaintBackground` so the demo
+  reads as a real fullscreen takeover instead of leaking into the
+  user's shell. Also bumps the stale `retro.crt v0.2 ready` log
+  line to v0.4.
+- `samples/Retro.Crt.Themes.Demo` activates `Crt.UseTheme(t)` per
+  iteration and pads each line so the theme's background renders as
+  a visible band — without that, only the foreground colors changed
+  between scenes and the new dark themes were unreadable on light
+  terminals.
+
+## [0.4.0] — 2026-05-04
+
+### Added
+
 - `Crt.Bell()` — Pascal `Sound`-flavoured beep. Emits `BEL` (`\a`) and
   flushes so the terminal actually rings; gated on `IsInteractive` so
   piped output stays quiet. Predates ANSI, so it works under `NO_COLOR`
@@ -22,10 +57,6 @@ versions; breaking changes are called out below.
   `CancelKeyPress` and `ProcessExit` handlers register lazily on first
   use to restore the normal screen if the process is Ctrl-C'd or killed
   before the scope disposes.
-- `samples/Retro.Crt.AltScreen.Demo` — short showcase for
-  `UseAlternateScreen`: takes over the terminal, prints a themed banner
-  inside the alt buffer, beeps once, then leaves — and the user's shell
-  content above the demo prompt is exactly as they left it.
 
 ## [0.3.0] — 2026-05-04
 
@@ -208,7 +239,8 @@ versions; breaking changes are called out below.
   verbs (`TextColor`, `TextBackground`, `GotoXY`, `ClrScr`, `ClrEol`,
   `WithStyle`), Windows VT enablement via `LibraryImport`.
 
-[Unreleased]: https://github.com/chloe-dream/retro-crt/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/chloe-dream/retro-crt/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/chloe-dream/retro-crt/releases/tag/v0.4.0
 [0.3.0]: https://github.com/chloe-dream/retro-crt/releases/tag/v0.3.0
 [0.2.1]: https://github.com/chloe-dream/retro-crt/releases/tag/v0.2.1
 [0.2.0]: https://github.com/chloe-dream/retro-crt/releases/tag/v0.2.0

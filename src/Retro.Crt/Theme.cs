@@ -147,7 +147,59 @@ public static class Themes
     };
 
     /// <summary>
-    /// All built-in themes, in stable display order. Useful for demos
+    /// Modern dark theme — deep blue-charcoal background with soft
+    /// pastel accents. Periwinkle highlights, mint success, gold warn,
+    /// coral error. The "comfortable late-night IDE" look.
+    /// </summary>
+    public static readonly Theme Midnight = new()
+    {
+        Name       = "Midnight",
+        Background = Color.Rgb( 20,  22,  32),
+        Foreground = Color.Rgb(214, 218, 232),
+        Accent     = Color.Rgb(180, 195, 255),
+        Muted      = Color.Rgb( 95, 105, 130),
+        Success    = Color.Rgb(155, 220, 180),
+        Warn       = Color.Rgb(245, 205, 140),
+        Error      = Color.Rgb(245, 145, 165),
+    };
+
+    /// <summary>
+    /// Modern dark theme — neutral charcoal background with cool
+    /// cyan-leaning pastels. Less blue than Midnight, more silver-grey;
+    /// the calm, professional dark mode.
+    /// </summary>
+    public static readonly Theme Slate = new()
+    {
+        Name       = "Slate",
+        Background = Color.Rgb( 36,  38,  44),
+        Foreground = Color.Rgb(220, 222, 230),
+        Accent     = Color.Rgb(140, 215, 230),
+        Muted      = Color.Rgb(115, 122, 138),
+        Success    = Color.Rgb(170, 220, 175),
+        Warn       = Color.Rgb(235, 205, 145),
+        Error      = Color.Rgb(235, 150, 160),
+    };
+
+    /// <summary>
+    /// Modern dark theme — deep aubergine background with magenta and
+    /// orchid pastels. Slightly warmer and more theatrical than
+    /// Midnight; good for creative tooling.
+    /// </summary>
+    public static readonly Theme Twilight = new()
+    {
+        Name       = "Twilight",
+        Background = Color.Rgb( 28,  22,  38),
+        Foreground = Color.Rgb(225, 218, 235),
+        Accent     = Color.Rgb(225, 175, 235),
+        Muted      = Color.Rgb(125, 100, 140),
+        Success    = Color.Rgb(180, 215, 200),
+        Warn       = Color.Rgb(240, 200, 155),
+        Error      = Color.Rgb(240, 145, 180),
+    };
+
+    /// <summary>
+    /// All built-in themes, in stable display order — the retro era
+    /// presets first, then the modern dark themes. Useful for demos
     /// and theme pickers.
     /// </summary>
     public static readonly Theme[] All =
@@ -158,5 +210,8 @@ public static class Themes
         Amiga,
         C64,
         NortonCommander,
+        Midnight,
+        Slate,
+        Twilight,
     ];
 }

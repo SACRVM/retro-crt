@@ -103,6 +103,49 @@ public class CrtScreenIntegrationTests
         Assert.Equal(1, CountOccurrences(c.Out, "\x1b[?1049l"));
     }
 
+    [Fact]
+    public void PaintBackground_writes_one_blank_per_visible_row_and_returns_cursor_to_origin()
+    {
+        using var c = ConsoleCapture.Start(ansi: true, interactive: true);
+
+        Crt.PaintBackground();
+
+        // Cursor must be parked at (1, 1) at the end so subsequent
+        // writes start in the top-left of the painted area.
+        Assert.EndsWith("\x1b[1;1H", c.Out);
+        // The first emitted escape is also a goto-(1,1) so the fill
+        // begins from the origin even if the cursor sat elsewhere.
+        Assert.StartsWith("\x1b[1;1H", c.Out);
+        // Spaces dominate the output — at least one blank row's worth.
+        Assert.Contains(new string(' ', 60), c.Out);
+    }
+
+    [Fact]
+    public void PaintBackground_emits_theme_background_around_the_fill()
+    {
+        using var c = ConsoleCapture.Start(ansi: true, interactive: true);
+
+        using (Crt.UseTheme(Themes.AmberCrt))
+            Crt.PaintBackground();
+
+        // The bg SGR for AmberCrt's Background (20, 10, 0) was emitted
+        // by UseTheme's entry, then PaintBackground writes spaces under
+        // that active SGR — so the bg escape and the space-fill must
+        // both be present.
+        Assert.Contains("\x1b[48;2;20;10;0m", c.Out);
+    }
+
+    [Fact]
+    public void PaintBackground_is_noop_when_color_is_disabled()
+    {
+        using var c = ConsoleCapture.Start(ansi: false);
+
+        Crt.PaintBackground();
+
+        Assert.DoesNotContain("\x1b", c.Out);
+        Assert.Equal(string.Empty, c.Out);
+    }
+
     private static int CountOccurrences(string haystack, string needle)
     {
         var count = 0;

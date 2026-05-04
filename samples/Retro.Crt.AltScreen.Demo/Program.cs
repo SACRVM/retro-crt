@@ -14,7 +14,10 @@ using (Crt.UseAlternateScreen())
 {
     var t = Themes.AmberCrt;
     using var theme = Crt.UseTheme(t);
-    Crt.ClrScr();
+    // PaintBackground fills every visible cell with t.Background so the
+    // alt-screen takeover actually looks like an amber CRT, not just
+    // amber text on the user's terminal background.
+    Crt.PaintBackground();
     Crt.GotoXY(1, 1);
 
     Banner.Box(

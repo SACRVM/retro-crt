@@ -42,7 +42,39 @@ public class ThemeTests
         Assert.Contains(Themes.Amiga, Themes.All);
         Assert.Contains(Themes.C64, Themes.All);
         Assert.Contains(Themes.NortonCommander, Themes.All);
-        Assert.Equal(6, Themes.All.Length);
+        Assert.Contains(Themes.Midnight, Themes.All);
+        Assert.Contains(Themes.Slate, Themes.All);
+        Assert.Contains(Themes.Twilight, Themes.All);
+        Assert.Equal(9, Themes.All.Length);
+    }
+
+    [Fact]
+    public void Modern_dark_themes_have_dark_but_not_pure_black_backgrounds()
+    {
+        // Midnight, Slate, Twilight should be dark grey / charcoal —
+        // dark enough to read as a "dark theme" but explicitly not
+        // pure black, which is the whole point of these presets.
+        foreach (var t in new[] { Themes.Midnight, Themes.Slate, Themes.Twilight })
+        {
+            var bg = t.Background;
+            var luminance = bg.R + bg.G + bg.B;
+            Assert.True(luminance > 30,  $"{t.Name} background must not be pure black (got {bg.R},{bg.G},{bg.B})");
+            Assert.True(luminance < 180, $"{t.Name} background must read as dark (got {bg.R},{bg.G},{bg.B})");
+        }
+    }
+
+    [Fact]
+    public void Modern_dark_themes_have_pastel_accents()
+    {
+        // Pastel = high luminance, low saturation. The accent colors
+        // should each have all three channels above 130 — anything
+        // below reads as a primary, not a pastel.
+        foreach (var t in new[] { Themes.Midnight, Themes.Slate, Themes.Twilight })
+        {
+            var c = t.Accent;
+            Assert.True(c.R > 130 && c.G > 130 && c.B > 130,
+                $"{t.Name} accent should be pastel (got {c.R},{c.G},{c.B})");
+        }
     }
 
     [Fact]
