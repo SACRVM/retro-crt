@@ -1,3 +1,1 @@
 #nullable enable
-static Retro.Crt.Crt.Bell() -> void
-static Retro.Crt.Crt.UseAlternateScreen() -> System.IDisposable!

@@ -146,6 +146,7 @@ static Retro.Crt.Color.Rgb(byte r, byte g, byte b) -> Retro.Crt.Color
 static Retro.Crt.Color.TryFromHex(string? hex, out Retro.Crt.Color color) -> bool
 static Retro.Crt.Color.TryFromName(string? name, out Retro.Crt.Color color) -> bool
 static Retro.Crt.Color.TryParse(string? text, out Retro.Crt.Color color) -> bool
+static Retro.Crt.Crt.Bell() -> void
 static Retro.Crt.Crt.ClrEol() -> void
 static Retro.Crt.Crt.ClrScr() -> void
 static Retro.Crt.Crt.ColorEnabled.get -> bool
@@ -158,6 +159,7 @@ static Retro.Crt.Crt.ResetColor() -> void
 static Retro.Crt.Crt.Sink.get -> System.IO.TextWriter!
 static Retro.Crt.Crt.TextBackground(Retro.Crt.Color color) -> void
 static Retro.Crt.Crt.TextColor(Retro.Crt.Color color) -> void
+static Retro.Crt.Crt.UseAlternateScreen() -> System.IDisposable!
 static Retro.Crt.Crt.UseTheme(Retro.Crt.Theme theme) -> System.IDisposable!
 static Retro.Crt.Crt.WindowHeight.get -> int
 static Retro.Crt.Crt.WindowWidth.get -> int
