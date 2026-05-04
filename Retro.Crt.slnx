@@ -8,6 +8,7 @@
     <Project Path="samples/Retro.Crt.Matrix.Demo/Retro.Crt.Matrix.Demo.csproj" />
     <Project Path="samples/Retro.Crt.Boot.Demo/Retro.Crt.Boot.Demo.csproj" />
     <Project Path="samples/Retro.Crt.Capabilities.Demo/Retro.Crt.Capabilities.Demo.csproj" />
+    <Project Path="samples/Retro.Crt.AltScreen.Demo/Retro.Crt.AltScreen.Demo.csproj" />
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/Retro.Crt/Retro.Crt.csproj" />

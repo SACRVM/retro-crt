@@ -10,6 +10,101 @@ versions; breaking changes are called out below.
 
 ### Added
 
+- `Crt.Bell()` — Pascal `Sound`-flavoured beep. Emits `BEL` (`\a`) and
+  flushes so the terminal actually rings; gated on `IsInteractive` so
+  piped output stays quiet. Predates ANSI, so it works under `NO_COLOR`
+  and on legacy hosts that never enabled VT.
+- `Crt.UseAlternateScreen()` — `IDisposable` scope around the alternate
+  screen buffer (`\x1b[?1049h/l`), the same pair `vim` / `less` / `htop`
+  use: the user's previous shell content is preserved by the terminal
+  and restored verbatim on dispose, no scrollback leak. Reference-counted
+  so nesting only flips the buffer on the outermost transition.
+  `CancelKeyPress` and `ProcessExit` handlers register lazily on first
+  use to restore the normal screen if the process is Ctrl-C'd or killed
+  before the scope disposes.
+- `samples/Retro.Crt.AltScreen.Demo` — short showcase for
+  `UseAlternateScreen`: takes over the terminal, prints a themed banner
+  inside the alt buffer, beeps once, then leaves — and the user's shell
+  content above the demo prompt is exactly as they left it.
+
+## [0.3.0] — 2026-05-04
+
+### Added
+
+- `Theme` record + `Themes` static class with six era-faithful presets:
+  `Dos`, `AmberCrt`, `GreenCrt`, `Amiga`, `C64`, `NortonCommander`. Pure
+  data (no global state); compose with any color-accepting API. All
+  truecolor, with documented graceful fallback on Standard16-only
+  terminals. `Themes.All` exposes the full list for pickers and demos.
+- `Crt.UseTheme(theme)` — applies a theme's foreground / background as
+  SGR for the duration of the scope. Widgets with an optional
+  `color` / `fg` parameter (Banner, Log, ProgressBar, Spinner, Table,
+  Prompt, Typewriter) fall back to the matching theme slot when the
+  caller doesn't supply one, so themed output stays consistent without
+  threading colors through every call site.
+- `Crt.WithSink(sink)` — routes all Retro.Crt output (and `Log` to both
+  out and err) to a custom `TextWriter` for the duration of the scope.
+- `Crt.Depth` / `Crt.ColorEnabled` / `Crt.IsInteractive` /
+  `Crt.CursorLeft` / `Crt.WindowWidth` / `Crt.WindowHeight` /
+  `Crt.CurrentTheme` / `Crt.Sink` — public accessors covering capability,
+  layout, and active scope state, so consumers can branch on terminal
+  capability without poking at internals.
+- `ColorDepth` enum (`None` / `Standard16` / `Xterm256` / `Truecolor`)
+  and `Color.For(depth)` quantizer, matching what
+  `TerminalCapabilities` actually picks per host.
+- `Spinner` — single-line animated spinner with five frame styles
+  (`Pipe`, `Dots`, `Braille`, `Block`, `Arc`). `using var s =
+  Spinner.Show("…")` ergonomics; `Update` to change the label
+  mid-spin; `Stop(finalLabel, finalColor)` to leave a closing state in
+  place. Unicode styles fall back to `Pipe` on non-unicode terminals.
+  Without ANSI the label is written once and the spinner does not
+  animate, keeping log files clean.
+- `Prompt` — tiny interactive prompts: `Confirm` (yes/no, single
+  keystroke), `Ask` (full line with optional default echoed in
+  brackets), `Select` (arrow-key menu, returns the chosen index).
+  All zero-dependency. `Confirm` and `Ask` work everywhere; `Select`
+  uses ANSI cursor moves to redraw the active option in place and
+  silently falls back to a numbered list with `Console.ReadLine`
+  when ANSI is unavailable, so it stays useful in pipes and dumb
+  terminals.
+- `Table.Print(headers, rows, border, headerColor, borderColor)` —
+  tiny aligned-column table renderer. Box-drawing borders by default
+  (`TableBorder.Box`), borderless variant (`TableBorder.None`), header
+  rendered bold, optional foreground colors for header and borders.
+  Columns auto-resize to their widest cell. ASCII fallback
+  (`+`/`-`/`|`) on non-unicode terminals; plain-text emission when
+  ANSI is off so the table survives redirection. Deliberately small
+  surface: no row borders between body rows, no alignment options, no
+  multi-line cells.
+- `TypewriterCursor.MatrixBlock` — chunky full-block (`█`) cursor for
+  the "Wake up, Neo" aesthetic. ASCII fallback `#` on non-unicode
+  terminals.
+- `Typewriter.Blink(totalMs, cursor, fg, blinkRateMs)` and
+  `Typewriter.BlinkAsync(...)` — sit at the current cursor position
+  and toggle a fake cursor on/off for the requested duration, then
+  leave a clean cell. Useful for Matrix-style pause-and-blink beats
+  between typed phrases. Without ANSI it degrades to a plain sleep.
+- Three new sample showcases under `samples/`:
+  - `Retro.Crt.Themes.Demo` — walks through every built-in theme
+    side by side so the palette differences are immediately visible.
+  - `Retro.Crt.Matrix.Demo` — the iconic "Wake up, Neo" cinematic
+    using `MatrixBlock` cursor + `Blink` + `GreenCrt` theme.
+  - `Retro.Crt.Boot.Demo` — fake AMIBIOS POST sequence with
+    Banner, Typewriter, Spinner, ProgressBar, Log, and a blinking
+    `C:\>` shell prompt. Comprehensive feature usage in one
+    nostalgia-bath.
+  - `Retro.Crt.Capabilities.Demo` — runs the same scene under
+    every color depth so the four-tier fallback is visible side by
+    side.
+- `scripts/record-demo.ps1` and `record-demo.sh` now accept a `-Demo`
+  parameter (`tour` / `themes` / `matrix` / `boot`) to record any of
+  the showcases as `docs/images/<demo>.cast` plus an animated GIF.
+- `scripts/record-fallback.ps1` records the four color-depth tiers
+  (truecolor / 256 / 16 / no-color) as separate casts.
+- Public-API lock: `PublicAPI.Shipped.txt` / `PublicAPI.Unshipped.txt`
+  via the Microsoft.CodeAnalysis.PublicApiAnalyzers, so unintended
+  surface drift fails the build.
+
 ### Fixed
 
 - `TypewriterFade.Alpha` ramp now starts at 0 (invisible against dark
@@ -25,58 +120,15 @@ versions; breaking changes are called out below.
   it's actually visible during the dwell and visibly trails each
   character as expected. Alpha-fade chars still consume their own time
   internally and are excluded from the extra sleep.
+- Demo typewriter uses `Underline` cursor + restores a dedicated alpha
+  line so the recorded cast doesn't leave a stray block glyph behind.
+- Demo spinner uses ASCII `Pipe` glyphs by default so the recorded
+  cast renders identically across font setups.
 
-### Added
+### Changed
 
-- `Table.Print(headers, rows, border, headerColor, borderColor)` —
-  tiny aligned-column table renderer. Box-drawing borders by default
-  (`TableBorder.Box`), borderless variant (`TableBorder.None`), header
-  rendered bold, optional foreground colors for header and borders.
-  Columns auto-resize to their widest cell. ASCII fallback
-  (`+`/`-`/`|`) on non-unicode terminals; plain-text emission when
-  ANSI is off so the table survives redirection. Deliberately small
-  surface: no row borders between body rows, no alignment options, no
-  multi-line cells.
-- Three new sample showcases under `samples/`:
-  - `Retro.Crt.Themes.Demo` — walks through every built-in theme
-    side by side so the palette differences are immediately visible.
-  - `Retro.Crt.Matrix.Demo` — the iconic "Wake up, Neo" cinematic
-    using `MatrixBlock` cursor + `Blink` + `GreenCrt` theme.
-  - `Retro.Crt.Boot.Demo` — fake AMIBIOS POST sequence with
-    Banner, Typewriter, Spinner, ProgressBar, Log, and a blinking
-    `C:\>` shell prompt. Comprehensive feature usage in one
-    nostalgia-bath.
-- `scripts/record-demo.ps1` and `record-demo.sh` now accept a `-Demo`
-  parameter (`tour` / `themes` / `matrix` / `boot`) to record any of
-  the showcases as `docs/images/<demo>.cast` plus an animated GIF.
-- `Prompt` — tiny interactive prompts: `Confirm` (yes/no, single
-  keystroke), `Ask` (full line with optional default echoed in
-  brackets), `Select` (arrow-key menu, returns the chosen index).
-  All zero-dependency. `Confirm` and `Ask` work everywhere; `Select`
-  uses ANSI cursor moves to redraw the active option in place and
-  silently falls back to a numbered list with `Console.ReadLine`
-  when ANSI is unavailable, so it stays useful in pipes and dumb
-  terminals.
-- `TypewriterCursor.MatrixBlock` — chunky full-block (`█`) cursor for
-  the "Wake up, Neo" aesthetic. ASCII fallback `#` on non-unicode
-  terminals.
-- `Typewriter.Blink(totalMs, cursor, fg, blinkRateMs)` and
-  `Typewriter.BlinkAsync(...)` — sit at the current cursor position
-  and toggle a fake cursor on/off for the requested duration, then
-  leave a clean cell. Useful for Matrix-style pause-and-blink beats
-  between typed phrases. Without ANSI it degrades to a plain sleep.
-- `Spinner` — single-line animated spinner with five frame styles
-  (`Pipe`, `Dots`, `Braille`, `Block`, `Arc`). `using var s =
-  Spinner.Show("…")` ergonomics; `Update` to change the label
-  mid-spin; `Stop(finalLabel, finalColor)` to leave a closing state in
-  place. Unicode styles fall back to `Pipe` on non-unicode terminals.
-  Without ANSI the label is written once and the spinner does not
-  animate, keeping log files clean.
-- `Theme` record + `Themes` static class with six era-faithful presets:
-  `Dos`, `AmberCrt`, `GreenCrt`, `Amiga`, `C64`, `NortonCommander`. Pure
-  data (no global state); compose with any color-accepting API. All
-  truecolor, with documented graceful fallback on Standard16-only
-  terminals. `Themes.All` exposes the full list for pickers and demos.
+- GitHub Actions workflows bumped to Node 24-compatible action versions
+  to keep CI on currently-supported runners.
 
 ## [0.2.1] — 2026-05-03
 
@@ -156,7 +208,8 @@ versions; breaking changes are called out below.
   verbs (`TextColor`, `TextBackground`, `GotoXY`, `ClrScr`, `ClrEol`,
   `WithStyle`), Windows VT enablement via `LibraryImport`.
 
-[Unreleased]: https://github.com/chloe-dream/retro-crt/compare/v0.2.1...HEAD
+[Unreleased]: https://github.com/chloe-dream/retro-crt/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/chloe-dream/retro-crt/releases/tag/v0.3.0
 [0.2.1]: https://github.com/chloe-dream/retro-crt/releases/tag/v0.2.1
 [0.2.0]: https://github.com/chloe-dream/retro-crt/releases/tag/v0.2.0
 [0.1.0]: https://github.com/chloe-dream/retro-crt/releases/tag/v0.1.0

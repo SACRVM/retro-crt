@@ -35,6 +35,7 @@ using (Crt.WithStyle(Color.Yellow, bold: true))
 > dotnet run --project samples/Retro.Crt.Matrix.Demo     # "Wake up, Neo" cinematic
 > dotnet run --project samples/Retro.Crt.Boot.Demo       # fake AMIBIOS POST + DOS prompt
 > dotnet run --project samples/Retro.Crt.Capabilities.Demo   # color-depth fallback (FORCE_COLOR=3/2/1, NO_COLOR)
+> dotnet run --project samples/Retro.Crt.AltScreen.Demo  # alt-screen takeover, restores your shell
 > ```
 >
 > The Capabilities demo prints the same scene under whatever depth the
