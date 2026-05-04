@@ -17,9 +17,9 @@ links:
 ### Core
 
 - [`Crt`](api/Retro.Crt.Crt.html) — Pascal verbs (`TextColor`, `GotoXY`,
-  `ClrScr`, …), `WithStyle` / `UseTheme` / `WithSink` scopes, capability
-  accessors (`ColorEnabled`, `Depth`, `IsInteractive`, `WindowWidth`,
-  `CursorLeft`, `Sink`).
+  `ClrScr`, `ClrEol`, `Bell`), `WithStyle` / `UseTheme` / `WithSink` /
+  `UseAlternateScreen` scopes, capability accessors (`ColorEnabled`,
+  `Depth`, `IsInteractive`, `WindowWidth`, `CursorLeft`, `Sink`).
 - [`Color`](api/Retro.Crt.Color.html) — DOS palette, truecolor, xterm-256
   via `Color.Indexed256`, depth-aware quantization through `Color.For`,
   hex / name parsing.
