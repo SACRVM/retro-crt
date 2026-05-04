@@ -14,7 +14,6 @@ public class ThemeTests
     {
         foreach (var t in Themes.All)
         {
-            Assert.Equal(ColorMode.Truecolor, t.Background.Mode);
             Assert.Equal(ColorMode.Truecolor, t.Foreground.Mode);
             Assert.Equal(ColorMode.Truecolor, t.Accent.Mode);
             Assert.Equal(ColorMode.Truecolor, t.Muted.Mode);
@@ -39,28 +38,10 @@ public class ThemeTests
         Assert.Contains(Themes.Dos, Themes.All);
         Assert.Contains(Themes.AmberCrt, Themes.All);
         Assert.Contains(Themes.GreenCrt, Themes.All);
-        Assert.Contains(Themes.Amiga, Themes.All);
-        Assert.Contains(Themes.C64, Themes.All);
-        Assert.Contains(Themes.NortonCommander, Themes.All);
         Assert.Contains(Themes.Midnight, Themes.All);
         Assert.Contains(Themes.Slate, Themes.All);
         Assert.Contains(Themes.Twilight, Themes.All);
-        Assert.Equal(9, Themes.All.Length);
-    }
-
-    [Fact]
-    public void Modern_dark_themes_have_dark_but_not_pure_black_backgrounds()
-    {
-        // Midnight, Slate, Twilight should be dark grey / charcoal —
-        // dark enough to read as a "dark theme" but explicitly not
-        // pure black, which is the whole point of these presets.
-        foreach (var t in new[] { Themes.Midnight, Themes.Slate, Themes.Twilight })
-        {
-            var bg = t.Background;
-            var luminance = bg.R + bg.G + bg.B;
-            Assert.True(luminance > 30,  $"{t.Name} background must not be pure black (got {bg.R},{bg.G},{bg.B})");
-            Assert.True(luminance < 180, $"{t.Name} background must read as dark (got {bg.R},{bg.G},{bg.B})");
-        }
+        Assert.Equal(6, Themes.All.Length);
     }
 
     [Fact]

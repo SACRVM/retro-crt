@@ -13,33 +13,45 @@ versions; breaking changes are called out below.
 - `Crt.PaintBackground()` — fills every visible viewport cell with the
   active SGR background by writing spaces. ECMA-48 says
   `Crt.ClrScr()` erases with the current bg, but real-world `bce`
-  compliance varies; this is the bulletproof variant. Pairs with
-  `UseTheme` + `UseAlternateScreen` for full-screen retro takeovers.
-  Cursor returns to (1, 1).
+  compliance varies; this is the bulletproof variant. Set the bg
+  first via `WithStyle(bg: …)` or `TextBackground(…)`. Pairs with
+  `UseAlternateScreen` for full-screen retro takeovers. Cursor
+  returns to (1, 1).
 - Three modern dark themes alongside the existing retro presets:
   `Themes.Midnight` (deep blue-charcoal, periwinkle/mint/coral
   pastels), `Themes.Slate` (neutral charcoal, cool cyan-leaning
   pastels), `Themes.Twilight` (deep aubergine, magenta/orchid
-  pastels). All truecolor, all dark-without-being-black, all picked
-  up automatically by `Themes.All`.
+  pastels). All truecolor, all picked up automatically by
+  `Themes.All`.
 - `samples/Retro.Crt.AltScreen.Demo` — short showcase for
-  `UseAlternateScreen`: takes over the terminal, paints the
-  AmberCrt theme background across every visible cell, prints a
-  themed banner, beeps once, then leaves — and the user's shell
-  content above the demo prompt is exactly as they left it.
+  `UseAlternateScreen`: takes over the terminal under the AmberCrt
+  theme, prints a themed banner, beeps once, then leaves — and the
+  user's shell content above the demo prompt is exactly as they
+  left it.
 
 ### Changed
 
-- `samples/Retro.Crt.Boot.Demo` now wraps the boot sequence in
-  `UseAlternateScreen` + `UseTheme` + `PaintBackground` so the demo
-  reads as a real fullscreen takeover instead of leaking into the
-  user's shell. Also bumps the stale `retro.crt v0.2 ready` log
-  line to v0.4.
-- `samples/Retro.Crt.Themes.Demo` activates `Crt.UseTheme(t)` per
-  iteration and pads each line so the theme's background renders as
-  a visible band — without that, only the foreground colors changed
-  between scenes and the new dark themes were unreadable on light
-  terminals.
+- **Breaking:** `Theme.Background` removed. Themes now carry
+  foreground / accent / muted / status colors only — the terminal's
+  own background shows through. Cell-by-cell space-fill tricks for
+  painting a colored background were never reliable enough to ship
+  as part of a preset and only set expectations the library couldn't
+  keep. If a build genuinely needs a colored background, set it
+  explicitly per call via `Crt.WithStyle(bg: …)` or
+  `Crt.TextBackground(…)`. `UseTheme` now emits only the theme
+  foreground on entry and `RESET` on exit.
+- **Breaking:** `Themes.Amiga`, `Themes.C64`, and
+  `Themes.NortonCommander` removed. Their identity hinged on a
+  bright colored background that themes no longer own; without it
+  they no longer reproduced the era they were named for. The retro
+  preset list is now `Dos`, `AmberCrt`, `GreenCrt`.
+- `samples/Retro.Crt.Boot.Demo` no longer paints a background under
+  `UseAlternateScreen`; it just clears the alt-screen with `ClrScr`
+  and runs the themed boot sequence on the terminal's native bg.
+- `samples/Retro.Crt.Themes.Demo` drops the per-row padding that was
+  only needed to make `theme.Background` render as a visible band.
+  Each preset is now shown as a small banner + body / status / footer
+  scene in its own foreground colors.
 
 ## [0.4.0] — 2026-05-04
 

@@ -121,18 +121,18 @@ public class CrtScreenIntegrationTests
     }
 
     [Fact]
-    public void PaintBackground_emits_theme_background_around_the_fill()
+    public void PaintBackground_renders_under_an_explicit_bg()
     {
         using var c = ConsoleCapture.Start(ansi: true, interactive: true);
 
-        using (Crt.UseTheme(Themes.AmberCrt))
+        using (Crt.WithStyle(bg: Color.Rgb(20, 10, 0)))
             Crt.PaintBackground();
 
-        // The bg SGR for AmberCrt's Background (20, 10, 0) was emitted
-        // by UseTheme's entry, then PaintBackground writes spaces under
-        // that active SGR — so the bg escape and the space-fill must
-        // both be present.
+        // The explicit WithStyle bg must be in the stream and
+        // PaintBackground must follow with at least one row of spaces
+        // under that active SGR.
         Assert.Contains("\x1b[48;2;20;10;0m", c.Out);
+        Assert.Contains(new string(' ', 60), c.Out);
     }
 
     [Fact]

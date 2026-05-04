@@ -118,11 +118,12 @@ dotnet run --project samples/Retro.Crt.AltScreen.Demo  # alt-screen takeover, re
 
 ### Theming
 
-- [`Theme`](api/Retro.Crt.Theme.html) — record struct with seven slots
-  (Background, Foreground, Accent, Muted, Success, Warn, Error).
+- [`Theme`](api/Retro.Crt.Theme.html) — record struct with six slots
+  (Foreground, Accent, Muted, Success, Warn, Error). Themes do not own
+  a background — set one explicitly per call when you need it.
 - [`Themes`](api/Retro.Crt.Themes.html) — built-in palettes: retro
-  (`Dos`, `AmberCrt`, `GreenCrt`, `Amiga`, `C64`, `NortonCommander`)
-  and modern dark (`Midnight`, `Slate`, `Twilight`).
+  (`Dos`, `AmberCrt`, `GreenCrt`) and modern dark (`Midnight`, `Slate`,
+  `Twilight`).
 - Apply with `Crt.UseTheme(Themes.AmberCrt)` — widgets fall back to the
   theme's slots when no explicit color is passed.
 

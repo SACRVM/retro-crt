@@ -134,7 +134,7 @@ if (Color.TryParse(userInput, out var c))
 
 ### Themes
 
-Nine built-in palettes — six era-faithful retro presets and three
+Six built-in palettes — three era-faithful retro presets and three
 modern dark themes — all in truecolor:
 
 Retro:
@@ -142,9 +142,6 @@ Retro:
 - `Themes.Dos` — classic IBM PC / DOS prompt
 - `Themes.AmberCrt` — amber phosphor monochrome terminal
 - `Themes.GreenCrt` — green phosphor monochrome terminal
-- `Themes.Amiga` — Workbench 1.x orange-on-blue
-- `Themes.C64` — Commodore 64 boot screen
-- `Themes.NortonCommander` — deep blue with yellow highlights
 
 Modern dark:
 
@@ -160,7 +157,7 @@ widgets pick their colors from it automatically.
 using (Crt.UseTheme(Themes.AmberCrt))
 {
     Banner.Box(["RETRO TERMINAL", "v1.0"]);   // uses theme.Accent
-    Crt.WriteLine(" system online");          // theme.Foreground / theme.Background
+    Crt.WriteLine(" system online");          // theme.Foreground
     Log.Warn("disk usage at 84%");            // theme.Warn
     Log.Error("disk i/o failure");            // theme.Error
 }
@@ -168,8 +165,8 @@ using (Crt.UseTheme(Themes.AmberCrt))
 
 Inside the scope:
 
-- `Crt.Write` / `Crt.WriteLine` render in `theme.Foreground` on
-  `theme.Background` (the SGR is emitted on entry, `RESET` on exit).
+- `Crt.Write` / `Crt.WriteLine` render in `theme.Foreground` (the SGR
+  is emitted on entry, `RESET` on exit).
 - `Banner.Box`, `ProgressBar.Start`, `Spinner.Show`, `Prompt.*`, and
   `Typewriter.Type` fall back to `theme.Accent` (or `theme.Foreground`
   for typed text) when the caller doesn't pass a color.
@@ -184,27 +181,31 @@ theme's SGR. `Crt.CurrentTheme` reflects the active theme (or `null`
 when none is in effect). Without a `UseTheme` scope, the public API is
 unchanged: pure data, you still pass colors yourself.
 
-Each theme exposes `Background`, `Foreground`, `Accent`, `Muted`,
-`Success`, `Warn`, and `Error` slots. `Themes.All` returns the full
-list — handy for theme pickers and demos.
+Each theme exposes `Foreground`, `Accent`, `Muted`, `Success`, `Warn`,
+and `Error` slots. **Themes do not own a background** — the terminal's
+own background shows through. If a specific build needs a colored
+background, set it explicitly per call via `Crt.WithStyle(bg: …)` or
+`Crt.TextBackground(…)`. `Themes.All` returns the full list — handy
+for theme pickers and demos.
 
-**Painting the full screen with the theme background.** A `bg` SGR
+**Painting the full screen with a background color.** A `bg` SGR
 only colors cells you actually write to — empty viewport space keeps
 the terminal's native background. ECMA-48 says `Crt.ClrScr()` should
 erase using the active SGR background and most modern terminals
 (Windows Terminal, iTerm2, kitty, alacritty, gnome-terminal) honor
 that, but real-world compliance varies. `Crt.PaintBackground()` is
 the bulletproof variant: it fills every visible cell with spaces
-under the active SGR, so the theme background covers the whole
-screen regardless of terminal quirks. Pairs naturally with
+under the **currently active** SGR background, so set one first via
+`WithStyle(bg: …)` or `TextBackground(…)`. Pairs naturally with
 `Crt.UseAlternateScreen()` for a vim/less-style fullscreen takeover
 that doesn't pollute the user's shell:
 
 ```csharp
-using var alt   = Crt.UseAlternateScreen();
-using var theme = Crt.UseTheme(Themes.Midnight);
-Crt.PaintBackground();    // entire alt-screen now reads as Midnight
+using var alt = Crt.UseAlternateScreen();
+using var bg  = Crt.WithStyle(bg: Color.Rgb(20, 22, 32));
+Crt.PaintBackground();    // entire alt-screen now reads as charcoal
 Crt.GotoXY(1, 1);
+using var theme = Crt.UseTheme(Themes.Midnight);
 Banner.Box("system online", fg: Themes.Midnight.Accent);
 // ... your TUI here ...
 // On dispose: alt-screen restores the user's shell, theme + bg gone

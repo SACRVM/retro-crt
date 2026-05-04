@@ -3,3 +3,8 @@ static readonly Retro.Crt.Themes.Midnight -> Retro.Crt.Theme
 static readonly Retro.Crt.Themes.Slate -> Retro.Crt.Theme
 static readonly Retro.Crt.Themes.Twilight -> Retro.Crt.Theme
 static Retro.Crt.Crt.PaintBackground() -> void
+*REMOVED*Retro.Crt.Theme.Background.get -> Retro.Crt.Color
+*REMOVED*Retro.Crt.Theme.Background.init -> void
+*REMOVED*static readonly Retro.Crt.Themes.Amiga -> Retro.Crt.Theme
+*REMOVED*static readonly Retro.Crt.Themes.C64 -> Retro.Crt.Theme
+*REMOVED*static readonly Retro.Crt.Themes.NortonCommander -> Retro.Crt.Theme

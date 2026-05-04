@@ -5,17 +5,14 @@ using Retro.Crt;
 // blinking final prompt — the everything-bagel of the library, dressed
 // up so it actually looks like a system booting. ~22 s end-to-end.
 //
-// Recipe for a real fullscreen retro takeover:
-//   UseAlternateScreen — preserve the user's shell, restore on exit
-//   UseTheme           — set the theme's bg/fg as the active SGR
-//   PaintBackground    — actually fill every cell with that bg
-// The Dos theme is mostly black on black so the painted bg is subtle;
-// switch to AmberCrt / GreenCrt / Midnight to see the full effect.
+// Themes carry foreground / accent / status colors only — the
+// terminal's own background shows through. UseAlternateScreen here
+// just preserves the user's shell and gives us a clean buffer.
 var t = Themes.Dos;
 
 using var alt = Crt.UseAlternateScreen();
 using var theme = Crt.UseTheme(t);
-Crt.PaintBackground();
+Crt.ClrScr();
 Crt.GotoXY(1, 1);
 
 PrintBiosBanner();

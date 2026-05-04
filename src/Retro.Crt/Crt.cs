@@ -141,10 +141,11 @@ public static class Crt
     /// <summary>
     /// Apply <paramref name="theme"/> as the implicit color source for
     /// the duration of the returned scope. Emits the theme's foreground
-    /// and background as SGR so subsequent plain
-    /// <c>Crt.Write</c>/<c>WriteLine</c> calls render in those colors;
-    /// widgets with a <c>color</c>/<c>fg</c> parameter fall back to the
-    /// matching theme slot when their argument is <c>null</c>.
+    /// as SGR so subsequent plain <c>Crt.Write</c>/<c>WriteLine</c> calls
+    /// render in that color; widgets with a <c>color</c>/<c>fg</c>
+    /// parameter fall back to the matching theme slot when their
+    /// argument is <c>null</c>. Themes do not own a background — set one
+    /// explicitly per call via <see cref="WithStyle"/> if needed.
     /// Disposing the scope emits <c>RESET</c> and restores the previous
     /// theme, if any. Nests cleanly.
     /// </summary>
@@ -154,10 +155,7 @@ public static class Crt
         _currentTheme = theme;
 
         if (ColorEnabled)
-        {
             Sink.Write(Emit.Fg(theme.Foreground));
-            Sink.Write(Emit.Bg(theme.Background));
-        }
 
         return new ThemeScope(previous);
     }
@@ -219,14 +217,15 @@ public static class Crt
 
     /// <summary>
     /// Fill every visible cell of the terminal viewport with the active
-    /// background color by writing spaces. Use this after
-    /// <see cref="UseTheme"/> when you want the theme's background to
-    /// cover the full screen — ECMA-48 says <see cref="ClrScr"/> erases
-    /// with the current SGR background, but real-world honouring of that
-    /// (the <c>bce</c> capability) varies, so this is the bulletproof
-    /// variant. Pairs naturally with <see cref="UseAlternateScreen"/> for
-    /// vim/less-style fullscreen takeovers without touching the user's
-    /// shell. No-op when ANSI is unavailable. Cursor returns to (1, 1).
+    /// SGR background color by writing spaces. Set the bg first via
+    /// <see cref="TextBackground"/> or <see cref="WithStyle"/> — without
+    /// an explicit bg this is effectively a no-op clear. ECMA-48 says
+    /// <see cref="ClrScr"/> erases with the current SGR background, but
+    /// real-world honouring of that (the <c>bce</c> capability) varies,
+    /// so this is the bulletproof variant. Pairs naturally with
+    /// <see cref="UseAlternateScreen"/> for vim/less-style fullscreen
+    /// takeovers without touching the user's shell. No-op when ANSI is
+    /// unavailable. Cursor returns to (1, 1).
     /// </summary>
     public static void PaintBackground()
     {
@@ -346,16 +345,12 @@ public static class Crt
             Sink.Write(AnsiCodes.Reset);
 
             // Reset clears every SGR including the active theme's
-            // foreground / background. Re-apply them so subsequent
-            // plain Crt.Write calls keep rendering in the theme's
-            // colors — the README promises "Crt.Write inside a theme
-            // renders in theme.Foreground on theme.Background", and
-            // a Banner / WithStyle nest must not break that promise.
+            // foreground. Re-apply it so subsequent plain Crt.Write
+            // calls keep rendering in the theme's color — a Banner /
+            // WithStyle nest must not break "Crt.Write inside a theme
+            // renders in theme.Foreground".
             if (_currentTheme is { } t)
-            {
                 Sink.Write(Emit.Fg(t.Foreground));
-                Sink.Write(Emit.Bg(t.Background));
-            }
         }
     }
 
@@ -380,10 +375,7 @@ public static class Crt
             // themes restore cleanly without leaking SGR state.
             Sink.Write(AnsiCodes.Reset);
             if (_previous is { } outer)
-            {
                 Sink.Write(Emit.Fg(outer.Foreground));
-                Sink.Write(Emit.Bg(outer.Background));
-            }
         }
     }
 
