@@ -51,3 +51,6 @@ StrykerOutput/
 
 # BenchmarkDotNet output
 BenchmarkDotNet.Artifacts/
+
+# Claude Code – personal permissions
+.claude/settings.local.json
