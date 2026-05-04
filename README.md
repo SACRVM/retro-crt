@@ -51,11 +51,12 @@ Targets `net10.0`. No third-party dependencies.
 
 ## Why
 
-Spectre.Console is great, but it does not trim or AOT cleanly, and a
-launcher that ships as a 12 MB single binary cannot afford the runtime
-weight. Retro.Crt is the small, opinionated alternative for tools that
-want curated colored output, themed widgets, and nothing more
-elaborate than a table.
+Spectre.Console is great, but it does not trim or AOT cleanly. For a
+small CLI that publishes trim- or AOT-safe — a launcher, a build tool,
+a one-shot installer — pulling Spectre in noticeably bloats the output
+and breaks the trim pass. Retro.Crt is the small, opinionated
+alternative for tools that want curated colored output, themed
+widgets, and nothing more elaborate than a table.
 
 ### Comparison
 
@@ -79,10 +80,11 @@ elaborate than a table.
 | Built-in logger        | ✅ (tiny)  | ❌              | ❌        | ❌      |
 
 If you need trees, forms, panels, live layouts, or a markup language —
-**use Spectre.Console**. If you need a 12 MB AOT launcher with a
-charming splash screen, themed output, a few log levels, a progress
-bar, a spinner, simple tables, and three flavours of prompt — this
-library.
+**use Spectre.Console**. If your CLI publishes trim- or AOT-safe and
+you don't want a single console UI library to be the thing that breaks
+that — and you'd settle for a charming splash screen, themed output, a
+few log levels, a progress bar, a spinner, simple tables, and three
+flavours of prompt — this library.
 
 ## How to use
 
