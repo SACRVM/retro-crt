@@ -217,6 +217,91 @@ public static class Crt
         if (ColorEnabled) Sink.Write(AnsiCodes.ClearToEol);
     }
 
+    /// <summary>
+    /// Pascal <c>Sound</c>-flavoured beep — emits <c>BEL</c> (<c>\a</c>)
+    /// and flushes so the terminal actually rings. No-op when output is
+    /// redirected or the host isn't a real terminal: piping a bell into
+    /// a file is just noise. BEL predates ANSI so this works even with
+    /// <c>NO_COLOR</c> or on legacy hosts that never enabled VT.
+    /// </summary>
+    public static void Bell()
+    {
+        if (!IsInteractive) return;
+        Sink.Write(AnsiCodes.Bell);
+        Sink.Flush();
+    }
+
+    private static int _alternateScreenDepth;
+    private static bool _alternateScreenExitHandlerRegistered;
+    private static readonly Lock AlternateScreenGate = new();
+
+    /// <summary>
+    /// Take over the terminal with the alternate screen buffer for the
+    /// duration of the returned scope: the user's previous shell content
+    /// is preserved by the terminal itself and restored verbatim when the
+    /// scope disposes — vim / less / htop style. Cleared on entry, no
+    /// scrollback leak on exit.
+    /// </summary>
+    /// <remarks>
+    /// No-op when output is redirected or the host isn't a real terminal.
+    /// Nests by reference count: only the outermost enter/leave actually
+    /// flips the buffer. A <c>Console.CancelKeyPress</c> handler and a
+    /// <c>ProcessExit</c> handler are registered lazily on first use so
+    /// the user's shell isn't left stuck on the alternate screen if the
+    /// process is Ctrl-C'd or killed before the scope disposes.
+    /// </remarks>
+    public static IDisposable UseAlternateScreen()
+    {
+        if (!IsInteractive) return NullScope.Instance;
+
+        lock (AlternateScreenGate)
+        {
+            if (++_alternateScreenDepth == 1)
+            {
+                EnsureAlternateScreenExitHandler();
+                Sink.Write(AnsiCodes.AlternateScreenEnter);
+                Sink.Flush();
+            }
+        }
+
+        return new AlternateScreenScope();
+    }
+
+    private static void EnsureAlternateScreenExitHandler()
+    {
+        if (_alternateScreenExitHandlerRegistered) return;
+        _alternateScreenExitHandlerRegistered = true;
+
+        // Two handlers because each only catches half the signals:
+        // CancelKeyPress fires on Ctrl-C (which then terminates the
+        // process by default), ProcessExit fires on graceful exit and
+        // SIGTERM but NOT on Ctrl-C. Both must restore the normal
+        // screen buffer or the user's shell stays blank after the app
+        // dies.
+        Console.CancelKeyPress += (_, _) => RestoreAlternateScreenOnExit();
+        AppDomain.CurrentDomain.ProcessExit += (_, _) => RestoreAlternateScreenOnExit();
+    }
+
+    private static void RestoreAlternateScreenOnExit()
+    {
+        lock (AlternateScreenGate)
+        {
+            if (_alternateScreenDepth <= 0) return;
+            try
+            {
+                Sink.Write(AnsiCodes.AlternateScreenLeave);
+                Sink.Flush();
+            }
+            catch
+            {
+                // Sink may already be disposed during shutdown — nothing
+                // we can usefully do; better to swallow than to crash on
+                // top of the original termination cause.
+            }
+            _alternateScreenDepth = 0;
+        }
+    }
+
     private sealed class StyleScope : IDisposable
     {
         private bool _disposed;
@@ -290,6 +375,27 @@ public static class Crt
             _sinkOverride = _previousCrt;
             Log.OutSink   = _previousLogOut;
             Log.ErrSink   = _previousLogErr;
+        }
+    }
+
+    private sealed class AlternateScreenScope : IDisposable
+    {
+        private bool _disposed;
+
+        public void Dispose()
+        {
+            if (_disposed) return;
+            _disposed = true;
+
+            lock (AlternateScreenGate)
+            {
+                if (_alternateScreenDepth <= 0) return;
+                if (--_alternateScreenDepth == 0)
+                {
+                    Sink.Write(AnsiCodes.AlternateScreenLeave);
+                    Sink.Flush();
+                }
+            }
         }
     }
 

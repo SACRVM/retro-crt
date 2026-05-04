@@ -20,9 +20,28 @@ without a stage number is unscoped — interesting, but not promised.
 - `Log` / `LogLevel` — `Info / Warn / Error / Debug / Success` with
   fixed-width tag, colored level, Warn/Error to `stderr`.
 - `Typewriter` — character-by-character reveal with optional cursor
-  (`Block` / `Underline`), optional fade (`Glyph` ramp / `AlphaRgb`
-  truecolor brightness) and optional gradient. CSI cursor-left for
-  in-place overwrite; animations auto-disabled when ANSI is off.
+  (`Block` / `Underline` / `MatrixBlock`), optional fade (`Glyph` ramp /
+  `AlphaRgb` truecolor brightness) and optional gradient. CSI cursor-left
+  for in-place overwrite; animations auto-disabled when ANSI is off.
+- `Spinner` — animated single-line status with five frame styles
+  (Pipe / Dots / Braille / Block / Arc), `IDisposable` scope, throttled
+  redraw, single-frame fallback when not interactive.
+- `Theme` + `Themes` presets — DOS, AmberCrt, GreenCrt, Amiga, C64,
+  NortonCommander. Applied via `Crt.UseTheme` scope; widgets fall back to
+  semantic theme slots (Accent / Muted / Warn / Error / Success) when the
+  caller doesn't supply explicit colors.
+- `Prompt` — `Confirm` / `Ask` / `Select` with arrow-key menu;
+  ESC-to-cancel, default highlighted, plays well with `NO_COLOR`.
+- `Table` — aligned-column renderer with bold headers and optional
+  Box / None border style.
+
+## Stage 2.5 — Screen control
+
+- `Crt.Bell` — Pascal `Sound`-flavoured `\a` beep, gated on interactivity
+  so piped output stays quiet.
+- `Crt.UseAlternateScreen` — alt-screen-buffer scope (`\x1b[?1049h/l`)
+  for vim/less/htop-style takeover. Cleans up on Ctrl-C and `ProcessExit`
+  so the user's shell is never left stuck on the alternate screen.
 
 ## Stage 3 — Screen buffer (planned)
 
@@ -61,14 +80,7 @@ deps, no reflection, just a `Cell[width, height]` plus a diff renderer.
 
 ## Things to think about, no commitment
 
-- Optional alternate-screen-buffer mode (`\x1b[?1049h`) so a Retro.Crt app
-  can take over the screen and restore the user's shell on exit (vim,
-  less, htop style).
 - Mouse events (`\x1b[?1003h`) — only if Stage 3 lands and a real consumer
   asks. Nothing worse than half-baked input handling.
 - Sixel / Kitty graphics protocol for inline images. Charming, but tugs
   hard against the "small + boring" vibe.
-- Bell helper (`\a`) — single line, fits Pascal `Sound`-ish nostalgia
-  without the cross-platform pain of real audio.
-- Spinners (`/ - \ |`, dots, braille). Probably fits ProgressBar, not its
-  own type.

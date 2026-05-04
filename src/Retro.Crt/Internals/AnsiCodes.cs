@@ -20,6 +20,16 @@ internal static class AnsiCodes
     public const string HideCursor  = Csi + "?25l";
     public const string ShowCursor  = Csi + "?25h";
 
+    // \x1b[?1049h saves cursor + switches to the alternate screen buffer
+    // and clears it; \x1b[?1049l switches back and restores the cursor.
+    // This is the same pair vim, less, htop and tmux use.
+    public const string AlternateScreenEnter = Csi + "?1049h";
+    public const string AlternateScreenLeave = Csi + "?1049l";
+
+    // BEL — predates ANSI, every terminal honours it. No newline trigger,
+    // so the writer must be flushed for the beep to actually ring.
+    public const string Bell = "\a";
+
     public static string CursorLeft(int n)
     {
         if (n <= 0) return "";
