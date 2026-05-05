@@ -36,7 +36,7 @@ for (var i = 0; i < 30; i++)
         3 => Color.LightRed,
         _ => (Color?)null,
     };
-    log.Append($"  log line {i:00} — Tab to focus, ↑/↓ or wheel to scroll", color);
+    log.Append($"  log line {i:00} - Tab to focus, arrows or wheel to scroll", color);
 }
 
 var body = new StackPanel
@@ -56,7 +56,7 @@ var quitButton = new Button("Quit", () => appRef?.Exit())
 };
 
 var appendButton = new Button("Append", () =>
-    log.Append($"  -> append #{++counter} from button click", Color.LightGreen))
+    log.Append($"  --> append #{++counter} from button click", Color.LightGreen))
 {
     Foreground = Color.LightGray,
     Background = Color.DarkGray,
@@ -129,7 +129,7 @@ internal sealed class Frame : Container
     {
         s.FillRect(r.X, r.Y, r.Width, r.Height,
             new Cell(' ', Color.Black, Color.LightGray));
-        s.PutString(r.X + 1, r.Y, "Retro.Crt.Tui — demo",
+        s.PutString(r.X + 1, r.Y, "Retro.Crt.Tui - demo",
             Color.Black, Color.LightGray, CellAttrs.Bold);
     }
 
@@ -137,7 +137,7 @@ internal sealed class Frame : Container
     {
         s.FillRect(r.X, r.Y, r.Width, r.Height,
             new Cell(' ', Color.LightGray, Color.DarkGray));
-        s.PutString(r.X + 1, r.Y, " Tab: focus  ↑↓/wheel: scroll  Enter/Space: activate  Q/Esc: quit",
+        s.PutString(r.X + 1, r.Y, " Tab: focus | arrows/wheel: scroll | Enter/Space: activate | Q/Esc: quit",
             Color.LightGray, Color.DarkGray);
     }
 }
