@@ -36,6 +36,13 @@ internal static class AnsiCodes
     public const string MouseTrackingEnter = Csi + "?1006h" + Csi + "?1003h";
     public const string MouseTrackingLeave = Csi + "?1003l" + Csi + "?1006l";
 
+    // Bracketed paste — when enabled, the terminal wraps clipboard
+    // pastes in ESC[200~ ... ESC[201~ so applications can distinguish
+    // typed input from injected text. Supported by xterm, iTerm2,
+    // kitty, Windows Terminal, and most modern Linux terminals.
+    public const string BracketedPasteEnter = Csi + "?2004h";
+    public const string BracketedPasteLeave = Csi + "?2004l";
+
     // BEL — predates ANSI, every terminal honours it. No newline trigger,
     // so the writer must be flushed for the beep to actually ring.
     public const string Bell = "\a";

@@ -18,13 +18,16 @@ Retro.Crt.Input.InputEvent
 Retro.Crt.Input.InputEvent.InputEvent() -> void
 Retro.Crt.Input.InputEvent.InputEvent(Retro.Crt.Input.KeyEvent key) -> void
 Retro.Crt.Input.InputEvent.InputEvent(Retro.Crt.Input.MouseEvent mouse) -> void
+Retro.Crt.Input.InputEvent.InputEvent(string! paste) -> void
 Retro.Crt.Input.InputEvent.Key.get -> Retro.Crt.Input.KeyEvent
 Retro.Crt.Input.InputEvent.Kind.get -> Retro.Crt.Input.InputEventKind
 Retro.Crt.Input.InputEvent.Mouse.get -> Retro.Crt.Input.MouseEvent
+Retro.Crt.Input.InputEvent.Paste.get -> string?
 Retro.Crt.Input.InputEventKind
 Retro.Crt.Input.InputEventKind.Key = 1 -> Retro.Crt.Input.InputEventKind
 Retro.Crt.Input.InputEventKind.Mouse = 2 -> Retro.Crt.Input.InputEventKind
 Retro.Crt.Input.InputEventKind.None = 0 -> Retro.Crt.Input.InputEventKind
+Retro.Crt.Input.InputEventKind.Paste = 3 -> Retro.Crt.Input.InputEventKind
 Retro.Crt.Input.InputParser
 Retro.Crt.Input.InputParseStatus
 Retro.Crt.Input.InputParseStatus.Incomplete = 1 -> Retro.Crt.Input.InputParseStatus
@@ -114,6 +117,7 @@ Retro.Crt.ScreenBuffer.this[int x, int y].set -> void
 Retro.Crt.ScreenBuffer.Width.get -> int
 Retro.Crt.ScreenRenderer
 static readonly Retro.Crt.Cell.Empty -> Retro.Crt.Cell
+static Retro.Crt.Crt.UseBracketedPaste() -> System.IDisposable!
 static Retro.Crt.Crt.UseMouse() -> System.IDisposable!
 static Retro.Crt.Input.InputParser.TryParseEvent(System.ReadOnlySpan<char> input, out Retro.Crt.Input.InputEvent ev, out int consumed) -> Retro.Crt.Input.InputParseStatus
 static Retro.Crt.Input.RawMode.Enter(bool keepSignals = false) -> System.IDisposable!

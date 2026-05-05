@@ -95,4 +95,11 @@ public abstract class View
     /// Handle a mouse event. Default implementation does nothing.
     /// </summary>
     public virtual void OnMouse(MouseEvent mouse, Application app) { }
+
+    /// <summary>
+    /// Handle a bracketed-paste event. <paramref name="text"/> is the
+    /// raw clipboard contents — newlines, tabs, and ESC bytes are NOT
+    /// re-interpreted as keys. Default implementation does nothing.
+    /// </summary>
+    public virtual void OnPaste(string text, Application app) { }
 }

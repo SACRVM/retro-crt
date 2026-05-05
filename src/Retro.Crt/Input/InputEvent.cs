@@ -1,21 +1,23 @@
 namespace Retro.Crt.Input;
 
 /// <summary>
-/// Discriminator on <see cref="InputEvent"/> — either a key event or a
-/// mouse event. <see cref="None"/> represents an "empty" input event
-/// (the <c>default</c> value of the struct).
+/// Discriminator on <see cref="InputEvent"/>. <see cref="None"/>
+/// represents an "empty" input event (the <c>default</c> value of
+/// the struct).
 /// </summary>
 public enum InputEventKind : byte
 {
     None,
     Key,
     Mouse,
+    Paste,
 }
 
 /// <summary>
 /// Tagged-union input event: read <see cref="Kind"/> first, then access
-/// either <see cref="Key"/> or <see cref="Mouse"/>. Zero-allocation
-/// transport for the parser → consumer pipeline.
+/// the slot the discriminator names. Key and mouse events are
+/// zero-allocation; paste events carry a <see cref="string"/> for the
+/// pasted contents and so allocate one reference per event.
 /// </summary>
 public readonly struct InputEvent
 {
@@ -23,11 +25,18 @@ public readonly struct InputEvent
     public KeyEvent Key { get; }
     public MouseEvent Mouse { get; }
 
+    /// <summary>
+    /// The pasted text when <see cref="Kind"/> is
+    /// <see cref="InputEventKind.Paste"/>; otherwise <c>null</c>.
+    /// </summary>
+    public string? Paste { get; }
+
     public InputEvent(KeyEvent key)
     {
         Kind  = InputEventKind.Key;
         Key   = key;
         Mouse = default;
+        Paste = null;
     }
 
     public InputEvent(MouseEvent mouse)
@@ -35,5 +44,14 @@ public readonly struct InputEvent
         Kind  = InputEventKind.Mouse;
         Key   = default;
         Mouse = mouse;
+        Paste = null;
+    }
+
+    public InputEvent(string paste)
+    {
+        Kind  = InputEventKind.Paste;
+        Key   = default;
+        Mouse = default;
+        Paste = paste;
     }
 }

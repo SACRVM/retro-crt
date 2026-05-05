@@ -176,6 +176,28 @@ public class TextBox : View
         if (target != _cursor) { _cursor = target; MarkDirty(); }
     }
 
+    public override void OnPaste(string text, Application app)
+    {
+        if (string.IsNullOrEmpty(text)) return;
+
+        // Single-line widget: stop at the first newline so a multi-line
+        // paste lands as one row rather than smearing across the rest of
+        // the form. Drop other control bytes silently — the user pasted
+        // whatever they pasted, but a TextBox can only render printables.
+        var changed = false;
+        for (var i = 0; i < text.Length; i++)
+        {
+            var ch = text[i];
+            if (ch == '\r' || ch == '\n') break;
+            if (ch < ' ') continue;
+            if (MaxLength > 0 && _text.Length >= MaxLength) break;
+            _text.Insert(_cursor, ch);
+            _cursor++;
+            changed = true;
+        }
+        if (changed) OnEdited();
+    }
+
     private void Insert(char glyph)
     {
         if (MaxLength > 0 && _text.Length >= MaxLength) return;

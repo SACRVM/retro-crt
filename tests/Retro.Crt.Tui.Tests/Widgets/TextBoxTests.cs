@@ -191,5 +191,58 @@ public class TextBoxTests
         Assert.Equal(2, t.CursorPosition);
     }
 
+    [Fact]
+    public void Paste_inserts_text_at_cursor()
+    {
+        var t = new TextBox("ab") { CursorPosition = 1 };
+
+        t.OnPaste("XY", MakeApp(t));
+
+        Assert.Equal("aXYb", t.Text);
+        Assert.Equal(3, t.CursorPosition);
+    }
+
+    [Fact]
+    public void Paste_stops_at_first_newline()
+    {
+        var t = new TextBox();
+
+        t.OnPaste("first\nsecond", MakeApp(t));
+
+        Assert.Equal("first", t.Text);
+    }
+
+    [Fact]
+    public void Paste_skips_control_chars()
+    {
+        var t = new TextBox();
+
+        t.OnPaste("a\tbc", MakeApp(t));
+
+        Assert.Equal("abc", t.Text);
+    }
+
+    [Fact]
+    public void Paste_respects_max_length()
+    {
+        var t = new TextBox { MaxLength = 4 };
+
+        t.OnPaste("hello world", MakeApp(t));
+
+        Assert.Equal("hell", t.Text);
+    }
+
+    [Fact]
+    public void Paste_fires_text_changed_once()
+    {
+        var fired = 0;
+        var t = new TextBox();
+        t.TextChanged += () => fired++;
+
+        t.OnPaste("hello", MakeApp(t));
+
+        Assert.Equal(1, fired);
+    }
+
     private static Application MakeApp(View root) => new(root);
 }

@@ -149,6 +149,7 @@ public sealed class Application
         using var alt   = Crt.UseAlternateScreen();
         using var raw   = RawMode.Enter();
         using var mouse = Crt.UseMouse();
+        using var paste = Crt.UseBracketedPaste();
 
         var bufA = new ScreenBuffer(width, height);
         var bufB = new ScreenBuffer(width, height);
@@ -207,8 +208,9 @@ public sealed class Application
 
             switch (ev.Kind)
             {
-                case InputEventKind.Key:   DispatchKey(ev.Key);     break;
-                case InputEventKind.Mouse: DispatchMouse(ev.Mouse); break;
+                case InputEventKind.Key:   DispatchKey(ev.Key);       break;
+                case InputEventKind.Mouse: DispatchMouse(ev.Mouse);   break;
+                case InputEventKind.Paste: DispatchPaste(ev.Paste!);  break;
             }
         }
     }
@@ -297,6 +299,32 @@ public sealed class Application
         }
 
         target.OnMouse(mouse, this);
+    }
+
+    private void DispatchPaste(string text)
+    {
+        // Paste only goes to the focused view. With no focus, drop —
+        // there's no sensible "default" target, and synthesizing key
+        // events to the root would defeat the point of bracketed paste
+        // (the whole appeal is one atomic event the widget can route
+        // however it wants).
+        var target = _focus;
+        if (target is null) return;
+
+        if (_modal is { } modal && !IsInSubtree(modal, target)) return;
+
+        target.OnPaste(text, this);
+    }
+
+    private static bool IsInSubtree(View root, View needle)
+    {
+        if (ReferenceEquals(root, needle)) return true;
+        if (root is Container c)
+        {
+            for (var i = 0; i < c.Children.Count; i++)
+                if (IsInSubtree(c.Children[i], needle)) return true;
+        }
+        return false;
     }
 
     private View? FirstFocusable()

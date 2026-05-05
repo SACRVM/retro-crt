@@ -214,3 +214,5 @@ static Retro.Crt.Tui.Layout.Split.Vertical(Retro.Crt.Tui.Layout.Rect bounds, Sys
 static readonly Retro.Crt.Tui.Layout.Rect.Empty -> Retro.Crt.Tui.Layout.Rect
 virtual Retro.Crt.Tui.View.OnKey(Retro.Crt.Input.KeyEvent key, Retro.Crt.Tui.Application! app) -> void
 virtual Retro.Crt.Tui.View.OnMouse(Retro.Crt.Input.MouseEvent mouse, Retro.Crt.Tui.Application! app) -> void
+virtual Retro.Crt.Tui.View.OnPaste(string! text, Retro.Crt.Tui.Application! app) -> void
+override Retro.Crt.Tui.Widgets.TextBox.OnPaste(string! text, Retro.Crt.Tui.Application! app) -> void

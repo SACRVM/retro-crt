@@ -35,6 +35,13 @@ public static class TerminalInput
     private static Decoder _decoder = Encoding.UTF8.GetDecoder();
     private static bool _eof;
 
+    private static readonly StringBuilder PasteBuilder = new();
+    private static bool _inPaste;
+
+    // ESC[200~ — start of bracketed-paste; ESC[201~ — end.
+    private static ReadOnlySpan<char> PasteStart => "\x1b[200~";
+    private static ReadOnlySpan<char> PasteEnd   => "\x1b[201~";
+
     /// <summary>
     /// Block until one <see cref="InputEvent"/> can be parsed, then return
     /// it. Throws <see cref="EndOfStreamException"/> if stdin closes
@@ -104,14 +111,65 @@ public static class TerminalInput
             _charLen = 0;
             _decoder = Encoding.UTF8.GetDecoder();
             _eof = false;
+            _inPaste = false;
+            PasteBuilder.Clear();
         }
     }
 
     private static bool TryParseFromBuffer(out InputEvent ev)
     {
         ev = default;
+
         while (_charLen > 0)
         {
+            // Bracketed paste handling sits *before* the regular parser
+            // so injected ESC sequences inside the paste body don't get
+            // re-interpreted as cursor keys.
+            if (_inPaste)
+            {
+                var chars = CharBuf.AsSpan(0, _charLen);
+                var endIdx = IndexOf(chars, PasteEnd);
+                if (endIdx < 0)
+                {
+                    // Whole buffer is paste body — drain it. Keep up
+                    // to (PasteEnd.Length - 1) trailing chars in case
+                    // a partial ESC[201~ is splitting across reads.
+                    var keep = PasteEnd.Length - 1;
+                    var drainLen = _charLen - keep;
+                    if (drainLen > 0)
+                    {
+                        PasteBuilder.Append(chars[..drainLen]);
+                        ShiftChars(drainLen);
+                    }
+                    return false; // need more bytes to find the terminator
+                }
+
+                if (endIdx > 0)
+                    PasteBuilder.Append(chars[..endIdx]);
+                ShiftChars(endIdx + PasteEnd.Length);
+
+                ev = new InputEvent(PasteBuilder.ToString());
+                PasteBuilder.Clear();
+                _inPaste = false;
+                return true;
+            }
+
+            // Detect the start of a paste block. If the buffer ends in
+            // a partial "\x1b[200~" prefix, request more bytes — never
+            // hand a half-prefix to the regular parser since it would
+            // misread it as a tilde-key with bad params.
+            {
+                var chars = CharBuf.AsSpan(0, _charLen);
+                if (chars.StartsWith(PasteStart))
+                {
+                    ShiftChars(PasteStart.Length);
+                    _inPaste = true;
+                    continue;
+                }
+                if (IsPotentialPasteStartPrefix(chars))
+                    return false;
+            }
+
             var status = InputParser.TryParseEvent(
                 CharBuf.AsSpan(0, _charLen), out ev, out var consumed);
 
@@ -131,6 +189,27 @@ public static class TerminalInput
             return false;
         }
         return false;
+    }
+
+    private static int IndexOf(ReadOnlySpan<char> haystack, ReadOnlySpan<char> needle)
+    {
+        if (needle.IsEmpty || haystack.Length < needle.Length) return -1;
+        var max = haystack.Length - needle.Length;
+        for (var i = 0; i <= max; i++)
+        {
+            if (haystack.Slice(i, needle.Length).SequenceEqual(needle)) return i;
+        }
+        return -1;
+    }
+
+    private static bool IsPotentialPasteStartPrefix(ReadOnlySpan<char> chars)
+    {
+        // Returns true when `chars` is a non-empty proper prefix of
+        // PasteStart — used to defer parsing until the full sentinel
+        // arrives. We only match the prefix at position 0; chars
+        // anywhere else are processed by the normal parser path.
+        if (chars.IsEmpty || chars.Length >= PasteStart.Length) return false;
+        return PasteStart[..chars.Length].SequenceEqual(chars);
     }
 
     private static void ShiftChars(int count)

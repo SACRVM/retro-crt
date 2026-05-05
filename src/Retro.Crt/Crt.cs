@@ -271,6 +271,10 @@ public static class Crt
     private static bool _mouseTrackingExitHandlerRegistered;
     private static readonly Lock MouseTrackingGate = new();
 
+    private static int _bracketedPasteDepth;
+    private static bool _bracketedPasteExitHandlerRegistered;
+    private static readonly Lock BracketedPasteGate = new();
+
     /// <summary>
     /// Ask the terminal to send mouse events as SGR-encoded reports
     /// (xterm mode 1006) for the duration of the returned scope, with
@@ -342,6 +346,63 @@ public static class Crt
                 // original termination cause.
             }
             _mouseTrackingDepth = 0;
+        }
+    }
+
+    /// <summary>
+    /// Ask the terminal to wrap clipboard pastes in <c>ESC[200~</c> /
+    /// <c>ESC[201~</c> sentinels for the duration of the returned
+    /// scope, so applications can distinguish typed input from injected
+    /// text. Disposing emits the matching disable escape so the user's
+    /// shell isn't left in bracketed-paste mode after your app exits.
+    /// </summary>
+    /// <remarks>
+    /// No-op when output is redirected or the host isn't a real
+    /// terminal. Nests by reference count. <c>CancelKeyPress</c> and
+    /// <c>ProcessExit</c> handlers are registered lazily so a Ctrl-C
+    /// doesn't leave the user's shell in paste mode.
+    /// </remarks>
+    public static IDisposable UseBracketedPaste()
+    {
+        if (!IsInteractive) return NullScope.Instance;
+
+        lock (BracketedPasteGate)
+        {
+            if (++_bracketedPasteDepth == 1)
+            {
+                EnsureBracketedPasteExitHandler();
+                Sink.Write(AnsiCodes.BracketedPasteEnter);
+                Sink.Flush();
+            }
+        }
+
+        return new BracketedPasteScope();
+    }
+
+    private static void EnsureBracketedPasteExitHandler()
+    {
+        if (_bracketedPasteExitHandlerRegistered) return;
+        _bracketedPasteExitHandlerRegistered = true;
+
+        Console.CancelKeyPress += (_, _) => RestoreBracketedPasteOnExit();
+        AppDomain.CurrentDomain.ProcessExit += (_, _) => RestoreBracketedPasteOnExit();
+    }
+
+    private static void RestoreBracketedPasteOnExit()
+    {
+        lock (BracketedPasteGate)
+        {
+            if (_bracketedPasteDepth <= 0) return;
+            try
+            {
+                Sink.Write(AnsiCodes.BracketedPasteLeave);
+                Sink.Flush();
+            }
+            catch
+            {
+                // Sink may be disposed during shutdown.
+            }
+            _bracketedPasteDepth = 0;
         }
     }
 
@@ -517,6 +578,27 @@ public static class Crt
                 if (--_mouseTrackingDepth == 0)
                 {
                     Sink.Write(AnsiCodes.MouseTrackingLeave);
+                    Sink.Flush();
+                }
+            }
+        }
+    }
+
+    private sealed class BracketedPasteScope : IDisposable
+    {
+        private bool _disposed;
+
+        public void Dispose()
+        {
+            if (_disposed) return;
+            _disposed = true;
+
+            lock (BracketedPasteGate)
+            {
+                if (_bracketedPasteDepth <= 0) return;
+                if (--_bracketedPasteDepth == 0)
+                {
+                    Sink.Write(AnsiCodes.BracketedPasteLeave);
                     Sink.Flush();
                 }
             }
