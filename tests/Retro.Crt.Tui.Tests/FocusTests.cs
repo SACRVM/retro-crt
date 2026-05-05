@@ -111,6 +111,60 @@ public class FocusTests
         Assert.Null(app.Focus);
     }
 
+    [Fact]
+    public void SetFocus_focuses_a_specific_focusable_view()
+    {
+        var a = new RecordingView { IsFocusable = true };
+        var b = new RecordingView { IsFocusable = true };
+        var root = new TestContainer { Children = { a, b } };
+        var app = new Application(root);
+
+        app.SetFocus(b);
+
+        Assert.Same(b, app.Focus);
+    }
+
+    [Fact]
+    public void SetFocus_null_clears_focus()
+    {
+        var a = new RecordingView { IsFocusable = true };
+        var root = new TestContainer { Children = { a } };
+        var app = new Application(root);
+        app.FocusNext();
+
+        app.SetFocus(null);
+
+        Assert.Null(app.Focus);
+    }
+
+    [Fact]
+    public void SetFocus_ignores_non_focusable_view()
+    {
+        var a = new RecordingView { IsFocusable = true };
+        var dummy = new RecordingView { IsFocusable = false };
+        var root = new TestContainer { Children = { a, dummy } };
+        var app = new Application(root);
+        app.FocusNext(); // a
+
+        app.SetFocus(dummy);
+
+        Assert.Same(a, app.Focus);
+    }
+
+    [Fact]
+    public void SetFocus_ignores_view_outside_tree()
+    {
+        var a = new RecordingView { IsFocusable = true };
+        var stranger = new RecordingView { IsFocusable = true };
+        var root = new TestContainer { Children = { a } };
+        var app = new Application(root);
+        app.FocusNext(); // a
+
+        app.SetFocus(stranger);
+
+        Assert.Same(a, app.Focus);
+    }
+
     private static void ClearDirtyVia(View view)
     {
         var m = typeof(View).GetMethod(

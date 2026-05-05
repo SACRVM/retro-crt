@@ -71,7 +71,7 @@ public sealed class Application
         modal.AttachToApplication(this);
         modal.MarkDirty();
         _root.MarkDirty();
-        SetFocus(FirstFocusableIn(modal));
+        ApplyFocus(FirstFocusableIn(modal));
     }
 
     /// <summary>Close the current modal and restore the previous focus, if any.</summary>
@@ -83,7 +83,7 @@ public sealed class Application
         _mouseCapture = null;
         modal.AttachToApplication(null);
         _root.MarkDirty();
-        SetFocus(_focusBeforeModal);
+        ApplyFocus(_focusBeforeModal);
         _focusBeforeModal = null;
     }
 
@@ -99,12 +99,30 @@ public sealed class Application
     /// <summary>Move focus to the previous focusable view, wrapping at the start.</summary>
     public void FocusPrevious() => MoveFocus(forward: false);
 
+    /// <summary>
+    /// Move focus to <paramref name="view"/> directly, bypassing
+    /// Tab traversal. <paramref name="view"/> must be focusable
+    /// (<see cref="View.IsFocusable"/> = true) and live inside the
+    /// current scope (the modal subtree, if a modal is open;
+    /// otherwise the root). Pass <c>null</c> to clear focus.
+    /// </summary>
+    public void SetFocus(View? view)
+    {
+        if (view is null) { ApplyFocus(null); return; }
+        if (!view.IsFocusable) return;
+
+        var scope = (View?)_modal ?? _root;
+        if (!IsInSubtree(scope, view)) return;
+
+        ApplyFocus(view);
+    }
+
     private void MoveFocus(bool forward)
     {
         var scope = (View?)_modal ?? _root;
         var list = new List<View>();
         foreach (var f in scope.EnumerateFocusable()) list.Add(f);
-        if (list.Count == 0) { SetFocus(null); return; }
+        if (list.Count == 0) { ApplyFocus(null); return; }
 
         int idx;
         if (_focus is null)
@@ -118,10 +136,10 @@ public sealed class Application
                 ? (current + 1)             % list.Count
                 : (current - 1 + list.Count) % list.Count;
         }
-        SetFocus(list[idx]);
+        ApplyFocus(list[idx]);
     }
 
-    private void SetFocus(View? next)
+    private void ApplyFocus(View? next)
     {
         if (ReferenceEquals(next, _focus)) return;
         _focus?.SetFocus(false);
@@ -147,7 +165,7 @@ public sealed class Application
 
         // Pick the first focusable view as the initial focus so Tab
         // has something to cycle from on the very first key press.
-        SetFocus(FirstFocusable());
+        ApplyFocus(FirstFocusable());
 
         using var alt   = Crt.UseAlternateScreen();
         using var raw   = RawMode.Enter();
@@ -293,7 +311,7 @@ public sealed class Application
 
         if (mouse.Kind == MouseEventKind.Press)
         {
-            if (target.IsFocusable) SetFocus(target);
+            if (target.IsFocusable) ApplyFocus(target);
             _mouseCapture = target;
         }
         else if (mouse.Kind == MouseEventKind.Release)
