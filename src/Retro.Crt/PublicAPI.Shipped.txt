@@ -1,13 +1,24 @@
 #nullable enable
-const Retro.Crt.Crt.DefaultHeight = 24 -> int
-const Retro.Crt.Crt.DefaultWidth = 80 -> int
-const Retro.Crt.Crt.FillWidth = -1 -> int
-override Retro.Crt.TerminalReport.ToString() -> string!
 Retro.Crt.Banner
 Retro.Crt.BoxAlign
 Retro.Crt.BoxAlign.Center = 1 -> Retro.Crt.BoxAlign
 Retro.Crt.BoxAlign.Left = 0 -> Retro.Crt.BoxAlign
 Retro.Crt.BoxAlign.Right = 2 -> Retro.Crt.BoxAlign
+Retro.Crt.Cell
+Retro.Crt.Cell.Attrs.get -> Retro.Crt.CellAttrs
+Retro.Crt.Cell.Attrs.init -> void
+Retro.Crt.Cell.Bg.get -> Retro.Crt.Color
+Retro.Crt.Cell.Bg.init -> void
+Retro.Crt.Cell.Cell() -> void
+Retro.Crt.Cell.Cell(char Glyph, Retro.Crt.Color Fg, Retro.Crt.Color Bg, Retro.Crt.CellAttrs Attrs = Retro.Crt.CellAttrs.None) -> void
+Retro.Crt.Cell.Fg.get -> Retro.Crt.Color
+Retro.Crt.Cell.Fg.init -> void
+Retro.Crt.Cell.Glyph.get -> char
+Retro.Crt.Cell.Glyph.init -> void
+Retro.Crt.CellAttrs
+Retro.Crt.CellAttrs.Bold = 1 -> Retro.Crt.CellAttrs
+Retro.Crt.CellAttrs.None = 0 -> Retro.Crt.CellAttrs
+Retro.Crt.CellAttrs.Underline = 2 -> Retro.Crt.CellAttrs
 Retro.Crt.Color
 Retro.Crt.Color.B.get -> byte
 Retro.Crt.Color.Color() -> void
@@ -27,6 +38,97 @@ Retro.Crt.ColorMode.Truecolor = 0 -> Retro.Crt.ColorMode
 Retro.Crt.ColorMode.Xterm256 = 2 -> Retro.Crt.ColorMode
 Retro.Crt.Crt
 Retro.Crt.Diagnostics
+Retro.Crt.Input.InputEvent
+Retro.Crt.Input.InputEvent.InputEvent() -> void
+Retro.Crt.Input.InputEvent.InputEvent(Retro.Crt.Input.KeyEvent key) -> void
+Retro.Crt.Input.InputEvent.InputEvent(Retro.Crt.Input.MouseEvent mouse) -> void
+Retro.Crt.Input.InputEvent.InputEvent(string! paste) -> void
+Retro.Crt.Input.InputEvent.Key.get -> Retro.Crt.Input.KeyEvent
+Retro.Crt.Input.InputEvent.Kind.get -> Retro.Crt.Input.InputEventKind
+Retro.Crt.Input.InputEvent.Mouse.get -> Retro.Crt.Input.MouseEvent
+Retro.Crt.Input.InputEvent.Paste.get -> string?
+Retro.Crt.Input.InputEventKind
+Retro.Crt.Input.InputEventKind.Key = 1 -> Retro.Crt.Input.InputEventKind
+Retro.Crt.Input.InputEventKind.Mouse = 2 -> Retro.Crt.Input.InputEventKind
+Retro.Crt.Input.InputEventKind.None = 0 -> Retro.Crt.Input.InputEventKind
+Retro.Crt.Input.InputEventKind.Paste = 3 -> Retro.Crt.Input.InputEventKind
+Retro.Crt.Input.InputParseStatus
+Retro.Crt.Input.InputParseStatus.Incomplete = 1 -> Retro.Crt.Input.InputParseStatus
+Retro.Crt.Input.InputParseStatus.Invalid = 2 -> Retro.Crt.Input.InputParseStatus
+Retro.Crt.Input.InputParseStatus.Ok = 0 -> Retro.Crt.Input.InputParseStatus
+Retro.Crt.Input.InputParser
+Retro.Crt.Input.Key
+Retro.Crt.Input.Key.Backspace = 5 -> Retro.Crt.Input.Key
+Retro.Crt.Input.Key.Delete = 6 -> Retro.Crt.Input.Key
+Retro.Crt.Input.Key.Down = 9 -> Retro.Crt.Input.Key
+Retro.Crt.Input.Key.End = 13 -> Retro.Crt.Input.Key
+Retro.Crt.Input.Key.Enter = 3 -> Retro.Crt.Input.Key
+Retro.Crt.Input.Key.Escape = 2 -> Retro.Crt.Input.Key
+Retro.Crt.Input.Key.F1 = 16 -> Retro.Crt.Input.Key
+Retro.Crt.Input.Key.F10 = 25 -> Retro.Crt.Input.Key
+Retro.Crt.Input.Key.F11 = 26 -> Retro.Crt.Input.Key
+Retro.Crt.Input.Key.F12 = 27 -> Retro.Crt.Input.Key
+Retro.Crt.Input.Key.F2 = 17 -> Retro.Crt.Input.Key
+Retro.Crt.Input.Key.F3 = 18 -> Retro.Crt.Input.Key
+Retro.Crt.Input.Key.F4 = 19 -> Retro.Crt.Input.Key
+Retro.Crt.Input.Key.F5 = 20 -> Retro.Crt.Input.Key
+Retro.Crt.Input.Key.F6 = 21 -> Retro.Crt.Input.Key
+Retro.Crt.Input.Key.F7 = 22 -> Retro.Crt.Input.Key
+Retro.Crt.Input.Key.F8 = 23 -> Retro.Crt.Input.Key
+Retro.Crt.Input.Key.F9 = 24 -> Retro.Crt.Input.Key
+Retro.Crt.Input.Key.Glyph = 1 -> Retro.Crt.Input.Key
+Retro.Crt.Input.Key.Home = 12 -> Retro.Crt.Input.Key
+Retro.Crt.Input.Key.Insert = 7 -> Retro.Crt.Input.Key
+Retro.Crt.Input.Key.Left = 10 -> Retro.Crt.Input.Key
+Retro.Crt.Input.Key.None = 0 -> Retro.Crt.Input.Key
+Retro.Crt.Input.Key.PageDown = 15 -> Retro.Crt.Input.Key
+Retro.Crt.Input.Key.PageUp = 14 -> Retro.Crt.Input.Key
+Retro.Crt.Input.Key.Right = 11 -> Retro.Crt.Input.Key
+Retro.Crt.Input.Key.Tab = 4 -> Retro.Crt.Input.Key
+Retro.Crt.Input.Key.Up = 8 -> Retro.Crt.Input.Key
+Retro.Crt.Input.KeyEvent
+Retro.Crt.Input.KeyEvent.Glyph.get -> char
+Retro.Crt.Input.KeyEvent.Glyph.init -> void
+Retro.Crt.Input.KeyEvent.Key.get -> Retro.Crt.Input.Key
+Retro.Crt.Input.KeyEvent.Key.init -> void
+Retro.Crt.Input.KeyEvent.KeyEvent() -> void
+Retro.Crt.Input.KeyEvent.KeyEvent(Retro.Crt.Input.Key Key, char Glyph = '\0', Retro.Crt.Input.KeyModifiers Modifiers = Retro.Crt.Input.KeyModifiers.None) -> void
+Retro.Crt.Input.KeyEvent.Modifiers.get -> Retro.Crt.Input.KeyModifiers
+Retro.Crt.Input.KeyEvent.Modifiers.init -> void
+Retro.Crt.Input.KeyModifiers
+Retro.Crt.Input.KeyModifiers.Alt = 2 -> Retro.Crt.Input.KeyModifiers
+Retro.Crt.Input.KeyModifiers.Ctrl = 4 -> Retro.Crt.Input.KeyModifiers
+Retro.Crt.Input.KeyModifiers.Meta = 8 -> Retro.Crt.Input.KeyModifiers
+Retro.Crt.Input.KeyModifiers.None = 0 -> Retro.Crt.Input.KeyModifiers
+Retro.Crt.Input.KeyModifiers.Shift = 1 -> Retro.Crt.Input.KeyModifiers
+Retro.Crt.Input.MouseButton
+Retro.Crt.Input.MouseButton.Left = 1 -> Retro.Crt.Input.MouseButton
+Retro.Crt.Input.MouseButton.Middle = 2 -> Retro.Crt.Input.MouseButton
+Retro.Crt.Input.MouseButton.None = 0 -> Retro.Crt.Input.MouseButton
+Retro.Crt.Input.MouseButton.Right = 3 -> Retro.Crt.Input.MouseButton
+Retro.Crt.Input.MouseButton.WheelDown = 5 -> Retro.Crt.Input.MouseButton
+Retro.Crt.Input.MouseButton.WheelUp = 4 -> Retro.Crt.Input.MouseButton
+Retro.Crt.Input.MouseEvent
+Retro.Crt.Input.MouseEvent.Button.get -> Retro.Crt.Input.MouseButton
+Retro.Crt.Input.MouseEvent.Button.init -> void
+Retro.Crt.Input.MouseEvent.Kind.get -> Retro.Crt.Input.MouseEventKind
+Retro.Crt.Input.MouseEvent.Kind.init -> void
+Retro.Crt.Input.MouseEvent.Modifiers.get -> Retro.Crt.Input.KeyModifiers
+Retro.Crt.Input.MouseEvent.Modifiers.init -> void
+Retro.Crt.Input.MouseEvent.MouseEvent() -> void
+Retro.Crt.Input.MouseEvent.MouseEvent(Retro.Crt.Input.MouseButton Button, Retro.Crt.Input.MouseEventKind Kind, int X, int Y, Retro.Crt.Input.KeyModifiers Modifiers = Retro.Crt.Input.KeyModifiers.None) -> void
+Retro.Crt.Input.MouseEvent.X.get -> int
+Retro.Crt.Input.MouseEvent.X.init -> void
+Retro.Crt.Input.MouseEvent.Y.get -> int
+Retro.Crt.Input.MouseEvent.Y.init -> void
+Retro.Crt.Input.MouseEventKind
+Retro.Crt.Input.MouseEventKind.Drag = 3 -> Retro.Crt.Input.MouseEventKind
+Retro.Crt.Input.MouseEventKind.Move = 2 -> Retro.Crt.Input.MouseEventKind
+Retro.Crt.Input.MouseEventKind.Press = 0 -> Retro.Crt.Input.MouseEventKind
+Retro.Crt.Input.MouseEventKind.Release = 1 -> Retro.Crt.Input.MouseEventKind
+Retro.Crt.Input.MouseEventKind.Wheel = 4 -> Retro.Crt.Input.MouseEventKind
+Retro.Crt.Input.RawMode
+Retro.Crt.Input.TerminalInput
 Retro.Crt.Log
 Retro.Crt.LogLevel
 Retro.Crt.LogLevel.Debug = 0 -> Retro.Crt.LogLevel
@@ -41,6 +143,17 @@ Retro.Crt.ProgressBar.Tick(long delta = 1) -> void
 Retro.Crt.ProgressBar.Total.get -> long
 Retro.Crt.ProgressBar.Value.get -> long
 Retro.Crt.Prompt
+Retro.Crt.ScreenBuffer
+Retro.Crt.ScreenBuffer.Clear() -> void
+Retro.Crt.ScreenBuffer.Clear(Retro.Crt.Cell fill) -> void
+Retro.Crt.ScreenBuffer.FillRect(int x, int y, int width, int height, Retro.Crt.Cell fill) -> void
+Retro.Crt.ScreenBuffer.Height.get -> int
+Retro.Crt.ScreenBuffer.PutString(int x, int y, System.ReadOnlySpan<char> text, Retro.Crt.Color fg, Retro.Crt.Color bg, Retro.Crt.CellAttrs attrs = Retro.Crt.CellAttrs.None) -> void
+Retro.Crt.ScreenBuffer.ScreenBuffer(int width, int height) -> void
+Retro.Crt.ScreenBuffer.Width.get -> int
+Retro.Crt.ScreenBuffer.this[int x, int y].get -> Retro.Crt.Cell
+Retro.Crt.ScreenBuffer.this[int x, int y].set -> void
+Retro.Crt.ScreenRenderer
 Retro.Crt.Spinner
 Retro.Crt.Spinner.Dispose() -> void
 Retro.Crt.Spinner.Stop() -> void
@@ -110,29 +223,10 @@ Retro.Crt.TypewriterCursor.Underline = 2 -> Retro.Crt.TypewriterCursor
 Retro.Crt.TypewriterFade
 Retro.Crt.TypewriterFade.Alpha = 1 -> Retro.Crt.TypewriterFade
 Retro.Crt.TypewriterFade.None = 0 -> Retro.Crt.TypewriterFade
-static readonly Retro.Crt.Color.Black -> Retro.Crt.Color
-static readonly Retro.Crt.Color.Brown -> Retro.Crt.Color
-static readonly Retro.Crt.Color.DarkBlue -> Retro.Crt.Color
-static readonly Retro.Crt.Color.DarkCyan -> Retro.Crt.Color
-static readonly Retro.Crt.Color.DarkGray -> Retro.Crt.Color
-static readonly Retro.Crt.Color.DarkGreen -> Retro.Crt.Color
-static readonly Retro.Crt.Color.DarkMagenta -> Retro.Crt.Color
-static readonly Retro.Crt.Color.DarkRed -> Retro.Crt.Color
-static readonly Retro.Crt.Color.LightBlue -> Retro.Crt.Color
-static readonly Retro.Crt.Color.LightCyan -> Retro.Crt.Color
-static readonly Retro.Crt.Color.LightGray -> Retro.Crt.Color
-static readonly Retro.Crt.Color.LightGreen -> Retro.Crt.Color
-static readonly Retro.Crt.Color.LightMagenta -> Retro.Crt.Color
-static readonly Retro.Crt.Color.LightRed -> Retro.Crt.Color
-static readonly Retro.Crt.Color.White -> Retro.Crt.Color
-static readonly Retro.Crt.Color.Yellow -> Retro.Crt.Color
-static readonly Retro.Crt.Themes.All -> Retro.Crt.Theme[]!
-static readonly Retro.Crt.Themes.AmberCrt -> Retro.Crt.Theme
-static readonly Retro.Crt.Themes.Dos -> Retro.Crt.Theme
-static readonly Retro.Crt.Themes.GreenCrt -> Retro.Crt.Theme
-static readonly Retro.Crt.Themes.Midnight -> Retro.Crt.Theme
-static readonly Retro.Crt.Themes.Slate -> Retro.Crt.Theme
-static readonly Retro.Crt.Themes.Twilight -> Retro.Crt.Theme
+const Retro.Crt.Crt.DefaultHeight = 24 -> int
+const Retro.Crt.Crt.DefaultWidth = 80 -> int
+const Retro.Crt.Crt.FillWidth = -1 -> int
+override Retro.Crt.TerminalReport.ToString() -> string!
 static Retro.Crt.Banner.Box(string! text, Retro.Crt.Color? fg = null, int padding = 1, int width = 0, Retro.Crt.BoxAlign align = Retro.Crt.BoxAlign.Left) -> void
 static Retro.Crt.Banner.Box(string![]! lines, Retro.Crt.Color? fg = null, int padding = 1, int width = 0, Retro.Crt.BoxAlign align = Retro.Crt.BoxAlign.Left) -> void
 static Retro.Crt.Banner.Gradient(string![]! lines, Retro.Crt.Color from, Retro.Crt.Color to, bool bold = true) -> void
@@ -159,6 +253,8 @@ static Retro.Crt.Crt.Sink.get -> System.IO.TextWriter!
 static Retro.Crt.Crt.TextBackground(Retro.Crt.Color color) -> void
 static Retro.Crt.Crt.TextColor(Retro.Crt.Color color) -> void
 static Retro.Crt.Crt.UseAlternateScreen() -> System.IDisposable!
+static Retro.Crt.Crt.UseBracketedPaste() -> System.IDisposable!
+static Retro.Crt.Crt.UseMouse() -> System.IDisposable!
 static Retro.Crt.Crt.UseTheme(Retro.Crt.Theme theme) -> System.IDisposable!
 static Retro.Crt.Crt.WindowHeight.get -> int
 static Retro.Crt.Crt.WindowWidth.get -> int
@@ -168,10 +264,17 @@ static Retro.Crt.Crt.Write(string! s) -> void
 static Retro.Crt.Crt.WriteLine() -> void
 static Retro.Crt.Crt.WriteLine(string! s) -> void
 static Retro.Crt.Diagnostics.Capture() -> Retro.Crt.TerminalReport
+static Retro.Crt.Input.InputParser.TryParseEvent(System.ReadOnlySpan<char> input, out Retro.Crt.Input.InputEvent ev, out int consumed) -> Retro.Crt.Input.InputParseStatus
+static Retro.Crt.Input.InputParser.TryParseKey(System.ReadOnlySpan<char> input, out Retro.Crt.Input.KeyEvent key, out int consumed) -> Retro.Crt.Input.InputParseStatus
+static Retro.Crt.Input.InputParser.TryParseMouse(System.ReadOnlySpan<char> input, out Retro.Crt.Input.MouseEvent mouse, out int consumed) -> Retro.Crt.Input.InputParseStatus
+static Retro.Crt.Input.RawMode.Enter(bool keepSignals = false) -> System.IDisposable!
+static Retro.Crt.Input.TerminalInput.ReadEvent() -> Retro.Crt.Input.InputEvent
+static Retro.Crt.Input.TerminalInput.TryReadEvent(out Retro.Crt.Input.InputEvent ev) -> bool
+static Retro.Crt.Input.TerminalInput.WaitForEvent(int timeoutMs, out Retro.Crt.Input.InputEvent ev) -> bool
 static Retro.Crt.Log.Debug(string! message) -> void
-static Retro.Crt.Log.Error(string! message) -> void
 static Retro.Crt.Log.ErrSink.get -> System.IO.TextWriter?
 static Retro.Crt.Log.ErrSink.set -> void
+static Retro.Crt.Log.Error(string! message) -> void
 static Retro.Crt.Log.Info(string! message) -> void
 static Retro.Crt.Log.IsEnabled(Retro.Crt.LogLevel level) -> bool
 static Retro.Crt.Log.MinLevel.get -> Retro.Crt.LogLevel
@@ -186,6 +289,7 @@ static Retro.Crt.ProgressBar.Start(long total, int width = 30, string? label = n
 static Retro.Crt.Prompt.Ask(string! question, string? defaultValue = null, Retro.Crt.Color? color = null) -> string!
 static Retro.Crt.Prompt.Confirm(string! question, bool defaultYes = false, Retro.Crt.Color? color = null) -> bool
 static Retro.Crt.Prompt.Select(string! question, string![]! options, int initialIndex = 0, Retro.Crt.Color? color = null) -> int
+static Retro.Crt.ScreenRenderer.Render(Retro.Crt.ScreenBuffer? previous, Retro.Crt.ScreenBuffer! current, System.IO.TextWriter! sink) -> void
 static Retro.Crt.Spinner.Show(string! label, Retro.Crt.SpinnerStyle style = Retro.Crt.SpinnerStyle.Pipe, Retro.Crt.Color? color = null, int msPerFrame = 80) -> Retro.Crt.Spinner!
 static Retro.Crt.Table.Print(string![]? headers, string![]![]! rows, Retro.Crt.TableBorder border = Retro.Crt.TableBorder.Box, Retro.Crt.Color? headerColor = null, Retro.Crt.Color? borderColor = null) -> void
 static Retro.Crt.Typewriter.Blink(int totalMs, Retro.Crt.TypewriterCursor cursor = Retro.Crt.TypewriterCursor.MatrixBlock, Retro.Crt.Color? fg = null, int blinkRateMs = 500) -> void
@@ -194,3 +298,27 @@ static Retro.Crt.Typewriter.Type(string! text, int msPerChar = 30, Retro.Crt.Col
 static Retro.Crt.Typewriter.TypeAsync(string! text, int msPerChar = 30, Retro.Crt.Color? fg = null, Retro.Crt.TypewriterCursor cursor = Retro.Crt.TypewriterCursor.None, Retro.Crt.TypewriterFade fade = Retro.Crt.TypewriterFade.None, (Retro.Crt.Color from, Retro.Crt.Color to)? gradient = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
 static Retro.Crt.Typewriter.TypeLine(string! text, int msPerChar = 30, Retro.Crt.Color? fg = null, Retro.Crt.TypewriterCursor cursor = Retro.Crt.TypewriterCursor.None, Retro.Crt.TypewriterFade fade = Retro.Crt.TypewriterFade.None, (Retro.Crt.Color from, Retro.Crt.Color to)? gradient = null) -> void
 static Retro.Crt.Typewriter.TypeLineAsync(string! text, int msPerChar = 30, Retro.Crt.Color? fg = null, Retro.Crt.TypewriterCursor cursor = Retro.Crt.TypewriterCursor.None, Retro.Crt.TypewriterFade fade = Retro.Crt.TypewriterFade.None, (Retro.Crt.Color from, Retro.Crt.Color to)? gradient = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+static readonly Retro.Crt.Cell.Empty -> Retro.Crt.Cell
+static readonly Retro.Crt.Color.Black -> Retro.Crt.Color
+static readonly Retro.Crt.Color.Brown -> Retro.Crt.Color
+static readonly Retro.Crt.Color.DarkBlue -> Retro.Crt.Color
+static readonly Retro.Crt.Color.DarkCyan -> Retro.Crt.Color
+static readonly Retro.Crt.Color.DarkGray -> Retro.Crt.Color
+static readonly Retro.Crt.Color.DarkGreen -> Retro.Crt.Color
+static readonly Retro.Crt.Color.DarkMagenta -> Retro.Crt.Color
+static readonly Retro.Crt.Color.DarkRed -> Retro.Crt.Color
+static readonly Retro.Crt.Color.LightBlue -> Retro.Crt.Color
+static readonly Retro.Crt.Color.LightCyan -> Retro.Crt.Color
+static readonly Retro.Crt.Color.LightGray -> Retro.Crt.Color
+static readonly Retro.Crt.Color.LightGreen -> Retro.Crt.Color
+static readonly Retro.Crt.Color.LightMagenta -> Retro.Crt.Color
+static readonly Retro.Crt.Color.LightRed -> Retro.Crt.Color
+static readonly Retro.Crt.Color.White -> Retro.Crt.Color
+static readonly Retro.Crt.Color.Yellow -> Retro.Crt.Color
+static readonly Retro.Crt.Themes.All -> Retro.Crt.Theme[]!
+static readonly Retro.Crt.Themes.AmberCrt -> Retro.Crt.Theme
+static readonly Retro.Crt.Themes.Dos -> Retro.Crt.Theme
+static readonly Retro.Crt.Themes.GreenCrt -> Retro.Crt.Theme
+static readonly Retro.Crt.Themes.Midnight -> Retro.Crt.Theme
+static readonly Retro.Crt.Themes.Slate -> Retro.Crt.Theme
+static readonly Retro.Crt.Themes.Twilight -> Retro.Crt.Theme
