@@ -70,6 +70,25 @@ Retro.Crt.Tui.Widgets.Button.Foreground.get -> Retro.Crt.Color
 Retro.Crt.Tui.Widgets.Button.Foreground.set -> void
 Retro.Crt.Tui.Widgets.Button.Label.get -> string?
 Retro.Crt.Tui.Widgets.Button.Label.set -> void
+Retro.Crt.Tui.Widgets.TextBox
+Retro.Crt.Tui.Widgets.TextBox.Background.get -> Retro.Crt.Color
+Retro.Crt.Tui.Widgets.TextBox.Background.set -> void
+Retro.Crt.Tui.Widgets.TextBox.CursorPosition.get -> int
+Retro.Crt.Tui.Widgets.TextBox.CursorPosition.set -> void
+Retro.Crt.Tui.Widgets.TextBox.Foreground.get -> Retro.Crt.Color
+Retro.Crt.Tui.Widgets.TextBox.Foreground.set -> void
+Retro.Crt.Tui.Widgets.TextBox.TextBox() -> void
+Retro.Crt.Tui.Widgets.TextBox.TextBox(string! text) -> void
+Retro.Crt.Tui.Widgets.TextBox.MaxLength.get -> int
+Retro.Crt.Tui.Widgets.TextBox.MaxLength.set -> void
+Retro.Crt.Tui.Widgets.TextBox.Placeholder.get -> string?
+Retro.Crt.Tui.Widgets.TextBox.Placeholder.set -> void
+Retro.Crt.Tui.Widgets.TextBox.PlaceholderForeground.get -> Retro.Crt.Color
+Retro.Crt.Tui.Widgets.TextBox.PlaceholderForeground.set -> void
+Retro.Crt.Tui.Widgets.TextBox.Submit -> System.Action?
+Retro.Crt.Tui.Widgets.TextBox.Text.get -> string!
+Retro.Crt.Tui.Widgets.TextBox.Text.set -> void
+Retro.Crt.Tui.Widgets.TextBox.TextChanged -> System.Action?
 Retro.Crt.Tui.Widgets.LogEntry
 Retro.Crt.Tui.Widgets.LogEntry.Foreground.get -> Retro.Crt.Color?
 Retro.Crt.Tui.Widgets.LogEntry.Foreground.init -> void
@@ -123,6 +142,9 @@ override Retro.Crt.Tui.Container.OnDraw(Retro.Crt.ScreenBuffer! screen) -> void
 override Retro.Crt.Tui.Widgets.Button.OnDraw(Retro.Crt.ScreenBuffer! screen) -> void
 override Retro.Crt.Tui.Widgets.Button.OnKey(Retro.Crt.Input.KeyEvent key, Retro.Crt.Tui.Application! app) -> void
 override Retro.Crt.Tui.Widgets.Button.OnMouse(Retro.Crt.Input.MouseEvent mouse, Retro.Crt.Tui.Application! app) -> void
+override Retro.Crt.Tui.Widgets.TextBox.OnDraw(Retro.Crt.ScreenBuffer! screen) -> void
+override Retro.Crt.Tui.Widgets.TextBox.OnKey(Retro.Crt.Input.KeyEvent key, Retro.Crt.Tui.Application! app) -> void
+override Retro.Crt.Tui.Widgets.TextBox.OnMouse(Retro.Crt.Input.MouseEvent mouse, Retro.Crt.Tui.Application! app) -> void
 override Retro.Crt.Tui.Widgets.LogViewer.OnDraw(Retro.Crt.ScreenBuffer! screen) -> void
 override Retro.Crt.Tui.Widgets.LogViewer.OnKey(Retro.Crt.Input.KeyEvent key, Retro.Crt.Tui.Application! app) -> void
 override Retro.Crt.Tui.Widgets.LogViewer.OnMouse(Retro.Crt.Input.MouseEvent mouse, Retro.Crt.Tui.Application! app) -> void
