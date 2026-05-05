@@ -1,1 +1,29 @@
 #nullable enable
+Retro.Crt.Cell
+Retro.Crt.Cell.Attrs.get -> Retro.Crt.CellAttrs
+Retro.Crt.Cell.Attrs.init -> void
+Retro.Crt.Cell.Bg.get -> Retro.Crt.Color
+Retro.Crt.Cell.Bg.init -> void
+Retro.Crt.Cell.Cell() -> void
+Retro.Crt.Cell.Cell(char Glyph, Retro.Crt.Color Fg, Retro.Crt.Color Bg, Retro.Crt.CellAttrs Attrs = Retro.Crt.CellAttrs.None) -> void
+Retro.Crt.Cell.Fg.get -> Retro.Crt.Color
+Retro.Crt.Cell.Fg.init -> void
+Retro.Crt.Cell.Glyph.get -> char
+Retro.Crt.Cell.Glyph.init -> void
+Retro.Crt.CellAttrs
+Retro.Crt.CellAttrs.Bold = 1 -> Retro.Crt.CellAttrs
+Retro.Crt.CellAttrs.None = 0 -> Retro.Crt.CellAttrs
+Retro.Crt.CellAttrs.Underline = 2 -> Retro.Crt.CellAttrs
+Retro.Crt.ScreenBuffer
+Retro.Crt.ScreenBuffer.Clear() -> void
+Retro.Crt.ScreenBuffer.Clear(Retro.Crt.Cell fill) -> void
+Retro.Crt.ScreenBuffer.FillRect(int x, int y, int width, int height, Retro.Crt.Cell fill) -> void
+Retro.Crt.ScreenBuffer.Height.get -> int
+Retro.Crt.ScreenBuffer.PutString(int x, int y, System.ReadOnlySpan<char> text, Retro.Crt.Color fg, Retro.Crt.Color bg, Retro.Crt.CellAttrs attrs = Retro.Crt.CellAttrs.None) -> void
+Retro.Crt.ScreenBuffer.ScreenBuffer(int width, int height) -> void
+Retro.Crt.ScreenBuffer.this[int x, int y].get -> Retro.Crt.Cell
+Retro.Crt.ScreenBuffer.this[int x, int y].set -> void
+Retro.Crt.ScreenBuffer.Width.get -> int
+Retro.Crt.ScreenRenderer
+static readonly Retro.Crt.Cell.Empty -> Retro.Crt.Cell
+static Retro.Crt.ScreenRenderer.Render(Retro.Crt.ScreenBuffer? previous, Retro.Crt.ScreenBuffer! current, System.IO.TextWriter! sink) -> void

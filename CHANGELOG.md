@@ -10,6 +10,25 @@ versions; breaking changes are called out below.
 
 ### Added
 
+- `ScreenBuffer` + `ScreenRenderer` — a stateful cell grid plus a
+  minimal-ANSI diff renderer. Every cell carries a `Glyph`, foreground,
+  background, and `CellAttrs` (`None` / `Bold` / `Underline`); the
+  renderer walks two buffers and emits cursor moves + SGR + chars only
+  for cells that actually changed. Pair with
+  `Crt.UseAlternateScreen()` to drive flicker-free game loops or
+  manual TUIs. Helpers: `Clear`, `PutString` (clipping), `FillRect`
+  (clipping), per-cell indexer (throws on out-of-bounds). One cell ==
+  one terminal column; surrogate pairs / wide East-Asian glyphs are
+  not modeled in v1.
+- `samples/Retro.Crt.ScreenBuffer.Demo` — short bouncing-ball demo
+  inside an alternate-screen scope. Two buffers ping-ponged, only the
+  ball's old + new positions get repainted per frame (~30 fps,
+  flicker-free).
+
+## [0.5.0] — 2026-05-05
+
+### Added
+
 - `Crt.PaintBackground()` — fills every visible viewport cell with the
   active SGR background by writing spaces. ECMA-48 says
   `Crt.ClrScr()` erases with the current bg, but real-world `bce`
