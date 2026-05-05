@@ -11,18 +11,21 @@ namespace Retro.Crt.Tui.Tests;
 public class ApplicationDispatchTests
 {
     [Fact]
-    public void Wheel_routes_to_focus_regardless_of_cursor_position()
+    public void Wheel_routes_to_view_under_cursor()
     {
         var hover  = new RecordingView { Bounds = new Rect(0, 0, 10, 5) };
         var focus  = new RecordingView { IsFocusable = true, Bounds = new Rect(20, 0, 10, 5) };
         var root = new TestContainer { Children = { hover, focus } };
         var app  = new Application(root);
-        app.FocusNext(); // focuses `focus` (only focusable)
+        app.FocusNext(); // focuses `focus`
 
+        // Cursor is over `hover`, even though `focus` owns the
+        // keyboard focus. Browser-style routing: scroll the thing
+        // you're hovering, not the focused widget.
         DispatchMouse(app, new MouseEvent(MouseButton.WheelDown, MouseEventKind.Wheel, 5, 3));
 
-        Assert.Equal(0, hover.MouseEvents); // cursor over hover, but ignored
-        Assert.Equal(1, focus.MouseEvents);
+        Assert.Equal(1, hover.MouseEvents);
+        Assert.Equal(0, focus.MouseEvents);
     }
 
     [Fact]

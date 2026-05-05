@@ -53,7 +53,6 @@ var quitButton = new Button("Quit", () => appRef?.Exit())
 {
     Foreground = Color.LightGray,
     Background = Color.DarkRed,
-    Accent     = Color.LightRed,
 };
 
 var appendButton = new Button("Append", () =>
@@ -61,7 +60,6 @@ var appendButton = new Button("Append", () =>
 {
     Foreground = Color.LightGray,
     Background = Color.DarkGray,
-    Accent     = Color.Yellow,
 };
 
 var buttonRow = new StackPanel

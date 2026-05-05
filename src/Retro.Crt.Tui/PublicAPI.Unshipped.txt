@@ -61,8 +61,6 @@ Retro.Crt.Tui.View.IsFocusable.set -> void
 Retro.Crt.Tui.View.MarkDirty() -> void
 Retro.Crt.Tui.View.View() -> void
 Retro.Crt.Tui.Widgets.Button
-Retro.Crt.Tui.Widgets.Button.Accent.get -> Retro.Crt.Color
-Retro.Crt.Tui.Widgets.Button.Accent.set -> void
 Retro.Crt.Tui.Widgets.Button.Background.get -> Retro.Crt.Color
 Retro.Crt.Tui.Widgets.Button.Background.set -> void
 Retro.Crt.Tui.Widgets.Button.Button() -> void

@@ -183,20 +183,21 @@ public sealed class Application
 
     private void DispatchMouse(MouseEvent mouse)
     {
-        // Wheel events go to the focused view regardless of cursor
-        // position — matches user expectations for "scroll the
-        // focused thing" in TUIs. Falls back to root if nothing is
-        // focused.
-        if (mouse.Kind == MouseEventKind.Wheel)
-        {
-            (_focus ?? _root).OnMouse(mouse, this);
-            return;
-        }
-
         // Mouse coordinates from InputParser are 1-based; our Rect
         // model is 0-based.
         var x = mouse.X - 1;
         var y = mouse.Y - 1;
+
+        // Wheel events go to the view directly under the cursor —
+        // matches browser / desktop convention ("scroll the thing
+        // I'm hovering") and avoids the surprise where wheel did
+        // nothing because the focus was elsewhere.
+        if (mouse.Kind == MouseEventKind.Wheel)
+        {
+            var hovered = _root.HitTest(x, y) ?? _root;
+            hovered.OnMouse(mouse, this);
+            return;
+        }
 
         // While the mouse is captured (between a Press and its
         // Release), Drag and Release are routed back to the press
@@ -205,13 +206,9 @@ public sealed class Application
         View target;
         if (_mouseCapture is { } cap &&
             (mouse.Kind == MouseEventKind.Drag || mouse.Kind == MouseEventKind.Release))
-        {
             target = cap;
-        }
         else
-        {
             target = _root.HitTest(x, y) ?? _root;
-        }
 
         if (mouse.Kind == MouseEventKind.Press)
         {

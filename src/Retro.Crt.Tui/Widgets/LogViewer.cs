@@ -177,11 +177,13 @@ public class LogViewer : View
         var mouseX = mouse.X - 1;         // 0-based cursor column
         var mouseY = mouse.Y - 1;         // 0-based cursor row
 
-        // Press is only acted on when it lands on the track. Drag
-        // (which runs under capture) updates regardless of horizontal
-        // position so the user can drift left without losing grip.
-        var inTrackColumn = mouseX == sx;
-        if (mouse.Kind == MouseEventKind.Press && !inTrackColumn) return;
+        // Press is acted on when it lands in the rightmost two cells
+        // — a one-cell tolerance for users aiming at the visible
+        // track. Drag (which runs under capture) updates regardless
+        // of horizontal position so the cursor can drift away
+        // without losing grip.
+        var inTrackZone = mouseX >= sx - 1 && mouseX <= sx;
+        if (mouse.Kind == MouseEventKind.Press && !inTrackZone) return;
 
         var localY = mouseY - b.Y;
         if (localY < 0)            localY = 0;
