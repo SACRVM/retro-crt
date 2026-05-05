@@ -11,6 +11,7 @@
     <Project Path="samples/Retro.Crt.AltScreen.Demo/Retro.Crt.AltScreen.Demo.csproj" />
     <Project Path="samples/Retro.Crt.ScreenBuffer.Demo/Retro.Crt.ScreenBuffer.Demo.csproj" />
     <Project Path="samples/Retro.Crt.Input.Demo/Retro.Crt.Input.Demo.csproj" />
+    <Project Path="samples/Retro.Crt.Tui.Demo/Retro.Crt.Tui.Demo.csproj" />
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/Retro.Crt/Retro.Crt.csproj" />

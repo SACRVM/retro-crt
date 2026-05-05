@@ -1,1 +1,76 @@
 #nullable enable
+Retro.Crt.Tui.Application
+Retro.Crt.Tui.Application.Application(Retro.Crt.Tui.View! root) -> void
+Retro.Crt.Tui.Application.Exit() -> void
+Retro.Crt.Tui.Application.Root.get -> Retro.Crt.Tui.View!
+Retro.Crt.Tui.Application.Run() -> void
+Retro.Crt.Tui.Layout.Dock
+Retro.Crt.Tui.Layout.DockSide
+Retro.Crt.Tui.Layout.DockSide.Bottom = 1 -> Retro.Crt.Tui.Layout.DockSide
+Retro.Crt.Tui.Layout.DockSide.Left = 2 -> Retro.Crt.Tui.Layout.DockSide
+Retro.Crt.Tui.Layout.DockSide.Right = 3 -> Retro.Crt.Tui.Layout.DockSide
+Retro.Crt.Tui.Layout.DockSide.Top = 0 -> Retro.Crt.Tui.Layout.DockSide
+Retro.Crt.Tui.Layout.DockSpec
+Retro.Crt.Tui.Layout.DockSpec.Cells.get -> int
+Retro.Crt.Tui.Layout.DockSpec.Cells.init -> void
+Retro.Crt.Tui.Layout.DockSpec.DockSpec() -> void
+Retro.Crt.Tui.Layout.DockSpec.DockSpec(Retro.Crt.Tui.Layout.DockSide Side, int Cells) -> void
+Retro.Crt.Tui.Layout.DockSpec.Side.get -> Retro.Crt.Tui.Layout.DockSide
+Retro.Crt.Tui.Layout.DockSpec.Side.init -> void
+Retro.Crt.Tui.Layout.LayoutSize
+Retro.Crt.Tui.Layout.LayoutSize.Equals(Retro.Crt.Tui.Layout.LayoutSize other) -> bool
+Retro.Crt.Tui.Layout.LayoutSize.FixedCells.get -> int
+Retro.Crt.Tui.Layout.LayoutSize.IsFixed.get -> bool
+Retro.Crt.Tui.Layout.LayoutSize.IsStar.get -> bool
+Retro.Crt.Tui.Layout.LayoutSize.LayoutSize() -> void
+Retro.Crt.Tui.Layout.LayoutSize.StarWeight.get -> int
+Retro.Crt.Tui.Layout.Rect
+Retro.Crt.Tui.Layout.Rect.Bottom.get -> int
+Retro.Crt.Tui.Layout.Rect.Contains(int x, int y) -> bool
+Retro.Crt.Tui.Layout.Rect.Height.get -> int
+Retro.Crt.Tui.Layout.Rect.Height.init -> void
+Retro.Crt.Tui.Layout.Rect.Inset(int left, int top, int right, int bottom) -> Retro.Crt.Tui.Layout.Rect
+Retro.Crt.Tui.Layout.Rect.Inset(int margin) -> Retro.Crt.Tui.Layout.Rect
+Retro.Crt.Tui.Layout.Rect.IsEmpty.get -> bool
+Retro.Crt.Tui.Layout.Rect.Rect() -> void
+Retro.Crt.Tui.Layout.Rect.Rect(int X, int Y, int Width, int Height) -> void
+Retro.Crt.Tui.Layout.Rect.Right.get -> int
+Retro.Crt.Tui.Layout.Rect.Width.get -> int
+Retro.Crt.Tui.Layout.Rect.Width.init -> void
+Retro.Crt.Tui.Layout.Rect.X.get -> int
+Retro.Crt.Tui.Layout.Rect.X.init -> void
+Retro.Crt.Tui.Layout.Rect.Y.get -> int
+Retro.Crt.Tui.Layout.Rect.Y.init -> void
+Retro.Crt.Tui.Layout.Split
+Retro.Crt.Tui.View
+Retro.Crt.Tui.View.Bounds.get -> Retro.Crt.Tui.Layout.Rect
+Retro.Crt.Tui.View.Bounds.set -> void
+Retro.Crt.Tui.View.IsDirty.get -> bool
+Retro.Crt.Tui.View.MarkDirty() -> void
+Retro.Crt.Tui.View.View() -> void
+Retro.Crt.Tui.Widgets.Panel
+Retro.Crt.Tui.Widgets.Panel.Accent.get -> Retro.Crt.Color
+Retro.Crt.Tui.Widgets.Panel.Accent.set -> void
+Retro.Crt.Tui.Widgets.Panel.Background.get -> Retro.Crt.Color
+Retro.Crt.Tui.Widgets.Panel.Background.set -> void
+Retro.Crt.Tui.Widgets.Panel.Foreground.get -> Retro.Crt.Color
+Retro.Crt.Tui.Widgets.Panel.Foreground.set -> void
+Retro.Crt.Tui.Widgets.Panel.IsActive.get -> bool
+Retro.Crt.Tui.Widgets.Panel.IsActive.set -> void
+Retro.Crt.Tui.Widgets.Panel.Panel() -> void
+Retro.Crt.Tui.Widgets.Panel.Title.get -> string?
+Retro.Crt.Tui.Widgets.Panel.Title.set -> void
+abstract Retro.Crt.Tui.View.OnDraw(Retro.Crt.ScreenBuffer! screen) -> void
+override Retro.Crt.Tui.Widgets.Panel.OnDraw(Retro.Crt.ScreenBuffer! screen) -> void
+override Retro.Crt.Tui.Layout.LayoutSize.Equals(object? obj) -> bool
+override Retro.Crt.Tui.Layout.LayoutSize.GetHashCode() -> int
+static Retro.Crt.Tui.Layout.Dock.Peel(Retro.Crt.Tui.Layout.Rect bounds, System.ReadOnlySpan<Retro.Crt.Tui.Layout.DockSpec> specs, System.Span<Retro.Crt.Tui.Layout.Rect> output) -> Retro.Crt.Tui.Layout.Rect
+static Retro.Crt.Tui.Layout.LayoutSize.Cells(int cells) -> Retro.Crt.Tui.Layout.LayoutSize
+static Retro.Crt.Tui.Layout.LayoutSize.operator !=(Retro.Crt.Tui.Layout.LayoutSize left, Retro.Crt.Tui.Layout.LayoutSize right) -> bool
+static Retro.Crt.Tui.Layout.LayoutSize.operator ==(Retro.Crt.Tui.Layout.LayoutSize left, Retro.Crt.Tui.Layout.LayoutSize right) -> bool
+static Retro.Crt.Tui.Layout.LayoutSize.Star(int weight = 1) -> Retro.Crt.Tui.Layout.LayoutSize
+static Retro.Crt.Tui.Layout.Split.Horizontal(Retro.Crt.Tui.Layout.Rect bounds, System.ReadOnlySpan<Retro.Crt.Tui.Layout.LayoutSize> sizes, System.Span<Retro.Crt.Tui.Layout.Rect> output) -> void
+static Retro.Crt.Tui.Layout.Split.Vertical(Retro.Crt.Tui.Layout.Rect bounds, System.ReadOnlySpan<Retro.Crt.Tui.Layout.LayoutSize> sizes, System.Span<Retro.Crt.Tui.Layout.Rect> output) -> void
+static readonly Retro.Crt.Tui.Layout.Rect.Empty -> Retro.Crt.Tui.Layout.Rect
+virtual Retro.Crt.Tui.View.OnKey(Retro.Crt.Input.KeyEvent key, Retro.Crt.Tui.Application! app) -> void
+virtual Retro.Crt.Tui.View.OnMouse(Retro.Crt.Input.MouseEvent mouse, Retro.Crt.Tui.Application! app) -> void

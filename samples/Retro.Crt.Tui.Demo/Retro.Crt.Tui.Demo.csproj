@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Retro.Crt.Tui.Demo</RootNamespace>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Retro.Crt\Retro.Crt.csproj" />
+    <ProjectReference Include="..\..\src\Retro.Crt.Tui\Retro.Crt.Tui.csproj" />
+  </ItemGroup>
+
+</Project>
