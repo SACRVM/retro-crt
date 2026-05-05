@@ -4,11 +4,11 @@ using Retro.Crt.Tui;
 using Retro.Crt.Tui.Layout;
 using Retro.Crt.Tui.Widgets;
 
-// Stage 5b smoke: header + horizontal StackPanel of two focusable
-// Panels + a footer row with two Buttons (Quit, Beep). Tab cycles
-// focus through Sidebar → Main → Quit → Beep; Enter/Space activates
-// the focused button; mouse clicks focus + activate. Q / Esc still
-// quit globally.
+// Stage 5c smoke: header + horizontal split (Sidebar Panel | LogViewer)
+// + footer row with two Buttons (Quit, Append). Tab cycles focus
+// through Sidebar → LogViewer → Quit → Append; arrows / wheel scroll
+// the log; Enter/Space activates the focused button; mouse clicks
+// focus + activate. Q / Esc quit globally.
 
 var sidebar = new Panel
 {
@@ -18,22 +18,36 @@ var sidebar = new Panel
     IsFocusable = true,
 };
 
-var main = new Panel
+var log = new LogViewer
 {
-    Title       = "Main",
-    Background  = Color.Black,
-    Accent      = Color.LightCyan,
-    IsFocusable = true,
+    Foreground     = Color.LightGray,
+    Background     = Color.Black,
+    ScrollbarTrack = Color.DarkGray,
+    ScrollbarThumb = Color.LightCyan,
 };
+
+for (var i = 0; i < 30; i++)
+{
+    var color = (i % 5) switch
+    {
+        0 => Color.LightCyan,
+        1 => Color.Yellow,
+        2 => Color.LightGreen,
+        3 => Color.LightRed,
+        _ => (Color?)null,
+    };
+    log.Append($"  log line {i:00} — Tab to focus, ↑/↓ or wheel to scroll", color);
+}
 
 var body = new StackPanel
 {
     Orientation = Orientation.Horizontal,
     Sizes       = { LayoutSize.Cells(24), LayoutSize.Star() },
-    Children    = { sidebar, main },
+    Children    = { sidebar, log },
 };
 
 Application? appRef = null;
+var counter = 0;
 
 var quitButton = new Button("Quit", () => appRef?.Exit())
 {
@@ -42,7 +56,8 @@ var quitButton = new Button("Quit", () => appRef?.Exit())
     Accent     = Color.LightRed,
 };
 
-var beepButton = new Button("Beep", Crt.Bell)
+var appendButton = new Button("Append", () =>
+    log.Append($"  -> append #{++counter} from button click", Color.LightGreen))
 {
     Foreground = Color.LightGray,
     Background = Color.DarkGray,
@@ -53,7 +68,7 @@ var buttonRow = new StackPanel
 {
     Orientation = Orientation.Horizontal,
     Sizes       = { LayoutSize.Star(), LayoutSize.Cells(12), LayoutSize.Cells(12), LayoutSize.Star() },
-    Children    = { new Spacer(), quitButton, beepButton, new Spacer() },
+    Children    = { new Spacer(), quitButton, appendButton, new Spacer() },
 };
 
 var content = new StackPanel
@@ -124,7 +139,7 @@ internal sealed class Frame : Container
     {
         s.FillRect(r.X, r.Y, r.Width, r.Height,
             new Cell(' ', Color.LightGray, Color.DarkGray));
-        s.PutString(r.X + 1, r.Y, " Tab/Shift+Tab: focus  Enter/Space: activate  Q/Esc: quit",
+        s.PutString(r.X + 1, r.Y, " Tab: focus  ↑↓/wheel: scroll  Enter/Space: activate  Q/Esc: quit",
             Color.LightGray, Color.DarkGray);
     }
 }

@@ -72,6 +72,36 @@ Retro.Crt.Tui.Widgets.Button.Foreground.get -> Retro.Crt.Color
 Retro.Crt.Tui.Widgets.Button.Foreground.set -> void
 Retro.Crt.Tui.Widgets.Button.Label.get -> string?
 Retro.Crt.Tui.Widgets.Button.Label.set -> void
+Retro.Crt.Tui.Widgets.LogEntry
+Retro.Crt.Tui.Widgets.LogEntry.Foreground.get -> Retro.Crt.Color?
+Retro.Crt.Tui.Widgets.LogEntry.Foreground.init -> void
+Retro.Crt.Tui.Widgets.LogEntry.LogEntry() -> void
+Retro.Crt.Tui.Widgets.LogEntry.LogEntry(string! Text, Retro.Crt.Color? Foreground = null) -> void
+Retro.Crt.Tui.Widgets.LogEntry.Text.get -> string!
+Retro.Crt.Tui.Widgets.LogEntry.Text.init -> void
+Retro.Crt.Tui.Widgets.LogViewer
+Retro.Crt.Tui.Widgets.LogViewer.Append(Retro.Crt.Tui.Widgets.LogEntry entry) -> void
+Retro.Crt.Tui.Widgets.LogViewer.Append(string! text, Retro.Crt.Color? foreground = null) -> void
+Retro.Crt.Tui.Widgets.LogViewer.AutoScroll.get -> bool
+Retro.Crt.Tui.Widgets.LogViewer.AutoScroll.set -> void
+Retro.Crt.Tui.Widgets.LogViewer.Background.get -> Retro.Crt.Color
+Retro.Crt.Tui.Widgets.LogViewer.Background.set -> void
+Retro.Crt.Tui.Widgets.LogViewer.Clear() -> void
+Retro.Crt.Tui.Widgets.LogViewer.Foreground.get -> Retro.Crt.Color
+Retro.Crt.Tui.Widgets.LogViewer.Foreground.set -> void
+Retro.Crt.Tui.Widgets.LogViewer.Items.get -> System.Collections.Generic.IList<Retro.Crt.Tui.Widgets.LogEntry>!
+Retro.Crt.Tui.Widgets.LogViewer.LogViewer() -> void
+Retro.Crt.Tui.Widgets.LogViewer.PageDown() -> void
+Retro.Crt.Tui.Widgets.LogViewer.PageUp() -> void
+Retro.Crt.Tui.Widgets.LogViewer.ScrollBy(int delta) -> void
+Retro.Crt.Tui.Widgets.LogViewer.ScrollOffset.get -> int
+Retro.Crt.Tui.Widgets.LogViewer.ScrollOffset.set -> void
+Retro.Crt.Tui.Widgets.LogViewer.ScrollToEnd() -> void
+Retro.Crt.Tui.Widgets.LogViewer.ScrollToStart() -> void
+Retro.Crt.Tui.Widgets.LogViewer.ScrollbarThumb.get -> Retro.Crt.Color
+Retro.Crt.Tui.Widgets.LogViewer.ScrollbarThumb.set -> void
+Retro.Crt.Tui.Widgets.LogViewer.ScrollbarTrack.get -> Retro.Crt.Color
+Retro.Crt.Tui.Widgets.LogViewer.ScrollbarTrack.set -> void
 Retro.Crt.Tui.Widgets.Panel
 Retro.Crt.Tui.Widgets.Panel.Accent.get -> Retro.Crt.Color
 Retro.Crt.Tui.Widgets.Panel.Accent.set -> void
@@ -95,6 +125,9 @@ override Retro.Crt.Tui.Container.OnDraw(Retro.Crt.ScreenBuffer! screen) -> void
 override Retro.Crt.Tui.Widgets.Button.OnDraw(Retro.Crt.ScreenBuffer! screen) -> void
 override Retro.Crt.Tui.Widgets.Button.OnKey(Retro.Crt.Input.KeyEvent key, Retro.Crt.Tui.Application! app) -> void
 override Retro.Crt.Tui.Widgets.Button.OnMouse(Retro.Crt.Input.MouseEvent mouse, Retro.Crt.Tui.Application! app) -> void
+override Retro.Crt.Tui.Widgets.LogViewer.OnDraw(Retro.Crt.ScreenBuffer! screen) -> void
+override Retro.Crt.Tui.Widgets.LogViewer.OnKey(Retro.Crt.Input.KeyEvent key, Retro.Crt.Tui.Application! app) -> void
+override Retro.Crt.Tui.Widgets.LogViewer.OnMouse(Retro.Crt.Input.MouseEvent mouse, Retro.Crt.Tui.Application! app) -> void
 override Retro.Crt.Tui.Widgets.Panel.OnDraw(Retro.Crt.ScreenBuffer! screen) -> void
 override Retro.Crt.Tui.Widgets.StackPanel.ArrangeChildren() -> void
 override Retro.Crt.Tui.Layout.LayoutSize.Equals(object? obj) -> bool
