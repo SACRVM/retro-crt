@@ -119,6 +119,28 @@ Retro.Crt.Tui.Widgets.LogViewer.ScrollbarThumb.get -> Retro.Crt.Color
 Retro.Crt.Tui.Widgets.LogViewer.ScrollbarThumb.set -> void
 Retro.Crt.Tui.Widgets.LogViewer.ScrollbarTrack.get -> Retro.Crt.Color
 Retro.Crt.Tui.Widgets.LogViewer.ScrollbarTrack.set -> void
+Retro.Crt.Tui.Widgets.Menu
+Retro.Crt.Tui.Widgets.Menu.Activate() -> void
+Retro.Crt.Tui.Widgets.Menu.Background.get -> Retro.Crt.Color
+Retro.Crt.Tui.Widgets.Menu.Background.set -> void
+Retro.Crt.Tui.Widgets.Menu.DisabledForeground.get -> Retro.Crt.Color
+Retro.Crt.Tui.Widgets.Menu.DisabledForeground.set -> void
+Retro.Crt.Tui.Widgets.Menu.Foreground.get -> Retro.Crt.Color
+Retro.Crt.Tui.Widgets.Menu.Foreground.set -> void
+Retro.Crt.Tui.Widgets.Menu.Items.get -> System.Collections.Generic.IList<Retro.Crt.Tui.Widgets.MenuItem!>!
+Retro.Crt.Tui.Widgets.Menu.Menu() -> void
+Retro.Crt.Tui.Widgets.Menu.SelectedIndex.get -> int
+Retro.Crt.Tui.Widgets.Menu.SelectedIndex.set -> void
+Retro.Crt.Tui.Widgets.Menu.SelectedItem.get -> Retro.Crt.Tui.Widgets.MenuItem?
+Retro.Crt.Tui.Widgets.Menu.SelectionChanged -> System.Action?
+Retro.Crt.Tui.Widgets.MenuItem
+Retro.Crt.Tui.Widgets.MenuItem.Action.get -> System.Action?
+Retro.Crt.Tui.Widgets.MenuItem.Action.init -> void
+Retro.Crt.Tui.Widgets.MenuItem.IsEnabled.get -> bool
+Retro.Crt.Tui.Widgets.MenuItem.IsEnabled.init -> void
+Retro.Crt.Tui.Widgets.MenuItem.Label.get -> string!
+Retro.Crt.Tui.Widgets.MenuItem.Label.init -> void
+Retro.Crt.Tui.Widgets.MenuItem.MenuItem(string! Label, System.Action? Action = null, bool IsEnabled = true) -> void
 Retro.Crt.Tui.Widgets.Panel
 Retro.Crt.Tui.Widgets.Panel.Accent.get -> Retro.Crt.Color
 Retro.Crt.Tui.Widgets.Panel.Accent.set -> void
@@ -148,6 +170,9 @@ override Retro.Crt.Tui.Widgets.TextBox.OnMouse(Retro.Crt.Input.MouseEvent mouse,
 override Retro.Crt.Tui.Widgets.LogViewer.OnDraw(Retro.Crt.ScreenBuffer! screen) -> void
 override Retro.Crt.Tui.Widgets.LogViewer.OnKey(Retro.Crt.Input.KeyEvent key, Retro.Crt.Tui.Application! app) -> void
 override Retro.Crt.Tui.Widgets.LogViewer.OnMouse(Retro.Crt.Input.MouseEvent mouse, Retro.Crt.Tui.Application! app) -> void
+override Retro.Crt.Tui.Widgets.Menu.OnDraw(Retro.Crt.ScreenBuffer! screen) -> void
+override Retro.Crt.Tui.Widgets.Menu.OnKey(Retro.Crt.Input.KeyEvent key, Retro.Crt.Tui.Application! app) -> void
+override Retro.Crt.Tui.Widgets.Menu.OnMouse(Retro.Crt.Input.MouseEvent mouse, Retro.Crt.Tui.Application! app) -> void
 override Retro.Crt.Tui.Widgets.Panel.OnDraw(Retro.Crt.ScreenBuffer! screen) -> void
 override Retro.Crt.Tui.Widgets.StackPanel.ArrangeChildren() -> void
 override Retro.Crt.Tui.Layout.LayoutSize.Equals(object? obj) -> bool
