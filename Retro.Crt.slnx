@@ -13,8 +13,10 @@
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/Retro.Crt/Retro.Crt.csproj" />
+    <Project Path="src/Retro.Crt.Tui/Retro.Crt.Tui.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Retro.Crt.Tests/Retro.Crt.Tests.csproj" />
+    <Project Path="tests/Retro.Crt.Tui.Tests/Retro.Crt.Tui.Tests.csproj" />
   </Folder>
 </Solution>

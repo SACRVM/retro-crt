@@ -1,0 +1,59 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Retro.Crt.Tui</RootNamespace>
+    <AssemblyName>Retro.Crt.Tui</AssemblyName>
+
+    <IsPackable>true</IsPackable>
+    <PackageId>Retro.Crt.Tui</PackageId>
+    <Version>0.1.0</Version>
+    <Authors>Chloe Dream</Authors>
+    <Company>Chloe Dream</Company>
+    <Description>Text User Interface widgets on top of Retro.Crt's cell-buffer / diff-renderer core. Layout, focus, mouse + keyboard, scrollable log viewer, dialogs — DOS-style UI in a modern terminal. Tiny, dependency-free, trim- and AOT-clean.</Description>
+    <PackageTags>console;ansi;truecolor;crt;tui;widgets;mouse;cli;terminal</PackageTags>
+    <PackageProjectUrl>https://github.com/chloe-dream/retro-crt</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/chloe-dream/retro-crt</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <Copyright>Copyright (c) 2026 Chloe Dream</Copyright>
+
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+
+    <IsTrimmable>true</IsTrimmable>
+    <IsAotCompatible>true</IsAotCompatible>
+
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591;RS0026</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Retro.Crt.Tui.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Retro.Crt\Retro.Crt.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Same public-API discipline as Retro.Crt: every public surface
+         must be listed in PublicAPI.{Shipped,Unshipped}.txt or the
+         build fails. -->
+    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="3.3.4">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <AdditionalFiles Include="PublicAPI.Shipped.txt" />
+    <AdditionalFiles Include="PublicAPI.Unshipped.txt" />
+  </ItemGroup>
+
+</Project>
