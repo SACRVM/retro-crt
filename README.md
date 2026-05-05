@@ -623,10 +623,61 @@ dotnet test
 dotnet run --project samples/Retro.Crt.Demo
 ```
 
+## Retro.Crt.Tui — text user interface
+
+A separate package on top of the core `ScreenBuffer` + diff renderer +
+input parser, for full-screen DOS-style UIs (Midnight Commander,
+Turbo Vision). Same constraints as the core: tiny, dependency-free,
+trim- and AOT-clean.
+
+```csharp
+using Retro.Crt;
+using Retro.Crt.Tui;
+using Retro.Crt.Tui.Layout;
+using Retro.Crt.Tui.Widgets;
+
+var log   = new LogViewer();
+var input = new TextBox { Placeholder = "type and press Enter…" };
+
+input.Submit += () =>
+{
+    if (!string.IsNullOrWhiteSpace(input.Text))
+    {
+        log.Append($"  [you] {input.Text}", Color.LightGreen);
+        input.Text = string.Empty;
+    }
+};
+
+// Vertical split: log fills the rest, input row is one cell tall.
+var root = new StackPanel
+{
+    Orientation = Orientation.Vertical,
+    Sizes       = { LayoutSize.Star(), LayoutSize.Cells(1) },
+    Children    = { log, input },
+};
+
+new Application(root).Run();
+```
+
+`Application` enters the alternate screen, raw mode, mouse tracking,
+and bracketed paste; redraws via the core's diff renderer; routes
+input to a focus tree (Tab / Shift+Tab cycles, mouse clicks set
+focus). The shipped widgets are: `Panel`, `Button`, `LogViewer`
+(scrollable with scrollbar + drag), `TextBox` (single-line editor),
+`Menu` (vertical list), `Dialog` (centered modal — `app.ShowModal(...)`
+restricts input to its subtree). `Container` + `StackPanel` cover the
+basic layouts; `Layout.Split` / `Layout.Dock` are span-based zero-alloc
+helpers for hand-rolled layouts.
+
+The `samples/Retro.Crt.Tui.Demo` project tours all of the above —
+menu, log viewer, text box, send button, modal dialog, paste — in
+under 250 lines.
+
 ## NuGet package
 
 Published on nuget.org:
-[**Retro.Crt**](https://www.nuget.org/packages/Retro.Crt). Install with:
+[**Retro.Crt**](https://www.nuget.org/packages/Retro.Crt) — the core package — and (soon)
+**Retro.Crt.Tui** for the widget layer. Install with:
 
 ```bash
 dotnet add package Retro.Crt
