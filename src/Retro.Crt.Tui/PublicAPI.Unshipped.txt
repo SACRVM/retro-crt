@@ -1,12 +1,15 @@
 #nullable enable
 Retro.Crt.Tui.Application
 Retro.Crt.Tui.Application.Application(Retro.Crt.Tui.View! root) -> void
+Retro.Crt.Tui.Application.CloseModal() -> void
 Retro.Crt.Tui.Application.Exit() -> void
 Retro.Crt.Tui.Application.Focus.get -> Retro.Crt.Tui.View?
 Retro.Crt.Tui.Application.FocusNext() -> void
 Retro.Crt.Tui.Application.FocusPrevious() -> void
+Retro.Crt.Tui.Application.Modal.get -> Retro.Crt.Tui.View?
 Retro.Crt.Tui.Application.Root.get -> Retro.Crt.Tui.View!
 Retro.Crt.Tui.Application.Run() -> void
+Retro.Crt.Tui.Application.ShowModal(Retro.Crt.Tui.View! modal) -> void
 Retro.Crt.Tui.Container
 Retro.Crt.Tui.Container.Children.get -> System.Collections.Generic.IList<Retro.Crt.Tui.View!>!
 Retro.Crt.Tui.Container.Container() -> void
@@ -70,6 +73,27 @@ Retro.Crt.Tui.Widgets.Button.Foreground.get -> Retro.Crt.Color
 Retro.Crt.Tui.Widgets.Button.Foreground.set -> void
 Retro.Crt.Tui.Widgets.Button.Label.get -> string?
 Retro.Crt.Tui.Widgets.Button.Label.set -> void
+Retro.Crt.Tui.Widgets.Dialog
+Retro.Crt.Tui.Widgets.Dialog.Background.get -> Retro.Crt.Color
+Retro.Crt.Tui.Widgets.Dialog.Background.set -> void
+Retro.Crt.Tui.Widgets.Dialog.Border.get -> Retro.Crt.Color
+Retro.Crt.Tui.Widgets.Dialog.Border.set -> void
+Retro.Crt.Tui.Widgets.Dialog.Buttons.get -> System.Collections.Generic.IList<Retro.Crt.Tui.Widgets.Button!>!
+Retro.Crt.Tui.Widgets.Dialog.Close() -> void
+Retro.Crt.Tui.Widgets.Dialog.Closed -> System.Action?
+Retro.Crt.Tui.Widgets.Dialog.CloseOnEscape.get -> bool
+Retro.Crt.Tui.Widgets.Dialog.CloseOnEscape.set -> void
+Retro.Crt.Tui.Widgets.Dialog.Content.get -> Retro.Crt.Tui.View?
+Retro.Crt.Tui.Widgets.Dialog.Content.set -> void
+Retro.Crt.Tui.Widgets.Dialog.Dialog() -> void
+Retro.Crt.Tui.Widgets.Dialog.Foreground.get -> Retro.Crt.Color
+Retro.Crt.Tui.Widgets.Dialog.Foreground.set -> void
+Retro.Crt.Tui.Widgets.Dialog.PreferredHeight.get -> int
+Retro.Crt.Tui.Widgets.Dialog.PreferredHeight.set -> void
+Retro.Crt.Tui.Widgets.Dialog.PreferredWidth.get -> int
+Retro.Crt.Tui.Widgets.Dialog.PreferredWidth.set -> void
+Retro.Crt.Tui.Widgets.Dialog.Title.get -> string?
+Retro.Crt.Tui.Widgets.Dialog.Title.set -> void
 Retro.Crt.Tui.Widgets.TextBox
 Retro.Crt.Tui.Widgets.TextBox.Background.get -> Retro.Crt.Color
 Retro.Crt.Tui.Widgets.TextBox.Background.set -> void
@@ -164,6 +188,9 @@ override Retro.Crt.Tui.Container.OnDraw(Retro.Crt.ScreenBuffer! screen) -> void
 override Retro.Crt.Tui.Widgets.Button.OnDraw(Retro.Crt.ScreenBuffer! screen) -> void
 override Retro.Crt.Tui.Widgets.Button.OnKey(Retro.Crt.Input.KeyEvent key, Retro.Crt.Tui.Application! app) -> void
 override Retro.Crt.Tui.Widgets.Button.OnMouse(Retro.Crt.Input.MouseEvent mouse, Retro.Crt.Tui.Application! app) -> void
+override Retro.Crt.Tui.Widgets.Dialog.ArrangeChildren() -> void
+override Retro.Crt.Tui.Widgets.Dialog.OnDraw(Retro.Crt.ScreenBuffer! screen) -> void
+override Retro.Crt.Tui.Widgets.Dialog.OnKey(Retro.Crt.Input.KeyEvent key, Retro.Crt.Tui.Application! app) -> void
 override Retro.Crt.Tui.Widgets.TextBox.OnDraw(Retro.Crt.ScreenBuffer! screen) -> void
 override Retro.Crt.Tui.Widgets.TextBox.OnKey(Retro.Crt.Input.KeyEvent key, Retro.Crt.Tui.Application! app) -> void
 override Retro.Crt.Tui.Widgets.TextBox.OnMouse(Retro.Crt.Input.MouseEvent mouse, Retro.Crt.Tui.Application! app) -> void

@@ -30,6 +30,8 @@ public sealed class Application
     private readonly View _root;
     private View? _focus;
     private View? _mouseCapture;
+    private View? _modal;
+    private View? _focusBeforeModal;
     private bool _running;
 
     public Application(View root)
@@ -43,6 +45,44 @@ public sealed class Application
 
     /// <summary>The view currently owning keyboard focus, or <c>null</c>.</summary>
     public View? Focus => _focus;
+
+    /// <summary>
+    /// The active modal view, or <c>null</c> when no modal is open. While
+    /// a modal is set, all input is routed inside its subtree and the
+    /// background root view sees no events.
+    /// </summary>
+    public View? Modal => _modal;
+
+    /// <summary>
+    /// Display <paramref name="modal"/> on top of the root. The modal's
+    /// bounds default to the full screen — typical dialogs override
+    /// them in their <c>OnDraw</c> or via a wrapping container. Saves
+    /// the current focus so <see cref="CloseModal"/> can restore it.
+    /// </summary>
+    public void ShowModal(View modal)
+    {
+        ArgumentNullException.ThrowIfNull(modal);
+        if (ReferenceEquals(_modal, modal)) return;
+
+        _focusBeforeModal = _focus;
+        _modal = modal;
+        _mouseCapture = null;
+        modal.Bounds = _root.Bounds;
+        modal.MarkDirty();
+        _root.MarkDirty();
+        SetFocus(FirstFocusableIn(modal));
+    }
+
+    /// <summary>Close the current modal and restore the previous focus, if any.</summary>
+    public void CloseModal()
+    {
+        if (_modal is null) return;
+        _modal = null;
+        _mouseCapture = null;
+        _root.MarkDirty();
+        SetFocus(_focusBeforeModal);
+        _focusBeforeModal = null;
+    }
 
     /// <summary>Request the loop to terminate after the current event is handled.</summary>
     public void Exit() => _running = false;
@@ -58,8 +98,9 @@ public sealed class Application
 
     private void MoveFocus(bool forward)
     {
+        var scope = (View?)_modal ?? _root;
         var list = new List<View>();
-        foreach (var f in _root.EnumerateFocusable()) list.Add(f);
+        foreach (var f in scope.EnumerateFocusable()) list.Add(f);
         if (list.Count == 0) { SetFocus(null); return; }
 
         int idx;
@@ -134,11 +175,18 @@ public sealed class Application
                 MarkDirtyAll(_root);
             }
 
-            if (AnyDirty(_root))
+            if (AnyDirty(_root) || (_modal is { } m1 && AnyDirty(m1)))
             {
                 current.Clear();
                 _root.OnDraw(current);
                 ClearDirtyAll(_root);
+
+                if (_modal is { } m2)
+                {
+                    m2.Bounds = _root.Bounds;
+                    m2.OnDraw(current);
+                    ClearDirtyAll(m2);
+                }
 
                 ScreenRenderer.Render(previous, current, Crt.Sink);
                 Crt.Sink.Flush();
@@ -177,6 +225,17 @@ public sealed class Application
             return;
         }
 
+        // While a modal is open the root never sees keys — the modal
+        // is the new bubble-up target, so a Dialog can implement
+        // Esc-to-close without the underlying app stealing it.
+        if (_modal is { } modal)
+        {
+            if (_focus is { } mf && !ReferenceEquals(mf, modal))
+                mf.OnKey(key, this);
+            modal.OnKey(key, this);
+            return;
+        }
+
         // Focused view gets first crack at the key; the root view
         // always sees it second, acting as a bubble-up handler for
         // app-level shortcuts like quit. Skipped when focus IS the
@@ -194,14 +253,21 @@ public sealed class Application
         var x = mouse.X - 1;
         var y = mouse.Y - 1;
 
+        // Modal scope, if any, replaces the root for hit-testing.
+        // Clicks outside the modal subtree are swallowed (the modal
+        // contract); inside, dispatch follows the same rules as
+        // non-modal mode but rooted at the modal.
+        var scope = (View?)_modal ?? _root;
+
         // Wheel events go to the view directly under the cursor —
         // matches browser / desktop convention ("scroll the thing
         // I'm hovering") and avoids the surprise where wheel did
         // nothing because the focus was elsewhere.
         if (mouse.Kind == MouseEventKind.Wheel)
         {
-            var hovered = _root.HitTest(x, y) ?? _root;
-            hovered.OnMouse(mouse, this);
+            var hovered = scope.HitTest(x, y);
+            if (hovered is null && _modal is null) hovered = scope;
+            hovered?.OnMouse(mouse, this);
             return;
         }
 
@@ -209,12 +275,16 @@ public sealed class Application
         // Release), Drag and Release are routed back to the press
         // target so a scrollbar drag still scrolls when the cursor
         // strays off the track.
-        View target;
+        View? target;
         if (_mouseCapture is { } cap &&
             (mouse.Kind == MouseEventKind.Drag || mouse.Kind == MouseEventKind.Release))
             target = cap;
         else
-            target = _root.HitTest(x, y) ?? _root;
+        {
+            target = scope.HitTest(x, y);
+            if (target is null && _modal is null) target = scope;
+        }
+        if (target is null) return;
 
         if (mouse.Kind == MouseEventKind.Press)
         {
@@ -232,6 +302,12 @@ public sealed class Application
     private View? FirstFocusable()
     {
         foreach (var f in _root.EnumerateFocusable()) return f;
+        return null;
+    }
+
+    private static View? FirstFocusableIn(View v)
+    {
+        foreach (var f in v.EnumerateFocusable()) return f;
         return null;
     }
 
