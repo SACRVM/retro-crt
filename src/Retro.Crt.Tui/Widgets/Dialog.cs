@@ -75,18 +75,48 @@ public class Dialog : Container
     public void Close()
     {
         Closed?.Invoke();
-        _ownerApp?.CloseModal();
+        OwnerApplication?.CloseModal();
+    }
+
+    /// <summary>
+    /// Show a one-button informational dialog. Returns the dialog so
+    /// callers can hook <see cref="Closed"/> if they want to react
+    /// after dismissal — the dialog is already shown via
+    /// <see cref="Application.ShowModal"/> by the time this returns.
+    /// </summary>
+    public static Dialog MessageBox(
+        Application app,
+        string title,
+        string message,
+        string okLabel = "OK")
+    {
+        ArgumentNullException.ThrowIfNull(app);
+
+        var ok = new Button(okLabel);
+        var label = new Label(message)
+        {
+            Align = TextAlign.Center,
+        };
+        var dlg = new Dialog
+        {
+            Title           = title,
+            Content         = label,
+            Buttons         = { ok },
+        };
+        ok.Foreground = dlg.Foreground;
+        ok.Background = Color.DarkGray;
+        label.Foreground = dlg.Foreground;
+        label.Background = dlg.Background;
+
+        ok.Click += dlg.Close;
+        app.ShowModal(dlg);
+        return dlg;
     }
 
     public override void OnKey(KeyEvent key, Application app)
     {
-        // Track the owning app so Close() can pop the modal without
-        // requiring callers to hold an Application reference.
-        _ownerApp = app;
         if (CloseOnEscape && key.Key == Key.Escape) { Close(); return; }
     }
-
-    private Application? _ownerApp;
 
     protected override void ArrangeChildren()
     {

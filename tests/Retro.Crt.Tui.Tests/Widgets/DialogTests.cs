@@ -122,6 +122,35 @@ public class DialogTests
         Assert.Equal('┘', screen[14, 6].Glyph);
     }
 
+    [Fact]
+    public void MessageBox_shows_modal_with_label_and_ok_button()
+    {
+        var root = new RecordingContainer { Bounds = new Rect(0, 0, 80, 24) };
+        var app  = new Application(root);
+
+        var dlg = Dialog.MessageBox(app, "Title", "hello world");
+
+        Assert.Same(dlg, app.Modal);
+        Assert.Equal("Title", dlg.Title);
+        Assert.IsType<Label>(dlg.Content);
+        Assert.Single(dlg.Buttons);
+        Assert.Equal("OK", dlg.Buttons[0].Label);
+    }
+
+    [Fact]
+    public void MessageBox_ok_click_closes()
+    {
+        var root = new RecordingContainer { Bounds = new Rect(0, 0, 80, 24) };
+        var app  = new Application(root);
+
+        var dlg = Dialog.MessageBox(app, "X", "y");
+        // The MessageBox helper wires the OK button's Click → dlg.Close;
+        // invoking the button's key handler exercises the same path.
+        dlg.Buttons[0].OnKey(new KeyEvent(Key.Enter), app);
+
+        Assert.Null(app.Modal);
+    }
+
     private static (Application, Dialog) MakeAppWithDialog()
     {
         var root = new RecordingContainer { Bounds = new Rect(0, 0, 80, 24) };

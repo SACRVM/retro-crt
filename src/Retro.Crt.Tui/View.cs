@@ -59,6 +59,20 @@ public abstract class View
     }
 
     /// <summary>
+    /// The <see cref="Application"/> currently hosting this view as a
+    /// modal, or <c>null</c> when not modal. Set by
+    /// <see cref="Application.ShowModal"/> so widgets like
+    /// <c>Dialog</c> can call back into the app without requiring the
+    /// caller to plumb the reference through their event handlers.
+    /// </summary>
+    protected Application? OwnerApplication { get; private set; }
+
+    internal void AttachToApplication(Application? app)
+    {
+        OwnerApplication = app;
+    }
+
+    /// <summary>
     /// Yield this view (and its descendants, for containers) in
     /// Tab-traversal order. Default: yield <c>this</c> if focusable.
     /// </summary>

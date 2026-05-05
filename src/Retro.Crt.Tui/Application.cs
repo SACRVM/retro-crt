@@ -68,6 +68,7 @@ public sealed class Application
         _modal = modal;
         _mouseCapture = null;
         modal.Bounds = _root.Bounds;
+        modal.AttachToApplication(this);
         modal.MarkDirty();
         _root.MarkDirty();
         SetFocus(FirstFocusableIn(modal));
@@ -77,8 +78,10 @@ public sealed class Application
     public void CloseModal()
     {
         if (_modal is null) return;
+        var modal = _modal;
         _modal = null;
         _mouseCapture = null;
+        modal.AttachToApplication(null);
         _root.MarkDirty();
         SetFocus(_focusBeforeModal);
         _focusBeforeModal = null;
