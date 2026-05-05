@@ -8,15 +8,17 @@ namespace Retro.Crt.Tui;
 /// <c>ScreenRenderer</c> + <see cref="TerminalInput"/>: enters the alt
 /// screen, raw mode, and mouse tracking; reads events and dispatches
 /// them to a single root <see cref="View"/>; redraws via diff whenever
-/// the root marks itself dirty. Exits when <see cref="Exit"/> is
-/// called.
+/// any view in the tree marks itself dirty. Exits when
+/// <see cref="Exit"/> is called.
 /// </summary>
 /// <remarks>
 /// <para>
-/// v1 does not handle terminal resize — the screen size is sampled
-/// once at <see cref="Run"/> and the root's <see cref="View.Bounds"/>
-/// stays fixed for the lifetime of the loop. SIGWINCH support is
-/// deferred (see Stage-2 decisions).
+/// Resize: the loop re-samples the terminal size at the top of every
+/// iteration and reallocates buffers when the size changes. Because
+/// <see cref="TerminalInput.ReadEvent"/> blocks, a resize that happens
+/// while no input is arriving only takes effect on the next event;
+/// nudging the terminal usually delivers one. SIGWINCH integration is
+/// still on the roadmap.
 /// </para>
 /// <para>
 /// One application per process at a time; nesting is not supported
@@ -27,6 +29,7 @@ public sealed class Application
 {
     private readonly View _root;
     private View? _focus;
+    private View? _mouseCapture;
     private bool _running;
 
     public Application(View root)
@@ -96,7 +99,7 @@ public sealed class Application
                 "Cannot run an Application without a measurable terminal size; is stdout redirected?");
 
         _root.Bounds = new Rect(0, 0, width, height);
-        _root.MarkDirty();
+        MarkDirtyAll(_root);
 
         // Pick the first focusable view as the initial focus so Tab
         // has something to cycle from on the very first key press.
@@ -114,18 +117,32 @@ public sealed class Application
         _running = true;
         while (_running)
         {
-            if (_root.IsDirty)
+            // Resize check — sample current terminal size; if it
+            // changed, reallocate the cell buffers and force a full
+            // repaint by nulling `previous`.
+            var nowW = Crt.WindowWidth;
+            var nowH = Crt.WindowHeight;
+            if (nowW > 0 && nowH > 0 && (nowW != width || nowH != height))
+            {
+                width  = nowW;
+                height = nowH;
+                bufA = new ScreenBuffer(width, height);
+                bufB = new ScreenBuffer(width, height);
+                current = bufA;
+                previous = null;
+                _root.Bounds = new Rect(0, 0, width, height);
+                MarkDirtyAll(_root);
+            }
+
+            if (AnyDirty(_root))
             {
                 current.Clear();
                 _root.OnDraw(current);
-                _root.ClearDirty();
+                ClearDirtyAll(_root);
 
                 ScreenRenderer.Render(previous, current, Crt.Sink);
                 Crt.Sink.Flush();
 
-                // Ping-pong the two buffers so the diff renderer always
-                // sees the actually-displayed state as `previous`. The
-                // new `current` will be cleared and redrawn next frame.
                 previous = current;
                 current = ReferenceEquals(current, bufA) ? bufB : bufA;
             }
@@ -166,24 +183,83 @@ public sealed class Application
 
     private void DispatchMouse(MouseEvent mouse)
     {
+        // Wheel events go to the focused view regardless of cursor
+        // position — matches user expectations for "scroll the
+        // focused thing" in TUIs. Falls back to root if nothing is
+        // focused.
+        if (mouse.Kind == MouseEventKind.Wheel)
+        {
+            (_focus ?? _root).OnMouse(mouse, this);
+            return;
+        }
+
         // Mouse coordinates from InputParser are 1-based; our Rect
         // model is 0-based.
         var x = mouse.X - 1;
         var y = mouse.Y - 1;
-        var hit = _root.HitTest(x, y) ?? _root;
 
-        // A click also moves focus, so widgets feel "live" without
-        // every Panel having to handle press itself. Motion / wheel
-        // events leave focus alone.
-        if (mouse.Kind == MouseEventKind.Press && hit.IsFocusable)
-            SetFocus(hit);
+        // While the mouse is captured (between a Press and its
+        // Release), Drag and Release are routed back to the press
+        // target so a scrollbar drag still scrolls when the cursor
+        // strays off the track.
+        View target;
+        if (_mouseCapture is { } cap &&
+            (mouse.Kind == MouseEventKind.Drag || mouse.Kind == MouseEventKind.Release))
+        {
+            target = cap;
+        }
+        else
+        {
+            target = _root.HitTest(x, y) ?? _root;
+        }
 
-        hit.OnMouse(mouse, this);
+        if (mouse.Kind == MouseEventKind.Press)
+        {
+            if (target.IsFocusable) SetFocus(target);
+            _mouseCapture = target;
+        }
+        else if (mouse.Kind == MouseEventKind.Release)
+        {
+            _mouseCapture = null;
+        }
+
+        target.OnMouse(mouse, this);
     }
 
     private View? FirstFocusable()
     {
         foreach (var f in _root.EnumerateFocusable()) return f;
         return null;
+    }
+
+    private static bool AnyDirty(View v)
+    {
+        if (v.IsDirty) return true;
+        if (v is Container c)
+        {
+            for (var i = 0; i < c.Children.Count; i++)
+                if (AnyDirty(c.Children[i])) return true;
+        }
+        return false;
+    }
+
+    private static void ClearDirtyAll(View v)
+    {
+        v.ClearDirty();
+        if (v is Container c)
+        {
+            for (var i = 0; i < c.Children.Count; i++)
+                ClearDirtyAll(c.Children[i]);
+        }
+    }
+
+    private static void MarkDirtyAll(View v)
+    {
+        v.MarkDirty();
+        if (v is Container c)
+        {
+            for (var i = 0; i < c.Children.Count; i++)
+                MarkDirtyAll(c.Children[i]);
+        }
     }
 }

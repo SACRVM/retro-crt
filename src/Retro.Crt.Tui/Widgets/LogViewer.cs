@@ -152,11 +152,44 @@ public class LogViewer : View
 
     public override void OnMouse(MouseEvent mouse, Application app)
     {
-        if (mouse.Kind != MouseEventKind.Wheel) return;
-        switch (mouse.Button)
+        if (mouse.Kind == MouseEventKind.Wheel)
         {
-            case MouseButton.WheelUp:   ScrollBy(-3); break;
-            case MouseButton.WheelDown: ScrollBy( 3); break;
+            switch (mouse.Button)
+            {
+                case MouseButton.WheelUp:   ScrollBy(-3); break;
+                case MouseButton.WheelDown: ScrollBy( 3); break;
+            }
+            return;
         }
+
+        // Scrollbar interaction — Press anywhere on the track jumps
+        // there; Drag continues. Both rely on Application's mouse
+        // capture so the cursor straying off the track keeps
+        // scrolling.
+        if (mouse.Kind != MouseEventKind.Press &&
+            mouse.Kind != MouseEventKind.Drag) return;
+        if (mouse.Button != MouseButton.Left) return;
+
+        var b = Bounds;
+        if (Items.Count <= b.Height || b.Height <= 0) return;
+
+        var sx = b.X + b.Width - 1;       // 0-based scrollbar column
+        var mouseX = mouse.X - 1;         // 0-based cursor column
+        var mouseY = mouse.Y - 1;         // 0-based cursor row
+
+        // Press is only acted on when it lands on the track. Drag
+        // (which runs under capture) updates regardless of horizontal
+        // position so the user can drift left without losing grip.
+        var inTrackColumn = mouseX == sx;
+        if (mouse.Kind == MouseEventKind.Press && !inTrackColumn) return;
+
+        var localY = mouseY - b.Y;
+        if (localY < 0)            localY = 0;
+        if (localY >= b.Height)    localY = b.Height - 1;
+
+        var maxOffset = MaxOffset;
+        ScrollOffset = b.Height > 1
+            ? (int)((long)maxOffset * localY / (b.Height - 1))
+            : maxOffset;
     }
 }

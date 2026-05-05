@@ -12,10 +12,10 @@ using Retro.Crt.Tui.Widgets;
 
 var sidebar = new Panel
 {
-    Title       = "Sidebar",
-    Background  = Color.DarkBlue,
-    Accent      = Color.LightCyan,
-    IsFocusable = true,
+    Title      = "Sidebar",
+    Background = Color.DarkBlue,
+    Accent     = Color.LightCyan,
+    // Decorative — leave focus to the LogViewer + buttons.
 };
 
 var log = new LogViewer

@@ -171,6 +171,45 @@ public class LogViewerTests
     }
 
     [Fact]
+    public void Press_on_scrollbar_jumps_to_proportional_offset()
+    {
+        var v = new LogViewer
+        {
+            Bounds     = new Rect(0, 0, 10, 4),
+            AutoScroll = false,
+        };
+        for (var i = 0; i < 20; i++) v.Append($"L{i}");
+        var app = new Application(v);
+
+        // Click on bottom of scrollbar track at column 9, row 3.
+        // localY = 3, height-1 = 3 → 100% of MaxOffset.
+        v.OnMouse(
+            new MouseEvent(MouseButton.Left, MouseEventKind.Press, 10, 4),
+            app);
+
+        Assert.Equal(16, v.ScrollOffset); // MaxOffset = 20 - 4 = 16
+    }
+
+    [Fact]
+    public void Drag_continues_scrolling_off_track_horizontally()
+    {
+        var v = new LogViewer
+        {
+            Bounds     = new Rect(0, 0, 10, 4),
+            AutoScroll = false,
+        };
+        for (var i = 0; i < 20; i++) v.Append($"L{i}");
+        var app = new Application(v);
+
+        // Press on track first to satisfy "in track column" check.
+        v.OnMouse(new MouseEvent(MouseButton.Left, MouseEventKind.Press, 10, 1), app);
+        // Drag wanders left of the track but still updates.
+        v.OnMouse(new MouseEvent(MouseButton.Left, MouseEventKind.Drag, 1, 4), app);
+
+        Assert.Equal(16, v.ScrollOffset); // bottom row → max offset
+    }
+
+    [Fact]
     public void Per_entry_foreground_overrides_default()
     {
         var v = new LogViewer
