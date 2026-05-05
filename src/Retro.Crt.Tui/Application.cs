@@ -92,16 +92,6 @@ public sealed class Application
     /// </summary>
     public void Run()
     {
-        // Enter the alt screen / raw mode / mouse tracking FIRST, then
-        // sample the size. On Windows in particular, Console.WindowWidth
-        // can report a stale (last-time) value before the terminal has
-        // fully attached to our process; reading after the setup
-        // escape sequences hit the wire gives the actual current
-        // dimensions on the very first frame.
-        using var alt   = Crt.UseAlternateScreen();
-        using var raw   = RawMode.Enter();
-        using var mouse = Crt.UseMouse();
-
         var width  = Crt.WindowWidth;
         var height = Crt.WindowHeight;
         if (width < 1 || height < 1)
@@ -114,6 +104,10 @@ public sealed class Application
         // Pick the first focusable view as the initial focus so Tab
         // has something to cycle from on the very first key press.
         SetFocus(FirstFocusable());
+
+        using var alt   = Crt.UseAlternateScreen();
+        using var raw   = RawMode.Enter();
+        using var mouse = Crt.UseMouse();
 
         var bufA = new ScreenBuffer(width, height);
         var bufB = new ScreenBuffer(width, height);
