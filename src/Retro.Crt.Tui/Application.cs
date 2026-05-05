@@ -92,32 +92,36 @@ public sealed class Application
     /// </summary>
     public void Run()
     {
-        // Enter the alt screen / raw mode / mouse tracking FIRST, then
-        // sample the size. On Windows in particular, Console.WindowWidth
-        // can report a stale (last-time) value before the terminal has
-        // fully attached to our process; reading after the setup
-        // escape sequences hit the wire gives the actual current
-        // dimensions on the very first frame.
         using var alt   = Crt.UseAlternateScreen();
         using var raw   = RawMode.Enter();
         using var mouse = Crt.UseMouse();
 
-        var width  = Crt.WindowWidth;
-        var height = Crt.WindowHeight;
-        if (width < 1 || height < 1)
+        // Sanity check: we need at least *something* measurable. The
+        // actual size used for layout is sampled by the first iteration's
+        // resize check, which always runs before the first paint —
+        // that's what makes an initial size mismatch self-correct
+        // without paying for an inaccurate first frame.
+        if (Crt.WindowWidth < 1 || Crt.WindowHeight < 1)
             throw new InvalidOperationException(
                 "Cannot run an Application without a measurable terminal size; is stdout redirected?");
 
-        _root.Bounds = new Rect(0, 0, width, height);
+        // Sentinel size — the resize check at the top of the first
+        // iteration will reallocate to whatever the terminal actually
+        // reports, so neither a stale-before-attach value nor a
+        // settled-after-alt-screen value gets baked in.
+        var width  = -1;
+        var height = -1;
+
+        _root.Bounds = Rect.Empty;
         MarkDirtyAll(_root);
 
         // Pick the first focusable view as the initial focus so Tab
         // has something to cycle from on the very first key press.
         SetFocus(FirstFocusable());
 
-        var bufA = new ScreenBuffer(width, height);
-        var bufB = new ScreenBuffer(width, height);
-        var current = bufA;
+        ScreenBuffer? bufA = null;
+        ScreenBuffer? bufB = null;
+        ScreenBuffer? current = null;
         ScreenBuffer? previous = null;
 
         _running = true;
@@ -125,7 +129,10 @@ public sealed class Application
         {
             // Resize check — sample current terminal size; if it
             // changed, reallocate the cell buffers and force a full
-            // repaint by nulling `previous`.
+            // repaint by nulling `previous`. Sentinel width/height
+            // of -1 makes the very first iteration go through the
+            // same path, so the initial paint always uses whatever
+            // size the terminal currently reports.
             var nowW = Crt.WindowWidth;
             var nowH = Crt.WindowHeight;
             if (nowW > 0 && nowH > 0 && (nowW != width || nowH != height))
@@ -138,6 +145,15 @@ public sealed class Application
                 previous = null;
                 _root.Bounds = new Rect(0, 0, width, height);
                 MarkDirtyAll(_root);
+            }
+
+            if (current is null)
+            {
+                // Pre-iteration: terminal reported size <= 0 (redirected
+                // or detached). Nothing to draw; loop again until we
+                // get a real size or Exit is called.
+                if (!TerminalInput.WaitForEvent(16, out _)) continue;
+                continue;
             }
 
             if (AnyDirty(_root))
