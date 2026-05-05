@@ -10,6 +10,24 @@ versions; breaking changes are called out below.
 
 ### Added
 
+- `Retro.Crt.Input` namespace — pure parsers + types for terminal input.
+  `KeyEvent` (with `Key`, `Glyph`, `KeyModifiers`), `MouseEvent` (with
+  `MouseButton`, `MouseEventKind`), and the `InputEvent` tagged-union
+  on top. `InputParser.TryParseKey` / `TryParseMouse` / `TryParseEvent`
+  decode ANSI escape sequences (cursor keys, F1..F12 in SS3 *and* CSI
+  forms, modifier-augmented variants), control bytes, Alt-prefixed
+  printables, Ctrl+letter, and SGR-encoded mouse reports (xterm mode
+  1006). Stateless and zero-alloc; `InputParseStatus` separates
+  complete from incomplete-buffer from invalid-sequence cases so input
+  loops can buffer correctly. Reading stdin in raw mode and dispatching
+  parsed events is a follow-up (Stage 2b — needs the OS-specific
+  termios / SetConsoleMode work).
+- `Crt.UseMouse()` — `IDisposable` scope that turns on SGR mouse
+  reporting (xterm modes 1006 + 1003) on entry and disables them on
+  exit. Reference-counted so nesting works; lazy `CancelKeyPress` /
+  `ProcessExit` handlers shut tracking off if a Ctrl-C kills the
+  process before the scope disposes. Emit-side only — to actually
+  receive the events you need a stdin reader in raw mode.
 - `ScreenBuffer` + `ScreenRenderer` — a stateful cell grid plus a
   minimal-ANSI diff renderer. Every cell carries a `Glyph`, foreground,
   background, and `CellAttrs` (`None` / `Bold` / `Underline`); the

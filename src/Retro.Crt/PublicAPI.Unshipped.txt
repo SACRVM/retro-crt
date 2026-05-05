@@ -14,6 +14,92 @@ Retro.Crt.CellAttrs
 Retro.Crt.CellAttrs.Bold = 1 -> Retro.Crt.CellAttrs
 Retro.Crt.CellAttrs.None = 0 -> Retro.Crt.CellAttrs
 Retro.Crt.CellAttrs.Underline = 2 -> Retro.Crt.CellAttrs
+Retro.Crt.Input.InputEvent
+Retro.Crt.Input.InputEvent.InputEvent() -> void
+Retro.Crt.Input.InputEvent.InputEvent(Retro.Crt.Input.KeyEvent key) -> void
+Retro.Crt.Input.InputEvent.InputEvent(Retro.Crt.Input.MouseEvent mouse) -> void
+Retro.Crt.Input.InputEvent.Key.get -> Retro.Crt.Input.KeyEvent
+Retro.Crt.Input.InputEvent.Kind.get -> Retro.Crt.Input.InputEventKind
+Retro.Crt.Input.InputEvent.Mouse.get -> Retro.Crt.Input.MouseEvent
+Retro.Crt.Input.InputEventKind
+Retro.Crt.Input.InputEventKind.Key = 1 -> Retro.Crt.Input.InputEventKind
+Retro.Crt.Input.InputEventKind.Mouse = 2 -> Retro.Crt.Input.InputEventKind
+Retro.Crt.Input.InputEventKind.None = 0 -> Retro.Crt.Input.InputEventKind
+Retro.Crt.Input.InputParser
+Retro.Crt.Input.InputParseStatus
+Retro.Crt.Input.InputParseStatus.Incomplete = 1 -> Retro.Crt.Input.InputParseStatus
+Retro.Crt.Input.InputParseStatus.Invalid = 2 -> Retro.Crt.Input.InputParseStatus
+Retro.Crt.Input.InputParseStatus.Ok = 0 -> Retro.Crt.Input.InputParseStatus
+Retro.Crt.Input.Key
+Retro.Crt.Input.Key.Backspace = 5 -> Retro.Crt.Input.Key
+Retro.Crt.Input.Key.Delete = 6 -> Retro.Crt.Input.Key
+Retro.Crt.Input.Key.Down = 9 -> Retro.Crt.Input.Key
+Retro.Crt.Input.Key.End = 13 -> Retro.Crt.Input.Key
+Retro.Crt.Input.Key.Enter = 3 -> Retro.Crt.Input.Key
+Retro.Crt.Input.Key.Escape = 2 -> Retro.Crt.Input.Key
+Retro.Crt.Input.Key.F1 = 16 -> Retro.Crt.Input.Key
+Retro.Crt.Input.Key.F10 = 25 -> Retro.Crt.Input.Key
+Retro.Crt.Input.Key.F11 = 26 -> Retro.Crt.Input.Key
+Retro.Crt.Input.Key.F12 = 27 -> Retro.Crt.Input.Key
+Retro.Crt.Input.Key.F2 = 17 -> Retro.Crt.Input.Key
+Retro.Crt.Input.Key.F3 = 18 -> Retro.Crt.Input.Key
+Retro.Crt.Input.Key.F4 = 19 -> Retro.Crt.Input.Key
+Retro.Crt.Input.Key.F5 = 20 -> Retro.Crt.Input.Key
+Retro.Crt.Input.Key.F6 = 21 -> Retro.Crt.Input.Key
+Retro.Crt.Input.Key.F7 = 22 -> Retro.Crt.Input.Key
+Retro.Crt.Input.Key.F8 = 23 -> Retro.Crt.Input.Key
+Retro.Crt.Input.Key.F9 = 24 -> Retro.Crt.Input.Key
+Retro.Crt.Input.Key.Glyph = 1 -> Retro.Crt.Input.Key
+Retro.Crt.Input.Key.Home = 12 -> Retro.Crt.Input.Key
+Retro.Crt.Input.Key.Insert = 7 -> Retro.Crt.Input.Key
+Retro.Crt.Input.Key.Left = 10 -> Retro.Crt.Input.Key
+Retro.Crt.Input.Key.None = 0 -> Retro.Crt.Input.Key
+Retro.Crt.Input.Key.PageDown = 15 -> Retro.Crt.Input.Key
+Retro.Crt.Input.Key.PageUp = 14 -> Retro.Crt.Input.Key
+Retro.Crt.Input.Key.Right = 11 -> Retro.Crt.Input.Key
+Retro.Crt.Input.Key.Tab = 4 -> Retro.Crt.Input.Key
+Retro.Crt.Input.Key.Up = 8 -> Retro.Crt.Input.Key
+Retro.Crt.Input.KeyEvent
+Retro.Crt.Input.KeyEvent.Glyph.get -> char
+Retro.Crt.Input.KeyEvent.Glyph.init -> void
+Retro.Crt.Input.KeyEvent.Key.get -> Retro.Crt.Input.Key
+Retro.Crt.Input.KeyEvent.Key.init -> void
+Retro.Crt.Input.KeyEvent.KeyEvent() -> void
+Retro.Crt.Input.KeyEvent.KeyEvent(Retro.Crt.Input.Key Key, char Glyph = '\0', Retro.Crt.Input.KeyModifiers Modifiers = Retro.Crt.Input.KeyModifiers.None) -> void
+Retro.Crt.Input.KeyEvent.Modifiers.get -> Retro.Crt.Input.KeyModifiers
+Retro.Crt.Input.KeyEvent.Modifiers.init -> void
+Retro.Crt.Input.KeyModifiers
+Retro.Crt.Input.KeyModifiers.Alt = 2 -> Retro.Crt.Input.KeyModifiers
+Retro.Crt.Input.KeyModifiers.Ctrl = 4 -> Retro.Crt.Input.KeyModifiers
+Retro.Crt.Input.KeyModifiers.Meta = 8 -> Retro.Crt.Input.KeyModifiers
+Retro.Crt.Input.KeyModifiers.None = 0 -> Retro.Crt.Input.KeyModifiers
+Retro.Crt.Input.KeyModifiers.Shift = 1 -> Retro.Crt.Input.KeyModifiers
+Retro.Crt.Input.MouseButton
+Retro.Crt.Input.MouseButton.Left = 1 -> Retro.Crt.Input.MouseButton
+Retro.Crt.Input.MouseButton.Middle = 2 -> Retro.Crt.Input.MouseButton
+Retro.Crt.Input.MouseButton.None = 0 -> Retro.Crt.Input.MouseButton
+Retro.Crt.Input.MouseButton.Right = 3 -> Retro.Crt.Input.MouseButton
+Retro.Crt.Input.MouseButton.WheelDown = 5 -> Retro.Crt.Input.MouseButton
+Retro.Crt.Input.MouseButton.WheelUp = 4 -> Retro.Crt.Input.MouseButton
+Retro.Crt.Input.MouseEvent
+Retro.Crt.Input.MouseEvent.Button.get -> Retro.Crt.Input.MouseButton
+Retro.Crt.Input.MouseEvent.Button.init -> void
+Retro.Crt.Input.MouseEvent.Kind.get -> Retro.Crt.Input.MouseEventKind
+Retro.Crt.Input.MouseEvent.Kind.init -> void
+Retro.Crt.Input.MouseEvent.Modifiers.get -> Retro.Crt.Input.KeyModifiers
+Retro.Crt.Input.MouseEvent.Modifiers.init -> void
+Retro.Crt.Input.MouseEvent.MouseEvent() -> void
+Retro.Crt.Input.MouseEvent.MouseEvent(Retro.Crt.Input.MouseButton Button, Retro.Crt.Input.MouseEventKind Kind, int X, int Y, Retro.Crt.Input.KeyModifiers Modifiers = Retro.Crt.Input.KeyModifiers.None) -> void
+Retro.Crt.Input.MouseEvent.X.get -> int
+Retro.Crt.Input.MouseEvent.X.init -> void
+Retro.Crt.Input.MouseEvent.Y.get -> int
+Retro.Crt.Input.MouseEvent.Y.init -> void
+Retro.Crt.Input.MouseEventKind
+Retro.Crt.Input.MouseEventKind.Drag = 3 -> Retro.Crt.Input.MouseEventKind
+Retro.Crt.Input.MouseEventKind.Move = 2 -> Retro.Crt.Input.MouseEventKind
+Retro.Crt.Input.MouseEventKind.Press = 0 -> Retro.Crt.Input.MouseEventKind
+Retro.Crt.Input.MouseEventKind.Release = 1 -> Retro.Crt.Input.MouseEventKind
+Retro.Crt.Input.MouseEventKind.Wheel = 4 -> Retro.Crt.Input.MouseEventKind
 Retro.Crt.ScreenBuffer
 Retro.Crt.ScreenBuffer.Clear() -> void
 Retro.Crt.ScreenBuffer.Clear(Retro.Crt.Cell fill) -> void
@@ -26,4 +112,8 @@ Retro.Crt.ScreenBuffer.this[int x, int y].set -> void
 Retro.Crt.ScreenBuffer.Width.get -> int
 Retro.Crt.ScreenRenderer
 static readonly Retro.Crt.Cell.Empty -> Retro.Crt.Cell
+static Retro.Crt.Crt.UseMouse() -> System.IDisposable!
+static Retro.Crt.Input.InputParser.TryParseEvent(System.ReadOnlySpan<char> input, out Retro.Crt.Input.InputEvent ev, out int consumed) -> Retro.Crt.Input.InputParseStatus
+static Retro.Crt.Input.InputParser.TryParseKey(System.ReadOnlySpan<char> input, out Retro.Crt.Input.KeyEvent key, out int consumed) -> Retro.Crt.Input.InputParseStatus
+static Retro.Crt.Input.InputParser.TryParseMouse(System.ReadOnlySpan<char> input, out Retro.Crt.Input.MouseEvent mouse, out int consumed) -> Retro.Crt.Input.InputParseStatus
 static Retro.Crt.ScreenRenderer.Render(Retro.Crt.ScreenBuffer? previous, Retro.Crt.ScreenBuffer! current, System.IO.TextWriter! sink) -> void

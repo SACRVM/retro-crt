@@ -26,6 +26,16 @@ internal static class AnsiCodes
     public const string AlternateScreenEnter = Csi + "?1049h";
     public const string AlternateScreenLeave = Csi + "?1049l";
 
+    // SGR-encoded mouse reports (xterm mode 1006 — extended coords as
+    // decimal numbers, immune to the 223-column limit of the older
+    // mode 1000). Combined with mode 1003 ("any-event tracking") so we
+    // also receive bare motion, drag, and wheel events. Two enable +
+    // two disable escapes — emitted in the order shown so the
+    // any-event mode is installed AFTER the encoding upgrade, and
+    // torn down in reverse.
+    public const string MouseTrackingEnter = Csi + "?1006h" + Csi + "?1003h";
+    public const string MouseTrackingLeave = Csi + "?1003l" + Csi + "?1006l";
+
     // BEL — predates ANSI, every terminal honours it. No newline trigger,
     // so the writer must be flushed for the beep to actually ring.
     public const string Bell = "\a";

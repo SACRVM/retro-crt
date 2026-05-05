@@ -267,6 +267,84 @@ public static class Crt
     private static bool _alternateScreenExitHandlerRegistered;
     private static readonly Lock AlternateScreenGate = new();
 
+    private static int _mouseTrackingDepth;
+    private static bool _mouseTrackingExitHandlerRegistered;
+    private static readonly Lock MouseTrackingGate = new();
+
+    /// <summary>
+    /// Ask the terminal to send mouse events as SGR-encoded reports
+    /// (xterm mode 1006) for the duration of the returned scope, with
+    /// any-event tracking (mode 1003) so motion, drag, and wheel are
+    /// included alongside press / release. Disposing emits the matching
+    /// disable escapes so the user's shell doesn't keep receiving
+    /// reports after your app exits.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Emit-side only — this configures what the terminal SENDS, but
+    /// you still need a stdin reader in raw mode to actually receive
+    /// the bytes. Pair with <see cref="Input.InputParser.TryParseMouse"/>
+    /// (or the upcoming <c>RawMode</c> + input loop) to consume them.
+    /// </para>
+    /// <para>
+    /// No-op when output is redirected or the host isn't a real
+    /// terminal. Nests by reference count: only the outermost
+    /// enter / leave actually flips the mode. <c>CancelKeyPress</c>
+    /// and <c>ProcessExit</c> handlers are registered lazily so a
+    /// Ctrl-C doesn't leave the user's shell drowning in mouse
+    /// reports.
+    /// </para>
+    /// </remarks>
+    public static IDisposable UseMouse()
+    {
+        if (!IsInteractive) return NullScope.Instance;
+
+        lock (MouseTrackingGate)
+        {
+            if (++_mouseTrackingDepth == 1)
+            {
+                EnsureMouseTrackingExitHandler();
+                Sink.Write(AnsiCodes.MouseTrackingEnter);
+                Sink.Flush();
+            }
+        }
+
+        return new MouseTrackingScope();
+    }
+
+    private static void EnsureMouseTrackingExitHandler()
+    {
+        if (_mouseTrackingExitHandlerRegistered) return;
+        _mouseTrackingExitHandlerRegistered = true;
+
+        // Same two-handler shape as UseAlternateScreen: CancelKeyPress
+        // catches Ctrl-C, ProcessExit catches graceful exit + SIGTERM.
+        // Both must disable mouse tracking or the user's shell keeps
+        // showing mystery escape bursts whenever they wiggle the mouse.
+        Console.CancelKeyPress += (_, _) => RestoreMouseTrackingOnExit();
+        AppDomain.CurrentDomain.ProcessExit += (_, _) => RestoreMouseTrackingOnExit();
+    }
+
+    private static void RestoreMouseTrackingOnExit()
+    {
+        lock (MouseTrackingGate)
+        {
+            if (_mouseTrackingDepth <= 0) return;
+            try
+            {
+                Sink.Write(AnsiCodes.MouseTrackingLeave);
+                Sink.Flush();
+            }
+            catch
+            {
+                // Sink may be disposed during shutdown — nothing useful
+                // to do; swallow rather than crash on top of the
+                // original termination cause.
+            }
+            _mouseTrackingDepth = 0;
+        }
+    }
+
     /// <summary>
     /// Take over the terminal with the alternate screen buffer for the
     /// duration of the returned scope: the user's previous shell content
@@ -418,6 +496,27 @@ public static class Crt
                 if (--_alternateScreenDepth == 0)
                 {
                     Sink.Write(AnsiCodes.AlternateScreenLeave);
+                    Sink.Flush();
+                }
+            }
+        }
+    }
+
+    private sealed class MouseTrackingScope : IDisposable
+    {
+        private bool _disposed;
+
+        public void Dispose()
+        {
+            if (_disposed) return;
+            _disposed = true;
+
+            lock (MouseTrackingGate)
+            {
+                if (_mouseTrackingDepth <= 0) return;
+                if (--_mouseTrackingDepth == 0)
+                {
+                    Sink.Write(AnsiCodes.MouseTrackingLeave);
                     Sink.Flush();
                 }
             }
