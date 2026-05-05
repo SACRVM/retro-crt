@@ -218,4 +218,34 @@ public class InputParserKeyTests
         Assert.Equal(InputParseStatus.Invalid, st);
         Assert.Equal(5, consumed);
     }
+
+    [Fact]
+    public void Out_of_range_modifier_byte_decodes_with_no_modifiers()
+    {
+        // The parser should not crash on an absurdly large modifier
+        // byte — just report no modifiers and let the named key through.
+        var st = InputParser.TryParseKey("\x1b[1;99A".AsSpan(), out var k, out _);
+        Assert.Equal(InputParseStatus.Ok, st);
+        Assert.Equal(Key.Up, k.Key);
+        Assert.Equal(KeyModifiers.None, k.Modifiers);
+    }
+
+    [Fact]
+    public void Two_keys_back_to_back_consume_one_at_a_time()
+    {
+        // Concatenated input: ESC[A (Up) followed by 'x'. The parser
+        // returns the first event and reports its consumed length;
+        // caller advances and re-parses the tail.
+        var input = "\x1b[Ax".AsSpan();
+        var st = InputParser.TryParseKey(input, out var k1, out var c1);
+        Assert.Equal(InputParseStatus.Ok, st);
+        Assert.Equal(Key.Up, k1.Key);
+        Assert.Equal(3, c1);
+
+        st = InputParser.TryParseKey(input[c1..], out var k2, out var c2);
+        Assert.Equal(InputParseStatus.Ok, st);
+        Assert.Equal(Key.Glyph, k2.Key);
+        Assert.Equal('x', k2.Glyph);
+        Assert.Equal(1, c2);
+    }
 }
