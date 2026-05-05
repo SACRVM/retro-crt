@@ -100,6 +100,8 @@ Retro.Crt.Input.MouseEventKind.Move = 2 -> Retro.Crt.Input.MouseEventKind
 Retro.Crt.Input.MouseEventKind.Press = 0 -> Retro.Crt.Input.MouseEventKind
 Retro.Crt.Input.MouseEventKind.Release = 1 -> Retro.Crt.Input.MouseEventKind
 Retro.Crt.Input.MouseEventKind.Wheel = 4 -> Retro.Crt.Input.MouseEventKind
+Retro.Crt.Input.RawMode
+Retro.Crt.Input.TerminalInput
 Retro.Crt.ScreenBuffer
 Retro.Crt.ScreenBuffer.Clear() -> void
 Retro.Crt.ScreenBuffer.Clear(Retro.Crt.Cell fill) -> void
@@ -114,6 +116,9 @@ Retro.Crt.ScreenRenderer
 static readonly Retro.Crt.Cell.Empty -> Retro.Crt.Cell
 static Retro.Crt.Crt.UseMouse() -> System.IDisposable!
 static Retro.Crt.Input.InputParser.TryParseEvent(System.ReadOnlySpan<char> input, out Retro.Crt.Input.InputEvent ev, out int consumed) -> Retro.Crt.Input.InputParseStatus
+static Retro.Crt.Input.RawMode.Enter(bool keepSignals = false) -> System.IDisposable!
+static Retro.Crt.Input.TerminalInput.ReadEvent() -> Retro.Crt.Input.InputEvent
+static Retro.Crt.Input.TerminalInput.TryReadEvent(out Retro.Crt.Input.InputEvent ev) -> bool
 static Retro.Crt.Input.InputParser.TryParseKey(System.ReadOnlySpan<char> input, out Retro.Crt.Input.KeyEvent key, out int consumed) -> Retro.Crt.Input.InputParseStatus
 static Retro.Crt.Input.InputParser.TryParseMouse(System.ReadOnlySpan<char> input, out Retro.Crt.Input.MouseEvent mouse, out int consumed) -> Retro.Crt.Input.InputParseStatus
 static Retro.Crt.ScreenRenderer.Render(Retro.Crt.ScreenBuffer? previous, Retro.Crt.ScreenBuffer! current, System.IO.TextWriter! sink) -> void
