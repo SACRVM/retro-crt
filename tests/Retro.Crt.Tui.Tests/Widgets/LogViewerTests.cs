@@ -191,6 +191,59 @@ public class LogViewerTests
     }
 
     [Fact]
+    public void Drag_tracks_cursor_one_to_one_within_thumb_travel()
+    {
+        // 100 items, 10 rows → thumbSize = 100/100 = 1, maxThumbY = 9.
+        // Dragging from cursor row 0 to row 9 should walk the full
+        // ScrollOffset range (0 .. 90), 1 cell of cursor = 1 cell of
+        // thumb top. Earlier math (cursor / (height - 1)) made the
+        // user travel ~3× the thumb distance.
+        var v = new LogViewer
+        {
+            Bounds     = new Rect(0, 0, 10, 10),
+            AutoScroll = false,
+        };
+        for (var i = 0; i < 100; i++) v.Append($"L{i}");
+        var app = new Application(v);
+
+        v.OnMouse(new MouseEvent(MouseButton.Left, MouseEventKind.Press, 10, 1), app);
+        Assert.Equal(0, v.ScrollOffset);
+
+        // Drag cursor down by 1 row → thumb top moves 1 row → ScrollOffset
+        // walks 1 step of the 9-step thumb-travel range, i.e. ~10 of 90.
+        v.OnMouse(new MouseEvent(MouseButton.Left, MouseEventKind.Drag, 10, 2), app);
+        Assert.Equal(10, v.ScrollOffset);
+
+        // Drag to bottom of track → max offset.
+        v.OnMouse(new MouseEvent(MouseButton.Left, MouseEventKind.Drag, 10, 10), app);
+        Assert.Equal(90, v.ScrollOffset);
+    }
+
+    [Fact]
+    public void Press_on_thumb_keeps_grab_offset_during_drag()
+    {
+        // 20 items, 4 rows → thumbSize=4*4/20=0→1, maxThumbY=3.
+        var v = new LogViewer
+        {
+            Bounds     = new Rect(0, 0, 10, 4),
+            AutoScroll = false,
+        };
+        for (var i = 0; i < 20; i++) v.Append($"L{i}");
+        var app = new Application(v);
+
+        // Park scroll at offset 8 → thumbY = 3*8/16 ≈ 1.
+        v.ScrollOffset = 8;
+        Assert.Equal(8, v.ScrollOffset);
+
+        // Press exactly on the thumb — grab offset = 0 (thumbSize=1).
+        v.OnMouse(new MouseEvent(MouseButton.Left, MouseEventKind.Press, 10, 2), app);
+        // Drag down by 1 row → thumbY = 2 → ScrollOffset ≈ 16*2/3 ≈ 10.
+        v.OnMouse(new MouseEvent(MouseButton.Left, MouseEventKind.Drag, 10, 3), app);
+
+        Assert.InRange(v.ScrollOffset, 9, 11);
+    }
+
+    [Fact]
     public void Drag_continues_scrolling_off_track_horizontally()
     {
         var v = new LogViewer

@@ -147,9 +147,13 @@ public sealed class Application
                 current = ReferenceEquals(current, bufA) ? bufB : bufA;
             }
 
-            InputEvent ev;
-            try { ev = TerminalInput.ReadEvent(); }
-            catch (EndOfStreamException) { break; }
+            // Poll with a short timeout instead of blocking forever:
+            // lets the loop come back around so the resize check at
+            // the top runs even when the user isn't pressing keys.
+            // 50 ms ≈ 20 Hz — quick enough to feel live during a
+            // window resize, gentle enough on idle CPU.
+            if (!TerminalInput.WaitForEvent(50, out var ev))
+                continue;
 
             switch (ev.Kind)
             {

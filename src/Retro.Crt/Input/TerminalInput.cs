@@ -59,13 +59,24 @@ public static class TerminalInput
     /// new bytes are available (or stdin is at EOF).
     /// </summary>
     public static bool TryReadEvent(out InputEvent ev)
+        => WaitForEvent(0, out ev);
+
+    /// <summary>
+    /// Wait up to <paramref name="timeoutMs"/> milliseconds for an
+    /// event. Returns <c>true</c> when an event was decoded, <c>false</c>
+    /// when the timeout expires or stdin reaches EOF. Pass <c>0</c> for
+    /// a strictly non-blocking poll, or a negative number to wait
+    /// indefinitely (equivalent to <see cref="ReadEvent"/> minus the
+    /// EOF exception).
+    /// </summary>
+    public static bool WaitForEvent(int timeoutMs, out InputEvent ev)
     {
         lock (Gate)
         {
             if (TryParseFromBuffer(out ev)) return true;
             if (_eof) return false;
 
-            if (Source.TryWait(0))
+            if (Source.TryWait(timeoutMs))
                 FillBufferBlocking();
 
             return TryParseFromBuffer(out ev);

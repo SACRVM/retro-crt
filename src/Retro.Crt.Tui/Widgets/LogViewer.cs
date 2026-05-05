@@ -45,6 +45,7 @@ public class LogViewer : View
     public bool AutoScroll { get; set; } = true;
 
     private int _scrollOffset;
+    private int _dragGrabOffset;
 
     /// <summary>
     /// Index of the topmost item currently visible. Clamped to the
@@ -185,13 +186,31 @@ public class LogViewer : View
         var inTrackZone = mouseX >= sx - 1 && mouseX <= sx;
         if (mouse.Kind == MouseEventKind.Press && !inTrackZone) return;
 
-        var localY = mouseY - b.Y;
-        if (localY < 0)            localY = 0;
-        if (localY >= b.Height)    localY = b.Height - 1;
+        var thumbSize = Math.Max(1, b.Height * b.Height / Items.Count);
+        var maxThumbY = b.Height - thumbSize;
+        if (maxThumbY <= 0) { ScrollOffset = MaxOffset; return; }
 
+        var localY = mouseY - b.Y;
         var maxOffset = MaxOffset;
-        ScrollOffset = b.Height > 1
-            ? (int)((long)maxOffset * localY / (b.Height - 1))
-            : maxOffset;
+
+        if (mouse.Kind == MouseEventKind.Press)
+        {
+            // If the click lands on the thumb, remember where inside
+            // the thumb the user grabbed; subsequent drags keep that
+            // relative grip. A click off the thumb behaves like
+            // "snap thumb top to cursor."
+            var currentThumbY = maxOffset > 0
+                ? (int)((long)maxThumbY * _scrollOffset / maxOffset)
+                : 0;
+            _dragGrabOffset = (localY >= currentThumbY && localY < currentThumbY + thumbSize)
+                ? localY - currentThumbY
+                : 0;
+        }
+
+        // Map the (cursor - grab offset) row directly onto the thumb's
+        // travel range. 1 cell of cursor movement = 1 cell of thumb
+        // movement, regardless of how big the visible thumb is.
+        var newThumbY = Math.Clamp(localY - _dragGrabOffset, 0, maxThumbY);
+        ScrollOffset = (int)((long)maxOffset * newThumbY / maxThumbY);
     }
 }
