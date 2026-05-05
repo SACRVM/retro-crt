@@ -60,6 +60,18 @@ Retro.Crt.Tui.View.IsFocusable.get -> bool
 Retro.Crt.Tui.View.IsFocusable.set -> void
 Retro.Crt.Tui.View.MarkDirty() -> void
 Retro.Crt.Tui.View.View() -> void
+Retro.Crt.Tui.Widgets.Button
+Retro.Crt.Tui.Widgets.Button.Accent.get -> Retro.Crt.Color
+Retro.Crt.Tui.Widgets.Button.Accent.set -> void
+Retro.Crt.Tui.Widgets.Button.Background.get -> Retro.Crt.Color
+Retro.Crt.Tui.Widgets.Button.Background.set -> void
+Retro.Crt.Tui.Widgets.Button.Button() -> void
+Retro.Crt.Tui.Widgets.Button.Button(string! label, System.Action? onClick = null) -> void
+Retro.Crt.Tui.Widgets.Button.Click -> System.Action?
+Retro.Crt.Tui.Widgets.Button.Foreground.get -> Retro.Crt.Color
+Retro.Crt.Tui.Widgets.Button.Foreground.set -> void
+Retro.Crt.Tui.Widgets.Button.Label.get -> string?
+Retro.Crt.Tui.Widgets.Button.Label.set -> void
 Retro.Crt.Tui.Widgets.Panel
 Retro.Crt.Tui.Widgets.Panel.Accent.get -> Retro.Crt.Color
 Retro.Crt.Tui.Widgets.Panel.Accent.set -> void
@@ -80,6 +92,9 @@ Retro.Crt.Tui.Widgets.StackPanel.StackPanel() -> void
 abstract Retro.Crt.Tui.Container.ArrangeChildren() -> void
 abstract Retro.Crt.Tui.View.OnDraw(Retro.Crt.ScreenBuffer! screen) -> void
 override Retro.Crt.Tui.Container.OnDraw(Retro.Crt.ScreenBuffer! screen) -> void
+override Retro.Crt.Tui.Widgets.Button.OnDraw(Retro.Crt.ScreenBuffer! screen) -> void
+override Retro.Crt.Tui.Widgets.Button.OnKey(Retro.Crt.Input.KeyEvent key, Retro.Crt.Tui.Application! app) -> void
+override Retro.Crt.Tui.Widgets.Button.OnMouse(Retro.Crt.Input.MouseEvent mouse, Retro.Crt.Tui.Application! app) -> void
 override Retro.Crt.Tui.Widgets.Panel.OnDraw(Retro.Crt.ScreenBuffer! screen) -> void
 override Retro.Crt.Tui.Widgets.StackPanel.ArrangeChildren() -> void
 override Retro.Crt.Tui.Layout.LayoutSize.Equals(object? obj) -> bool

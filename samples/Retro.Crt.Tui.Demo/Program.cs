@@ -4,9 +4,11 @@ using Retro.Crt.Tui;
 using Retro.Crt.Tui.Layout;
 using Retro.Crt.Tui.Widgets;
 
-// Stage 5a smoke: header + horizontal StackPanel of two focusable
-// Panels + statusbar. Tab cycles real focus; q / Esc quits; click
-// focuses a panel directly.
+// Stage 5b smoke: header + horizontal StackPanel of two focusable
+// Panels + a footer row with two Buttons (Quit, Beep). Tab cycles
+// focus through Sidebar → Main → Quit → Beep; Enter/Space activates
+// the focused button; mouse clicks focus + activate. Q / Esc still
+// quit globally.
 
 var sidebar = new Panel
 {
@@ -31,9 +33,45 @@ var body = new StackPanel
     Children    = { sidebar, main },
 };
 
-var root = new Frame { Children = { body } };
-new Application(root).Run();
+Application? appRef = null;
+
+var quitButton = new Button("Quit", () => appRef?.Exit())
+{
+    Foreground = Color.LightGray,
+    Background = Color.DarkRed,
+    Accent     = Color.LightRed,
+};
+
+var beepButton = new Button("Beep", Crt.Bell)
+{
+    Foreground = Color.LightGray,
+    Background = Color.DarkGray,
+    Accent     = Color.Yellow,
+};
+
+var buttonRow = new StackPanel
+{
+    Orientation = Orientation.Horizontal,
+    Sizes       = { LayoutSize.Star(), LayoutSize.Cells(12), LayoutSize.Cells(12), LayoutSize.Star() },
+    Children    = { new Spacer(), quitButton, beepButton, new Spacer() },
+};
+
+var content = new StackPanel
+{
+    Orientation = Orientation.Vertical,
+    Sizes       = { LayoutSize.Star(), LayoutSize.Cells(1) },
+    Children    = { body, buttonRow },
+};
+
+var root = new Frame { Children = { content } };
+appRef = new Application(root);
+appRef.Run();
 return 0;
+
+internal sealed class Spacer : View
+{
+    public override void OnDraw(ScreenBuffer screen) { /* invisible filler */ }
+}
 
 internal sealed class Frame : Container
 {
@@ -86,7 +124,7 @@ internal sealed class Frame : Container
     {
         s.FillRect(r.X, r.Y, r.Width, r.Height,
             new Cell(' ', Color.LightGray, Color.DarkGray));
-        s.PutString(r.X + 1, r.Y, " Tab: next  Shift+Tab: prev  Q/Esc: quit",
+        s.PutString(r.X + 1, r.Y, " Tab/Shift+Tab: focus  Enter/Space: activate  Q/Esc: quit",
             Color.LightGray, Color.DarkGray);
     }
 }
