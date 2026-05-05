@@ -23,7 +23,12 @@ public class Panel : View
     /// </summary>
     public Color Accent { get; set; } = Color.LightCyan;
 
-    /// <summary>When true, the border + title use <see cref="Accent"/>.</summary>
+    /// <summary>
+    /// When true, the border + title use <see cref="Accent"/>.
+    /// Independent of <see cref="View.HasFocus"/> — the panel lights
+    /// up when either is set, so callers that don't use the focus
+    /// tree can still highlight panels manually.
+    /// </summary>
     public bool IsActive { get; set; }
 
     public override void OnDraw(ScreenBuffer screen)
@@ -31,7 +36,7 @@ public class Panel : View
         var b = Bounds;
         if (b.Width < 2 || b.Height < 2) return;
 
-        var fg = IsActive ? Accent : Foreground;
+        var fg = IsActive || HasFocus ? Accent : Foreground;
         var fill = new Cell(' ', fg, Background);
 
         // Interior fill (one cell inside each edge).

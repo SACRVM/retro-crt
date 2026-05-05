@@ -14,6 +14,7 @@ namespace Retro.Crt.Tui;
 public abstract class View
 {
     private bool _dirty = true;
+    private bool _hasFocus;
 
     /// <summary>
     /// Region of the screen this view owns, in absolute screen
@@ -30,10 +31,50 @@ public abstract class View
     /// </summary>
     public bool IsDirty => _dirty;
 
+    /// <summary>
+    /// When true, this view participates in Tab navigation and may
+    /// receive routed key events while it owns the focus. Defaults to
+    /// <c>false</c> — only widgets that actually consume keyboard
+    /// input should opt in.
+    /// </summary>
+    public bool IsFocusable { get; set; }
+
+    /// <summary>
+    /// True when this view currently owns the application focus. Set
+    /// by <see cref="Application"/>; flipping it auto-marks the view
+    /// dirty so focus rings repaint on the next frame.
+    /// </summary>
+    public bool HasFocus => _hasFocus;
+
     /// <summary>Mark this view's painted state as out of date.</summary>
     public void MarkDirty() => _dirty = true;
 
     internal void ClearDirty() => _dirty = false;
+
+    internal void SetFocus(bool hasFocus)
+    {
+        if (_hasFocus == hasFocus) return;
+        _hasFocus = hasFocus;
+        MarkDirty();
+    }
+
+    /// <summary>
+    /// Yield this view (and its descendants, for containers) in
+    /// Tab-traversal order. Default: yield <c>this</c> if focusable.
+    /// </summary>
+    internal virtual IEnumerable<View> EnumerateFocusable()
+    {
+        if (IsFocusable) yield return this;
+    }
+
+    /// <summary>
+    /// Return the deepest view containing the given screen-space cell,
+    /// or <c>null</c> if no view in this subtree does. Coordinates are
+    /// 0-based (already converted from the terminal's 1-based mouse
+    /// reports by <see cref="Application"/>).
+    /// </summary>
+    internal virtual View? HitTest(int x, int y)
+        => Bounds.Contains(x, y) ? this : null;
 
     /// <summary>
     /// Paint into <paramref name="screen"/>. The view should write only
