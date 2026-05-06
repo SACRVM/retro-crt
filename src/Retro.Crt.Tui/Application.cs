@@ -1,4 +1,5 @@
 using Retro.Crt.Input;
+using Retro.Crt.Internals;
 using Retro.Crt.Tui.Layout;
 
 namespace Retro.Crt.Tui;
@@ -154,6 +155,22 @@ public sealed class Application
     /// </summary>
     public void Run()
     {
+        // Install SIGWINCH on Unix so an idle event loop wakes up on a
+        // resize without waiting for the next 16 ms poll. No-op on
+        // Windows — the polling path below is responsive enough and
+        // avoids a parallel ReadConsoleInput pipeline.
+        WindowResize.Install();
+
+        using var alt   = Crt.UseAlternateScreen();
+        using var raw   = RawMode.Enter();
+        using var mouse = Crt.UseMouse();
+        using var paste = Crt.UseBracketedPaste();
+
+        // Sample size AFTER alt-screen + raw-mode are active. On
+        // Windows the visible width/height can shift between the
+        // shell's normal buffer and the alt-screen viewport; reading
+        // first would seed the buffers wrong and the very first frame
+        // would paint into the wrong size.
         var width  = Crt.WindowWidth;
         var height = Crt.WindowHeight;
         if (width < 1 || height < 1)
@@ -167,11 +184,6 @@ public sealed class Application
         // has something to cycle from on the very first key press.
         ApplyFocus(FirstFocusable());
 
-        using var alt   = Crt.UseAlternateScreen();
-        using var raw   = RawMode.Enter();
-        using var mouse = Crt.UseMouse();
-        using var paste = Crt.UseBracketedPaste();
-
         var bufA = new ScreenBuffer(width, height);
         var bufB = new ScreenBuffer(width, height);
         var current = bufA;
@@ -180,9 +192,12 @@ public sealed class Application
         _running = true;
         while (_running)
         {
-            // Resize check — sample current terminal size; if it
-            // changed, reallocate the cell buffers and force a full
-            // repaint by nulling `previous`.
+            // SIGWINCH (if delivered) drains here; on Windows the flag
+            // is always false, so the polled re-sample below catches
+            // resizes within one tick. Either way, when the size has
+            // actually changed we reallocate the cell buffers and
+            // force a full repaint by nulling `previous`.
+            WindowResize.ConsumePending();
             var nowW = Crt.WindowWidth;
             var nowH = Crt.WindowHeight;
             if (nowW > 0 && nowH > 0 && (nowW != width || nowH != height))

@@ -50,6 +50,7 @@
   <ItemGroup>
     <InternalsVisibleTo Include="Retro.Crt.Tests" />
     <InternalsVisibleTo Include="Retro.Crt.Bench" />
+    <InternalsVisibleTo Include="Retro.Crt.Tui" />
   </ItemGroup>
 
   <ItemGroup>
