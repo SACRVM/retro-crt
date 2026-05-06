@@ -42,10 +42,12 @@ internal sealed class Game
         _height = height;
         _rng    = seed is { } s ? new Random(s) : new Random();
 
+        // Layout rows: 0 HUD, 1 top border, 2..h-3 arena, h-2 footer,
+        // h-1 bottom border.
         _arenaX0 = 1;
         _arenaY0 = 2;
         _arenaX1 = width  - 2;
-        _arenaY1 = height - 2;
+        _arenaY1 = height - 3;
 
         // Spawn 4-segment snake centered, moving right. Tail behind head
         // so the first Step doesn't collide with itself.
@@ -162,22 +164,41 @@ internal sealed class Game
     {
         screen.Clear(new Cell(' ', Color.LightGray, Color.Black));
         DrawHud(screen);
+        DrawFooter(screen);
         DrawBorder(screen);
         DrawApple(screen);
         DrawSnake(screen);
         if (!IsStarted) DrawIntro(screen);
-        else if (IsPaused) DrawCenterBanner(screen, "  PAUSE  ", Color.Black, Color.Yellow);
-        if (!IsAlive) DrawGameOver(screen);
+        if (!IsAlive)   DrawGameOver(screen);
     }
 
     private void DrawHud(ScreenBuffer screen)
     {
-        // Right-pad Score so the trailing hint row doesn't shift on
-        // every single-digit growth.
-        var label = $" Snake  ·  Score {Score,4}  ·  WASD move  ·  P pause  ·  Esc quit ";
+        // Right-pad Score so the row width is stable across digit
+        // roll-overs (e.g., 9 → 10 → 100).
+        var label = $" Snake  ·  Score {Score,4} ";
         var clipped = label.Length > _width ? label.AsSpan(0, _width) : label.AsSpan();
         screen.FillRect(0, 0, _width, 1, new Cell(' ', Color.LightGray, Color.DarkBlue));
         screen.PutString(0, 0, clipped, Color.LightGray, Color.DarkBlue, CellAttrs.Bold);
+    }
+
+    private void DrawFooter(ScreenBuffer screen)
+    {
+        // Footer at row h-2. Pause replaces the command list as a
+        // visual cue without needing a separate centered banner.
+        var (text, fg, bg) = !IsAlive
+            ? ("  R restart  ·  Esc quit  ",
+               Color.White, Color.DarkRed)
+            : IsPaused
+                ? ("  PAUSE  ·  P resume  ·  Esc quit  ",
+                   Color.Black, Color.Yellow)
+                : (" WASD move  ·  P pause  ·  Esc quit ",
+                   Color.LightGray, Color.DarkBlue);
+
+        var y = _height - 2;
+        screen.FillRect(0, y, _width, 1, new Cell(' ', fg, bg));
+        var clipped = text.Length > _width ? text.AsSpan(0, _width) : text.AsSpan();
+        screen.PutString(0, y, clipped, fg, bg, CellAttrs.Bold);
     }
 
     private void DrawBorder(ScreenBuffer screen)
@@ -214,13 +235,6 @@ internal sealed class Game
             screen[seg.X, seg.Y] = new Cell('█', fg, Color.Black, attr);
             first = false;
         }
-    }
-
-    private void DrawCenterBanner(ScreenBuffer screen, string text, Color fg, Color bg)
-    {
-        var x = (_width  - text.Length) / 2;
-        var y = _height / 2;
-        screen.PutString(x, y, text.AsSpan(), fg, bg, CellAttrs.Bold);
     }
 
     private void DrawGameOver(ScreenBuffer screen)

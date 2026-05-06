@@ -54,8 +54,10 @@ internal sealed class Game
     {
         _renderWidth  = renderWidth;
         _renderHeight = renderHeight;
+        // Layout rows: 0 HUD, 1 top border, 2..h-3 field, h-2 footer,
+        // h-1 bottom border. Field height = h-4, doubled for half-cell.
         _bufWidth     = renderWidth - 2;
-        _bufHeight    = (renderHeight - 3) * 2;
+        _bufHeight    = (renderHeight - 4) * 2;
 
         _grid    = new byte[_bufWidth, _bufHeight];
         _scratch = new byte[_bufWidth, _bufHeight];
@@ -241,10 +243,10 @@ internal sealed class Game
     {
         screen.Clear(new Cell(' ', Color.LightGray, Color.Black));
         DrawHud(screen);
+        DrawFooter(screen);
         DrawBorder(screen);
         DrawField(screen);
-        if      (!IsStarted) DrawIntro(screen);
-        else if (IsPaused)   DrawPauseHint(screen);
+        if (!IsStarted) DrawIntro(screen);
     }
 
     private void DrawHud(ScreenBuffer screen)
@@ -253,10 +255,28 @@ internal sealed class Game
         // of the HUD doesn't shift when digits roll over (e.g.,
         // 99 → 100). Without padding every digit-count change makes the
         // rest of the row redraw, visible as a "wave" of flicker.
-        var label = $" Life  ·  {PatternName(_current),-12}  ·  Gen {Generation,6}  ·  Alive {Alive,5}  ·  Tick {_tickMs,3}ms  ·  SPACE pause · 1-6 patterns · R reset · N step · +/- speed · Esc quit ";
+        var label = $" Life  ·  {PatternName(_current),-12}  ·  Gen {Generation,6}  ·  Alive {Alive,5}  ·  Tick {_tickMs,3}ms ";
         var clipped = label.Length > _renderWidth ? label.AsSpan(0, _renderWidth) : label.AsSpan();
         screen.FillRect(0, 0, _renderWidth, 1, new Cell(' ', Color.LightGray, Color.DarkBlue));
         screen.PutString(0, 0, clipped, Color.LightGray, Color.DarkBlue, CellAttrs.Bold);
+    }
+
+    private void DrawFooter(ScreenBuffer screen)
+    {
+        // Footer at row h-2 (just above the bottom border). Pause shows
+        // a different command set as a visual cue that the sim is on
+        // hold — same row, no separate overlay so we never collide with
+        // a centered intro/dialog.
+        var (text, fg, bg) = IsPaused
+            ? ("  PAUSE  ·  N step  ·  SPACE resume  ·  Esc quit  ",
+               Color.Black, Color.Yellow)
+            : (" SPACE pause  ·  1-6 patterns  ·  R reset  ·  N step  ·  +/- speed  ·  Esc quit ",
+               Color.LightGray, Color.DarkBlue);
+
+        var y = _renderHeight - 2;
+        screen.FillRect(0, y, _renderWidth, 1, new Cell(' ', fg, bg));
+        var clipped = text.Length > _renderWidth ? text.AsSpan(0, _renderWidth) : text.AsSpan();
+        screen.PutString(0, y, clipped, fg, bg, CellAttrs.Bold);
     }
 
     private void DrawBorder(ScreenBuffer screen)
@@ -276,7 +296,7 @@ internal sealed class Game
 
     private void DrawField(ScreenBuffer screen)
     {
-        var rows = _renderHeight - 3;
+        var rows = _renderHeight - 4;  // matches _bufHeight / 2
         for (var ry = 0; ry < rows; ry++)
         {
             var topY = ry * 2;
@@ -344,14 +364,6 @@ internal sealed class Game
             "                                     ",
         };
         DrawCenteredBox(screen, lines, Color.White, Color.DarkBlue);
-    }
-
-    private void DrawPauseHint(ScreenBuffer screen)
-    {
-        var text = "  PAUSE  ·  N step  ·  SPACE resume  ";
-        var x = (_renderWidth - text.Length) / 2;
-        var y = _renderHeight - 2;
-        screen.PutString(x, y, text.AsSpan(), Color.Black, Color.Yellow, CellAttrs.Bold);
     }
 
     private void DrawCenteredBox(ScreenBuffer screen, string[] lines, Color fg, Color bg)
