@@ -263,17 +263,17 @@ internal sealed class Game
 
     private void DrawFooter(ScreenBuffer screen)
     {
-        // Footer at row h-2 (just above the bottom border). Pause shows
-        // a different command set as a visual cue that the sim is on
-        // hold — same row, no separate overlay so we never collide with
-        // a centered intro/dialog.
+        // Footer at row h-1 (very bottom, mirroring the HUD at row 0).
+        // Pause shows a different command set as a visual cue that the
+        // sim is on hold — same row, no separate overlay so we never
+        // collide with a centered intro/dialog.
         var (text, fg, bg) = IsPaused
             ? ("  PAUSE  ·  N step  ·  SPACE resume  ·  Esc quit  ",
                Color.Black, Color.Yellow)
             : (" SPACE pause  ·  1-6 patterns  ·  R reset  ·  N step  ·  +/- speed  ·  Esc quit ",
                Color.LightGray, Color.DarkBlue);
 
-        var y = _renderHeight - 2;
+        var y = _renderHeight - 1;
         screen.FillRect(0, y, _renderWidth, 1, new Cell(' ', fg, bg));
         var clipped = text.Length > _renderWidth ? text.AsSpan(0, _renderWidth) : text.AsSpan();
         screen.PutString(0, y, clipped, fg, bg, CellAttrs.Bold);
@@ -281,16 +281,21 @@ internal sealed class Game
 
     private void DrawBorder(ScreenBuffer screen)
     {
+        // Top border at y=1, bottom border at y=h-2. Side columns run
+        // only between them — y=h-1 is the footer (full-width, no
+        // border) and y=0 is the HUD (also no border above), keeping
+        // the field framed symmetrically.
         var c = new Cell('░', Color.DarkGray, Color.Black);
+        var bottomY = _renderHeight - 2;
         for (var x = 0; x < _renderWidth; x++)
         {
-            screen[x, 1]                  = c;
-            screen[x, _renderHeight - 1]  = c;
+            screen[x, 1]       = c;
+            screen[x, bottomY] = c;
         }
-        for (var y = 1; y < _renderHeight; y++)
+        for (var y = 1; y <= bottomY; y++)
         {
-            screen[0, y]                  = c;
-            screen[_renderWidth - 1, y]   = c;
+            screen[0, y]                = c;
+            screen[_renderWidth - 1, y] = c;
         }
     }
 

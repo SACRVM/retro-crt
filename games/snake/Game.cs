@@ -184,8 +184,7 @@ internal sealed class Game
 
     private void DrawFooter(ScreenBuffer screen)
     {
-        // Footer at row h-2. Pause replaces the command list as a
-        // visual cue without needing a separate centered banner.
+        // Footer at row h-1 (very bottom, mirrors HUD at y=0).
         var (text, fg, bg) = !IsAlive
             ? ("  R restart  ·  Esc quit  ",
                Color.White, Color.DarkRed)
@@ -195,7 +194,7 @@ internal sealed class Game
                 : (" WASD move  ·  P pause  ·  Esc quit ",
                    Color.LightGray, Color.DarkBlue);
 
-        var y = _height - 2;
+        var y = _height - 1;
         screen.FillRect(0, y, _width, 1, new Cell(' ', fg, bg));
         var clipped = text.Length > _width ? text.AsSpan(0, _width) : text.AsSpan();
         screen.PutString(0, y, clipped, fg, bg, CellAttrs.Bold);
@@ -203,13 +202,17 @@ internal sealed class Game
 
     private void DrawBorder(ScreenBuffer screen)
     {
+        // Top border at y=1, bottom border at y=h-2. Side columns run
+        // between them only — y=h-1 is the footer (no border), y=0 is
+        // the HUD (also no border above). Symmetric framing.
         var c = new Cell('░', Color.DarkGray, Color.Black);
+        var bottomY = _height - 2;
         for (var x = 0; x < _width; x++)
         {
-            screen[x, 1]            = c;
-            screen[x, _height - 1]  = c;
+            screen[x, 1]       = c;
+            screen[x, bottomY] = c;
         }
-        for (var y = 1; y < _height; y++)
+        for (var y = 1; y <= bottomY; y++)
         {
             screen[0, y]            = c;
             screen[_width - 1, y]   = c;
