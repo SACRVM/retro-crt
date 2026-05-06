@@ -6,7 +6,7 @@
 
     <IsPackable>true</IsPackable>
     <PackageId>Retro.Crt</PackageId>
-    <Version>0.6.0</Version>
+    <Version>0.7.0</Version>
     <Authors>Chloe Dream</Authors>
     <Company>Chloe Dream</Company>
     <Description>Pascal CRT-Unit-style console for modern .NET. Tiny, dependency-free, trim- and AOT-clean. Truecolor with NO_COLOR and 16-color fallback.</Description>
