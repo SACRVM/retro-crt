@@ -59,26 +59,18 @@ static void Run(int width, int height)
                 if (ev.Key.Key == Key.Escape) return;
 
                 var prevStarted = game.IsStarted;
-                var prevPaused  = game.IsPaused;
                 var prevTick    = game.TickMs;
-                var prevGen     = game.Generation;
 
                 game.HandleKey(ev.Key);
 
-                // Any state change worth re-rendering (start, pause
-                // toggle, manual step, reseed) marks dirty. The clock
-                // also re-anchors when the tick speed changes so the
-                // new rate kicks in on the very next iteration.
-                if (game.IsStarted   != prevStarted ||
-                    game.IsPaused    != prevPaused  ||
-                    game.Generation  != prevGen)
-                    dirty = true;
-                if (game.TickMs != prevTick)
-                {
-                    nextTick = sw.ElapsedMilliseconds + game.TickMs;
-                    dirty = true;
-                }
-                if (game.IsStarted && !prevStarted)
+                // Glyph keys can trigger anything from a pause toggle
+                // to a pattern reseed to a speed change — easier to
+                // just redraw on every accepted key than to enumerate
+                // every observable field. Cost is one frame per
+                // keypress, well below the input rate.
+                dirty = true;
+
+                if (game.TickMs != prevTick || (game.IsStarted && !prevStarted))
                     nextTick = sw.ElapsedMilliseconds + game.TickMs;
             }
             continue;
