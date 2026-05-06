@@ -13,6 +13,7 @@ internal enum Pattern
     LWSS,
     Galaxy,
     Bunnies,
+    Pentadecathlon,
 }
 
 /// <summary>
@@ -99,10 +100,11 @@ internal sealed class Game
             Pattern.Diehard    => Diehard,
             Pattern.Pulsar     => Pulsar,
             Pattern.GliderGun  => GosperGliderGun,
-            Pattern.LWSS       => LightweightSpaceship,
-            Pattern.Galaxy     => Galaxy,
-            Pattern.Bunnies    => Bunnies,
-            _                  => throw new ArgumentOutOfRangeException(nameof(pattern)),
+            Pattern.LWSS           => LightweightSpaceship,
+            Pattern.Galaxy         => Galaxy,
+            Pattern.Bunnies        => Bunnies,
+            Pattern.Pentadecathlon => Pentadecathlon,
+            _                      => throw new ArgumentOutOfRangeException(nameof(pattern)),
         };
         var (pw, ph) = BoundingBox(coords);
 
@@ -236,15 +238,16 @@ internal sealed class Game
             case '-':
                 _tickMs = Math.Min(500, _tickMs + 20);
                 break;
-            case '1': Seed(Pattern.Random);     IsPaused = false; break;
-            case '2': Seed(Pattern.RPentomino); IsPaused = false; break;
-            case '3': Seed(Pattern.Acorn);      IsPaused = false; break;
-            case '4': Seed(Pattern.Diehard);    IsPaused = false; break;
-            case '5': Seed(Pattern.Pulsar);     IsPaused = false; break;
-            case '6': Seed(Pattern.GliderGun);  IsPaused = false; break;
-            case '7': Seed(Pattern.LWSS);       IsPaused = false; break;
-            case '8': Seed(Pattern.Galaxy);     IsPaused = false; break;
-            case '9': Seed(Pattern.Bunnies);    IsPaused = false; break;
+            case '0': Seed(Pattern.Pentadecathlon); IsPaused = false; break;
+            case '1': Seed(Pattern.Random);         IsPaused = false; break;
+            case '2': Seed(Pattern.RPentomino);     IsPaused = false; break;
+            case '3': Seed(Pattern.Acorn);          IsPaused = false; break;
+            case '4': Seed(Pattern.Diehard);        IsPaused = false; break;
+            case '5': Seed(Pattern.Pulsar);         IsPaused = false; break;
+            case '6': Seed(Pattern.GliderGun);      IsPaused = false; break;
+            case '7': Seed(Pattern.LWSS);           IsPaused = false; break;
+            case '8': Seed(Pattern.Galaxy);         IsPaused = false; break;
+            case '9': Seed(Pattern.Bunnies);        IsPaused = false; break;
         }
     }
 
@@ -264,7 +267,7 @@ internal sealed class Game
         // of the HUD doesn't shift when digits roll over (e.g.,
         // 99 → 100). Without padding every digit-count change makes the
         // rest of the row redraw, visible as a "wave" of flicker.
-        var label = $" Life  ·  {PatternName(_current),-12}  ·  Gen {Generation,6}  ·  Alive {Alive,5}  ·  Tick {_tickMs,3}ms ";
+        var label = $" Life  ·  {PatternName(_current),-14}  ·  Gen {Generation,6}  ·  Alive {Alive,5}  ·  Tick {_tickMs,3}ms ";
         var clipped = label.Length > _renderWidth ? label.AsSpan(0, _renderWidth) : label.AsSpan();
         screen.FillRect(0, 0, _renderWidth, 1, new Cell(' ', Color.LightGray, Color.DarkBlue));
         screen.PutString(0, 0, clipped, Color.LightGray, Color.DarkBlue, CellAttrs.Bold);
@@ -279,7 +282,7 @@ internal sealed class Game
         var (text, fg, bg) = IsPaused
             ? ("  PAUSE  ·  N step  ·  SPACE resume  ·  Esc quit  ",
                Color.Black, Color.Yellow)
-            : (" SPACE pause  ·  1-9 patterns  ·  R reset  ·  N step  ·  +/- speed  ·  Esc quit ",
+            : (" SPACE pause  ·  0-9 patterns  ·  R reset  ·  N step  ·  +/- speed  ·  Esc quit ",
                Color.LightGray, Color.DarkBlue);
 
         var y = _renderHeight - 1;
@@ -345,16 +348,17 @@ internal sealed class Game
 
     private static string PatternName(Pattern p) => p switch
     {
-        Pattern.Random     => "Random",
-        Pattern.RPentomino => "R-Pentomino",
-        Pattern.Acorn      => "Acorn",
-        Pattern.Diehard    => "Diehard",
-        Pattern.Pulsar     => "Pulsar",
-        Pattern.GliderGun  => "Glider Gun",
-        Pattern.LWSS       => "LWSS",
-        Pattern.Galaxy     => "Galaxy",
-        Pattern.Bunnies    => "Bunnies",
-        _                  => "?",
+        Pattern.Random         => "Random",
+        Pattern.RPentomino     => "R-Pentomino",
+        Pattern.Acorn          => "Acorn",
+        Pattern.Diehard        => "Diehard",
+        Pattern.Pulsar         => "Pulsar",
+        Pattern.GliderGun      => "Glider Gun",
+        Pattern.LWSS           => "LWSS",
+        Pattern.Galaxy         => "Galaxy",
+        Pattern.Bunnies        => "Bunnies",
+        Pattern.Pentadecathlon => "Pentadecathlon",
+        _                      => "?",
     };
 
     private void DrawIntro(ScreenBuffer screen)
@@ -375,6 +379,7 @@ internal sealed class Game
             "    7  LWSS              (spaceship)   ",
             "    8  Galaxy            (period 8)    ",
             "    9  Bunnies           (~17000 gen)  ",
+            "    0  Pentadecathlon    (period 15)   ",
             "                                       ",
             "    SPACE  start / pause / resume      ",
             "    N      step (when paused)          ",
@@ -526,6 +531,21 @@ internal sealed class Game
         {2,1},{6,1},
         {2,2},{5,2},{7,2},
         {1,3},{3,3},
+    };
+
+    /// <summary>
+    /// Pentadecathlon — period-15 oscillator, the canonical companion to
+    /// Pulsar. Discovered by Conway (1970). The seed is just 10 live
+    /// cells in a horizontal row; over 15 generations it morphs between
+    /// an elongated and a compact symmetric phase. Smallest known
+    /// "natural" period-15 oscillator; pairs with Pulsar (p3) and
+    /// Galaxy (p8) to round out the showcase oscillator trio.
+    /// <code>
+    /// OOOOOOOOOO
+    /// </code>
+    /// </summary>
+    private static readonly int[,] Pentadecathlon = {
+        {0,0},{1,0},{2,0},{3,0},{4,0},{5,0},{6,0},{7,0},{8,0},{9,0},
     };
 
     /// <summary>
