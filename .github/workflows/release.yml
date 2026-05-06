@@ -3,9 +3,15 @@ name: Release
 on:
   push:
     tags:
-      - 'v*.*.*'
+      - 'v*.*.*'        # core: Retro.Crt
+      - 'tui-v*.*.*'    # tui:  Retro.Crt.Tui
   workflow_dispatch:
     inputs:
+      package:
+        description: 'Which package to pack (core | tui)'
+        type: choice
+        options: [core, tui]
+        default: core
       dry_run:
         description: 'Pack only, do not push to nuget.org'
         type: boolean
@@ -19,9 +25,15 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  pack-publish:
-    name: pack + publish
+  pack-publish-core:
+    name: pack + publish (core)
     runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'push' &&
+        startsWith(github.ref, 'refs/tags/v') &&
+        !startsWith(github.ref_name, 'tui-')) ||
+      (github.event_name == 'workflow_dispatch' &&
+        github.event.inputs.package == 'core')
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -33,14 +45,14 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      - name: Verify tag matches csproj <Version>
+      - name: Verify tag matches Retro.Crt csproj <Version>
         if: startsWith(github.ref, 'refs/tags/v')
         run: |
           tag="${GITHUB_REF_NAME#v}"
           ver=$(grep -oPm1 '(?<=<Version>)[^<]+' src/Retro.Crt/Retro.Crt.csproj)
           echo "tag=$tag csproj=$ver"
           if [ "$tag" != "$ver" ]; then
-            echo "::error::Tag v$tag does not match csproj <Version>$ver"
+            echo "::error::Tag v$tag does not match Retro.Crt csproj <Version>$ver"
             exit 1
           fi
 
@@ -78,6 +90,77 @@ jobs:
 
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v3
+        with:
+          files: nupkg/*.*nupkg
+          generate_release_notes: true
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-') }}
+
+  pack-publish-tui:
+    name: pack + publish (tui)
+    runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'push' &&
+        startsWith(github.ref_name, 'tui-v')) ||
+      (github.event_name == 'workflow_dispatch' &&
+        github.event.inputs.package == 'tui')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Verify tag matches Retro.Crt.Tui csproj <Version>
+        if: startsWith(github.ref_name, 'tui-v')
+        run: |
+          tag="${GITHUB_REF_NAME#tui-v}"
+          ver=$(grep -oPm1 '(?<=<Version>)[^<]+' src/Retro.Crt.Tui/Retro.Crt.Tui.csproj)
+          echo "tag=$tag csproj=$ver"
+          if [ "$tag" != "$ver" ]; then
+            echo "::error::Tag tui-v$tag does not match Retro.Crt.Tui csproj <Version>$ver"
+            exit 1
+          fi
+
+      - name: Restore
+        run: dotnet restore Retro.Crt.slnx
+
+      - name: Build
+        run: dotnet build Retro.Crt.slnx --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test Retro.Crt.slnx --configuration Release --no-build --nologo
+
+      - name: Pack
+        run: dotnet pack src/Retro.Crt.Tui/Retro.Crt.Tui.csproj --configuration Release --no-build --output nupkg
+
+      - name: Upload nupkg artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: retro-crt-tui-nupkg
+          path: nupkg/*.*nupkg
+
+      - name: Push to nuget.org
+        if: startsWith(github.ref_name, 'tui-v') || github.event.inputs.dry_run == 'false'
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: |
+          if [ -z "$NUGET_API_KEY" ]; then
+            echo "::error::NUGET_API_KEY secret is not set"
+            exit 1
+          fi
+          dotnet nuget push 'nupkg/*.nupkg' \
+            --source https://api.nuget.org/v3/index.json \
+            --api-key "$NUGET_API_KEY" \
+            --skip-duplicate
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref_name, 'tui-v')
         uses: softprops/action-gh-release@v3
         with:
           files: nupkg/*.*nupkg
