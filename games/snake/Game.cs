@@ -172,7 +172,9 @@ internal sealed class Game
 
     private void DrawHud(ScreenBuffer screen)
     {
-        var label = $" Snake  ·  Score {Score}  ·  WASD move  ·  P pause  ·  Esc quit ";
+        // Right-pad Score so the trailing hint row doesn't shift on
+        // every single-digit growth.
+        var label = $" Snake  ·  Score {Score,4}  ·  WASD move  ·  P pause  ·  Esc quit ";
         var clipped = label.Length > _width ? label.AsSpan(0, _width) : label.AsSpan();
         screen.FillRect(0, 0, _width, 1, new Cell(' ', Color.LightGray, Color.DarkBlue));
         screen.PutString(0, 0, clipped, Color.LightGray, Color.DarkBlue, CellAttrs.Bold);

@@ -249,7 +249,11 @@ internal sealed class Game
 
     private void DrawHud(ScreenBuffer screen)
     {
-        var label = $" Life  ·  {PatternName(_current)}  ·  Gen {Generation}  ·  Alive {Alive}  ·  Tick {_tickMs}ms  ·  SPACE pause · 1-6 patterns · R reset · N step · +/- speed · Esc quit ";
+        // Right-pad the numbers to fixed widths so the trailing portion
+        // of the HUD doesn't shift when digits roll over (e.g.,
+        // 99 → 100). Without padding every digit-count change makes the
+        // rest of the row redraw, visible as a "wave" of flicker.
+        var label = $" Life  ·  {PatternName(_current),-12}  ·  Gen {Generation,6}  ·  Alive {Alive,5}  ·  Tick {_tickMs,3}ms  ·  SPACE pause · 1-6 patterns · R reset · N step · +/- speed · Esc quit ";
         var clipped = label.Length > _renderWidth ? label.AsSpan(0, _renderWidth) : label.AsSpan();
         screen.FillRect(0, 0, _renderWidth, 1, new Cell(' ', Color.LightGray, Color.DarkBlue));
         screen.PutString(0, 0, clipped, Color.LightGray, Color.DarkBlue, CellAttrs.Bold);

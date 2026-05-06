@@ -1,3 +1,4 @@
+using System.Text;
 using Retro.Crt.Internals;
 
 namespace Retro.Crt;
@@ -21,9 +22,19 @@ namespace Retro.Crt;
 /// SGR <c>RESET</c> when at least one cell was painted, so callers don't
 /// inherit the last cell's pen state. No-op when nothing changed.
 /// </para>
+/// <para>
+/// The whole frame is built into a process-static <see cref="StringBuilder"/>
+/// and flushed to the sink in a single <c>Write</c>. On Windows
+/// <c>Console.Out</c> takes a per-call lock; batching cuts what would
+/// otherwise be tens of thousands of calls per high-churn frame down to
+/// one. Render is not re-entrant — that's fine, callers serialize on
+/// their own frame loop.
+/// </para>
 /// </remarks>
 public static class ScreenRenderer
 {
+    private static readonly StringBuilder Frame = new(8192);
+
     /// <summary>
     /// Render the diff between <paramref name="previous"/> and
     /// <paramref name="current"/> into <paramref name="sink"/>. Pass
@@ -39,26 +50,20 @@ public static class ScreenRenderer
         var h = current.Height;
         var curCells = current.AsSpan();
 
-        // Different (or absent) prev → every cell is "dirty". A null
-        // span compares unequal to every cell because we set hasPrev=false
-        // and skip the cell-equality check below.
         var hasPrev = previous is not null
                    && previous.Width  == w
                    && previous.Height == h;
         var prevCells = hasPrev ? previous!.AsSpan() : default;
 
-        // Pen state we believe the terminal currently holds. Starts as
-        // "unknown" — first painted cell forces an SGR emission.
         var penKnown = false;
         Color penFg = default, penBg = default;
         var penAttrs = CellAttrs.None;
 
-        // Cursor position we believe the terminal currently has. -1 means
-        // "unknown" — first painted cell forces a goto-XY.
         var cursorX = -1;
         var cursorY = -1;
 
         var painted = false;
+        Frame.Clear();
 
         for (var y = 0; y < h; y++)
         {
@@ -70,33 +75,23 @@ public static class ScreenRenderer
 
                 if (hasPrev && cell == prevCells[idx]) continue;
 
-                // Move cursor if we're not already on this column. After
-                // emitting a char the terminal advances the cursor by 1,
-                // so only the FIRST dirty cell of a run pays the goto.
                 if (cursorX != x || cursorY != y)
                 {
-                    sink.Write(AnsiCodes.GotoXY(x + 1, y + 1));
+                    Frame.Append(AnsiCodes.GotoXY(x + 1, y + 1));
                     cursorX = x;
                     cursorY = y;
                 }
 
-                // Re-emit SGR if any of fg / bg / attrs differ from the
-                // pen we last set. Cheap to overcompare on the
-                // record-struct equality, expensive to re-encode if we
-                // skip it incorrectly.
                 if (!penKnown
                     || penFg    != cell.Fg
                     || penBg    != cell.Bg
                     || penAttrs != cell.Attrs)
                 {
-                    // Reset clears prior bold/underline that wouldn't go
-                    // away on their own. After Reset the fg/bg are also
-                    // gone, so we re-emit them too.
-                    sink.Write(AnsiCodes.Reset);
-                    sink.Write(Emit.Fg(cell.Fg));
-                    sink.Write(Emit.Bg(cell.Bg));
-                    if ((cell.Attrs & CellAttrs.Bold)      != 0) sink.Write(AnsiCodes.Bold);
-                    if ((cell.Attrs & CellAttrs.Underline) != 0) sink.Write(AnsiCodes.Underline);
+                    Frame.Append(AnsiCodes.Reset);
+                    Frame.Append(Emit.Fg(cell.Fg));
+                    Frame.Append(Emit.Bg(cell.Bg));
+                    if ((cell.Attrs & CellAttrs.Bold)      != 0) Frame.Append(AnsiCodes.Bold);
+                    if ((cell.Attrs & CellAttrs.Underline) != 0) Frame.Append(AnsiCodes.Underline);
 
                     penKnown = true;
                     penFg    = cell.Fg;
@@ -104,7 +99,7 @@ public static class ScreenRenderer
                     penAttrs = cell.Attrs;
                 }
 
-                sink.Write(cell.Glyph);
+                Frame.Append(cell.Glyph);
                 cursorX++;
                 painted = true;
             }
@@ -112,10 +107,11 @@ public static class ScreenRenderer
 
         if (painted)
         {
-            // Park the cursor and clear the pen so the caller's next
-            // Crt.Write doesn't inherit our colors / position.
-            sink.Write(AnsiCodes.Reset);
-            sink.Write(AnsiCodes.GotoXY(1, 1));
+            Frame.Append(AnsiCodes.Reset);
+            Frame.Append(AnsiCodes.GotoXY(1, 1));
         }
+
+        if (Frame.Length > 0)
+            sink.Write(Frame);
     }
 }
