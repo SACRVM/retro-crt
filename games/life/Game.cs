@@ -10,6 +10,9 @@ internal enum Pattern
     Diehard,
     Pulsar,
     GliderGun,
+    LWSS,
+    Galaxy,
+    Bunnies,
 }
 
 /// <summary>
@@ -96,6 +99,9 @@ internal sealed class Game
             Pattern.Diehard    => Diehard,
             Pattern.Pulsar     => Pulsar,
             Pattern.GliderGun  => GosperGliderGun,
+            Pattern.LWSS       => LightweightSpaceship,
+            Pattern.Galaxy     => Galaxy,
+            Pattern.Bunnies    => Bunnies,
             _                  => throw new ArgumentOutOfRangeException(nameof(pattern)),
         };
         var (pw, ph) = BoundingBox(coords);
@@ -236,6 +242,9 @@ internal sealed class Game
             case '4': Seed(Pattern.Diehard);    IsPaused = false; break;
             case '5': Seed(Pattern.Pulsar);     IsPaused = false; break;
             case '6': Seed(Pattern.GliderGun);  IsPaused = false; break;
+            case '7': Seed(Pattern.LWSS);       IsPaused = false; break;
+            case '8': Seed(Pattern.Galaxy);     IsPaused = false; break;
+            case '9': Seed(Pattern.Bunnies);    IsPaused = false; break;
         }
     }
 
@@ -270,7 +279,7 @@ internal sealed class Game
         var (text, fg, bg) = IsPaused
             ? ("  PAUSE  ·  N step  ·  SPACE resume  ·  Esc quit  ",
                Color.Black, Color.Yellow)
-            : (" SPACE pause  ·  1-6 patterns  ·  R reset  ·  N step  ·  +/- speed  ·  Esc quit ",
+            : (" SPACE pause  ·  1-9 patterns  ·  R reset  ·  N step  ·  +/- speed  ·  Esc quit ",
                Color.LightGray, Color.DarkBlue);
 
         var y = _renderHeight - 1;
@@ -342,31 +351,37 @@ internal sealed class Game
         Pattern.Diehard    => "Diehard",
         Pattern.Pulsar     => "Pulsar",
         Pattern.GliderGun  => "Glider Gun",
+        Pattern.LWSS       => "LWSS",
+        Pattern.Galaxy     => "Galaxy",
+        Pattern.Bunnies    => "Bunnies",
         _                  => "?",
     };
 
     private void DrawIntro(ScreenBuffer screen)
     {
         var lines = new[] {
-            "                                     ",
-            "             L I F E                 ",
-            "        Conway's automaton           ",
-            "                                     ",
-            "   Choose a pattern + SPACE start    ",
-            "                                     ",
-            "    1  Random soup     (~30% fill)   ",
-            "    2  R-Pentomino     (~1100 gen)   ",
-            "    3  Acorn           (~5200 gen)   ",
-            "    4  Diehard         (130 gen die) ",
-            "    5  Pulsar          (period 3)    ",
-            "    6  Glider Gun      (forever)     ",
-            "                                     ",
-            "    SPACE  start / pause / resume    ",
-            "    N      step (when paused)        ",
-            "    R      reseed current pattern    ",
-            "    +/-    faster / slower           ",
-            "    Esc    quit                      ",
-            "                                     ",
+            "                                       ",
+            "              L I F E                  ",
+            "         Conway's automaton            ",
+            "                                       ",
+            "    Choose a pattern + SPACE start     ",
+            "                                       ",
+            "    1  Random soup       (~30% fill)   ",
+            "    2  R-Pentomino       (~1100 gen)   ",
+            "    3  Acorn             (~5200 gen)   ",
+            "    4  Diehard           (130 gen die) ",
+            "    5  Pulsar            (period 3)    ",
+            "    6  Glider Gun        (forever)     ",
+            "    7  LWSS              (spaceship)   ",
+            "    8  Galaxy            (period 8)    ",
+            "    9  Bunnies           (~17000 gen)  ",
+            "                                       ",
+            "    SPACE  start / pause / resume      ",
+            "    N      step (when paused)          ",
+            "    R      reseed current pattern      ",
+            "    +/-    faster / slower             ",
+            "    Esc    quit                        ",
+            "                                       ",
         };
         DrawCenteredBox(screen, lines, Color.White, Color.DarkBlue);
     }
@@ -445,6 +460,72 @@ internal sealed class Game
         {0,10},{5,10},{7,10},{12,10},
         // bottom edge
         {2,12},{3,12},{4,12},  {8,12},{9,12},{10,12},
+    };
+
+    /// <summary>
+    /// Lightweight Spaceship (LWSS) — period-4 orthogonal spaceship,
+    /// moves right at c/2. 5×4 bounding box. The smallest "real" ship
+    /// in Conway's Life; on the toroidal field it laps the screen
+    /// indefinitely.
+    /// <code>
+    /// .O..O
+    /// O....
+    /// O...O
+    /// OOOO.
+    /// </code>
+    /// </summary>
+    private static readonly int[,] LightweightSpaceship = {
+        {1,0},{4,0},
+        {0,1},
+        {0,2},{4,2},
+        {0,3},{1,3},{2,3},{3,3},
+    };
+
+    /// <summary>
+    /// Kok's Galaxy — period-8 oscillator, 9×9 bounding box. A
+    /// rotational pinwheel; one of the prettier non-trivial oscillators
+    /// in the standard catalog.
+    /// <code>
+    /// OOOOOO.OO
+    /// OOOOOO.OO
+    /// .......OO
+    /// OO.....OO
+    /// OO.....OO
+    /// OO.....OO
+    /// OO.......
+    /// OO.OOOOOO
+    /// OO.OOOOOO
+    /// </code>
+    /// </summary>
+    private static readonly int[,] Galaxy = {
+        {0,0},{1,0},{2,0},{3,0},{4,0},{5,0},{7,0},{8,0},
+        {0,1},{1,1},{2,1},{3,1},{4,1},{5,1},{7,1},{8,1},
+        {7,2},{8,2},
+        {0,3},{1,3},{7,3},{8,3},
+        {0,4},{1,4},{7,4},{8,4},
+        {0,5},{1,5},{7,5},{8,5},
+        {0,6},{1,6},
+        {0,7},{1,7},{3,7},{4,7},{5,7},{6,7},{7,7},{8,7},
+        {0,8},{1,8},{3,8},{4,8},{5,8},{6,8},{7,8},{8,8},
+    };
+
+    /// <summary>
+    /// Bunnies — 9-cell methuselah that runs ~17,000 generations
+    /// before stabilizing on an open universe; on a torus the spillover
+    /// eventually wraps and re-interacts, but the early phase is a
+    /// dramatic fireworks-show of activity.
+    /// <code>
+    /// O.....O.
+    /// ..O...O.
+    /// ..O..O.O
+    /// .O.O....
+    /// </code>
+    /// </summary>
+    private static readonly int[,] Bunnies = {
+        {0,0},{6,0},
+        {2,1},{6,1},
+        {2,2},{5,2},{7,2},
+        {1,3},{3,3},
     };
 
     /// <summary>
