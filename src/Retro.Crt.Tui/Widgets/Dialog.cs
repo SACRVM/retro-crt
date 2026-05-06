@@ -113,9 +113,10 @@ public class Dialog : Container
         return dlg;
     }
 
-    public override void OnKey(KeyEvent key, Application app)
+    public override bool OnKey(KeyEvent key, Application app)
     {
-        if (CloseOnEscape && key.Key == Key.Escape) { Close(); return; }
+        if (CloseOnEscape && key.Key == Key.Escape) { Close(); return true; }
+        return false;
     }
 
     protected override void ArrangeChildren()

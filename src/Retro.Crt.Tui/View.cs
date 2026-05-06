@@ -99,11 +99,15 @@ public abstract class View
     public abstract void OnDraw(ScreenBuffer screen);
 
     /// <summary>
-    /// Handle a key event. Default implementation does nothing.
-    /// Call <c>app.Exit()</c> to leave the event loop, or
-    /// <see cref="MarkDirty"/> to request a redraw on the next frame.
+    /// Handle a key event. Return <c>true</c> when the view consumed
+    /// the key — <see cref="Application"/> stops the bubble-up so
+    /// outer handlers (root view, modal) don't see it. Return
+    /// <c>false</c> to let the event keep propagating. Default
+    /// implementation returns <c>false</c>. Call <c>app.Exit()</c> to
+    /// leave the event loop, or <see cref="MarkDirty"/> to request a
+    /// redraw on the next frame.
     /// </summary>
-    public virtual void OnKey(KeyEvent key, Application app) { }
+    public virtual bool OnKey(KeyEvent key, Application app) => false;
 
     /// <summary>
     /// Handle a mouse event. Default implementation does nothing.

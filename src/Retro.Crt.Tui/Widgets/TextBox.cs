@@ -124,13 +124,13 @@ public class TextBox : View
         }
     }
 
-    public override void OnKey(KeyEvent key, Application app)
+    public override bool OnKey(KeyEvent key, Application app)
     {
         switch (key.Key)
         {
             case Key.Glyph when key.Glyph >= ' ':
                 Insert(key.Glyph);
-                break;
+                return true;
             case Key.Backspace:
                 if (_cursor > 0)
                 {
@@ -138,30 +138,31 @@ public class TextBox : View
                     _cursor--;
                     OnEdited();
                 }
-                break;
+                return true;
             case Key.Delete:
                 if (_cursor < _text.Length)
                 {
                     _text.Remove(_cursor, 1);
                     OnEdited();
                 }
-                break;
+                return true;
             case Key.Left:
                 if (_cursor > 0) { _cursor--; MarkDirty(); }
-                break;
+                return true;
             case Key.Right:
                 if (_cursor < _text.Length) { _cursor++; MarkDirty(); }
-                break;
+                return true;
             case Key.Home:
                 if (_cursor != 0) { _cursor = 0; MarkDirty(); }
-                break;
+                return true;
             case Key.End:
                 if (_cursor != _text.Length) { _cursor = _text.Length; MarkDirty(); }
-                break;
+                return true;
             case Key.Enter:
                 Submit?.Invoke();
-                break;
+                return true;
         }
+        return false;
     }
 
     public override void OnMouse(MouseEvent mouse, Application app)

@@ -179,7 +179,7 @@ public class DialogTests
     {
         public Action<KeyEvent>? OnKeyHandler;
         protected override void ArrangeChildren() { }
-        public override void OnKey(KeyEvent key, Application app) => OnKeyHandler?.Invoke(key);
+        public override bool OnKey(KeyEvent key, Application app) { OnKeyHandler?.Invoke(key); return false; }
     }
 
     private sealed class RecordingButton : View

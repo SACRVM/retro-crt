@@ -62,10 +62,46 @@ public class ApplicationDispatchTests
         Assert.Equal(1, other.MouseEvents);   // drag, after capture cleared
     }
 
+    [Fact]
+    public void Key_handled_by_focused_view_is_not_seen_by_root()
+    {
+        var focused = new KeyRecordingView { IsFocusable = true, Bounds = new Rect(0, 0, 5, 1), Handle = true };
+        var root = new KeyRecordingContainer { Children = { focused } };
+        var app  = new Application(root);
+        app.FocusNext();
+
+        DispatchKey(app, new KeyEvent(Key.Glyph, 'q'));
+
+        Assert.Equal(1, focused.Keys);
+        Assert.Equal(0, root.Keys);
+    }
+
+    [Fact]
+    public void Key_unhandled_by_focused_view_bubbles_to_root()
+    {
+        var focused = new KeyRecordingView { IsFocusable = true, Bounds = new Rect(0, 0, 5, 1), Handle = false };
+        var root = new KeyRecordingContainer { Children = { focused } };
+        var app  = new Application(root);
+        app.FocusNext();
+
+        DispatchKey(app, new KeyEvent(Key.Glyph, 'q'));
+
+        Assert.Equal(1, focused.Keys);
+        Assert.Equal(1, root.Keys);
+    }
+
     private static void DispatchMouse(Application app, MouseEvent ev)
     {
         var m = typeof(Application).GetMethod(
             "DispatchMouse",
+            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+        m!.Invoke(app, [ev]);
+    }
+
+    private static void DispatchKey(Application app, KeyEvent ev)
+    {
+        var m = typeof(Application).GetMethod(
+            "DispatchKey",
             System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
         m!.Invoke(app, [ev]);
     }
@@ -75,6 +111,21 @@ public class ApplicationDispatchTests
         public int MouseEvents { get; private set; }
         public override void OnDraw(ScreenBuffer screen) { }
         public override void OnMouse(MouseEvent mouse, Application app) => MouseEvents++;
+    }
+
+    private sealed class KeyRecordingView : View
+    {
+        public int Keys;
+        public bool Handle;
+        public override void OnDraw(ScreenBuffer screen) { }
+        public override bool OnKey(KeyEvent key, Application app) { Keys++; return Handle; }
+    }
+
+    private sealed class KeyRecordingContainer : Container
+    {
+        public int Keys;
+        protected override void ArrangeChildren() { }
+        public override bool OnKey(KeyEvent key, Application app) { Keys++; return false; }
     }
 
     private sealed class TestContainer : Container

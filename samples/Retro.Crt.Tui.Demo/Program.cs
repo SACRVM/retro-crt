@@ -195,14 +195,15 @@ internal sealed class Frame : Container
             Children[i].OnDraw(screen);
     }
 
-    public override void OnKey(KeyEvent key, Application app)
+    public override bool OnKey(KeyEvent key, Application app)
     {
-        // Only Esc quits at the app level — and only when no modal is
-        // open (Dialog handles its own Esc-to-close). Q would collide
-        // with the TextBox glyph stream, so it's intentionally not a
-        // global shortcut.
-        if (key.Key == Key.Escape && app.Modal is null) { app.Exit(); return; }
-        if (key.Key == Key.F2     && app.Modal is null) ShowAboutFromFrame(app);
+        // App-level shortcuts run only on the bubble-up — focused
+        // widgets get first crack. Now that the focused TextBox
+        // returns true on glyph keys, 'q' as quit could safely come
+        // back; we keep Esc-only for symmetry with Dialog.
+        if (key.Key == Key.Escape && app.Modal is null) { app.Exit(); return true; }
+        if (key.Key == Key.F2     && app.Modal is null) { ShowAboutFromFrame(app); return true; }
+        return false;
     }
 
     private static void ShowAboutFromFrame(Application app)

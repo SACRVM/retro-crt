@@ -254,17 +254,17 @@ public sealed class Application
         if (_modal is { } modal)
         {
             if (_focus is { } mf && !ReferenceEquals(mf, modal))
-                mf.OnKey(key, this);
+                if (mf.OnKey(key, this)) return;
             modal.OnKey(key, this);
             return;
         }
 
-        // Focused view gets first crack at the key; the root view
-        // always sees it second, acting as a bubble-up handler for
-        // app-level shortcuts like quit. Skipped when focus IS the
-        // root, to avoid double-delivery.
+        // Focused view gets first crack; if it consumes the key, the
+        // root view never sees it. Otherwise the key bubbles up so
+        // root.OnKey can implement app-level shortcuts (quit, F-keys).
+        // Skipped when focus IS the root, to avoid double-delivery.
         if (_focus is { } f && !ReferenceEquals(f, _root))
-            f.OnKey(key, this);
+            if (f.OnKey(key, this)) return;
 
         _root.OnKey(key, this);
     }

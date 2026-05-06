@@ -95,16 +95,17 @@ public class Menu : View
         }
     }
 
-    public override void OnKey(KeyEvent key, Application app)
+    public override bool OnKey(KeyEvent key, Application app)
     {
         switch (key.Key)
         {
-            case Key.Up:    MoveSelection(-1); break;
-            case Key.Down:  MoveSelection( 1); break;
-            case Key.Home:  JumpTo(forward: true);  break;
-            case Key.End:   JumpTo(forward: false); break;
-            case Key.Enter: Activate();             break;
+            case Key.Up:    MoveSelection(-1);      return true;
+            case Key.Down:  MoveSelection( 1);      return true;
+            case Key.Home:  JumpTo(forward: true);  return true;
+            case Key.End:   JumpTo(forward: false); return true;
+            case Key.Enter: Activate();             return true;
         }
+        return false;
     }
 
     public override void OnMouse(MouseEvent mouse, Application app)

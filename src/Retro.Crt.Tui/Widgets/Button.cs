@@ -68,13 +68,15 @@ public class Button : View
         screen.PutString(b.X, midRow, buf, fg, bg, attrs);
     }
 
-    public override void OnKey(KeyEvent key, Application app)
+    public override bool OnKey(KeyEvent key, Application app)
     {
         if (key.Key == Key.Enter ||
             (key.Key == Key.Glyph && key.Glyph == ' '))
         {
             Click?.Invoke();
+            return true;
         }
+        return false;
     }
 
     public override void OnMouse(MouseEvent mouse, Application app)

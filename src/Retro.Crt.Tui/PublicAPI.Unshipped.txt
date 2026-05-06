@@ -205,20 +205,20 @@ abstract Retro.Crt.Tui.Container.ArrangeChildren() -> void
 abstract Retro.Crt.Tui.View.OnDraw(Retro.Crt.ScreenBuffer! screen) -> void
 override Retro.Crt.Tui.Container.OnDraw(Retro.Crt.ScreenBuffer! screen) -> void
 override Retro.Crt.Tui.Widgets.Button.OnDraw(Retro.Crt.ScreenBuffer! screen) -> void
-override Retro.Crt.Tui.Widgets.Button.OnKey(Retro.Crt.Input.KeyEvent key, Retro.Crt.Tui.Application! app) -> void
+override Retro.Crt.Tui.Widgets.Button.OnKey(Retro.Crt.Input.KeyEvent key, Retro.Crt.Tui.Application! app) -> bool
 override Retro.Crt.Tui.Widgets.Button.OnMouse(Retro.Crt.Input.MouseEvent mouse, Retro.Crt.Tui.Application! app) -> void
 override Retro.Crt.Tui.Widgets.Dialog.ArrangeChildren() -> void
 override Retro.Crt.Tui.Widgets.Dialog.OnDraw(Retro.Crt.ScreenBuffer! screen) -> void
-override Retro.Crt.Tui.Widgets.Dialog.OnKey(Retro.Crt.Input.KeyEvent key, Retro.Crt.Tui.Application! app) -> void
+override Retro.Crt.Tui.Widgets.Dialog.OnKey(Retro.Crt.Input.KeyEvent key, Retro.Crt.Tui.Application! app) -> bool
 override Retro.Crt.Tui.Widgets.Label.OnDraw(Retro.Crt.ScreenBuffer! screen) -> void
 override Retro.Crt.Tui.Widgets.TextBox.OnDraw(Retro.Crt.ScreenBuffer! screen) -> void
-override Retro.Crt.Tui.Widgets.TextBox.OnKey(Retro.Crt.Input.KeyEvent key, Retro.Crt.Tui.Application! app) -> void
+override Retro.Crt.Tui.Widgets.TextBox.OnKey(Retro.Crt.Input.KeyEvent key, Retro.Crt.Tui.Application! app) -> bool
 override Retro.Crt.Tui.Widgets.TextBox.OnMouse(Retro.Crt.Input.MouseEvent mouse, Retro.Crt.Tui.Application! app) -> void
 override Retro.Crt.Tui.Widgets.LogViewer.OnDraw(Retro.Crt.ScreenBuffer! screen) -> void
-override Retro.Crt.Tui.Widgets.LogViewer.OnKey(Retro.Crt.Input.KeyEvent key, Retro.Crt.Tui.Application! app) -> void
+override Retro.Crt.Tui.Widgets.LogViewer.OnKey(Retro.Crt.Input.KeyEvent key, Retro.Crt.Tui.Application! app) -> bool
 override Retro.Crt.Tui.Widgets.LogViewer.OnMouse(Retro.Crt.Input.MouseEvent mouse, Retro.Crt.Tui.Application! app) -> void
 override Retro.Crt.Tui.Widgets.Menu.OnDraw(Retro.Crt.ScreenBuffer! screen) -> void
-override Retro.Crt.Tui.Widgets.Menu.OnKey(Retro.Crt.Input.KeyEvent key, Retro.Crt.Tui.Application! app) -> void
+override Retro.Crt.Tui.Widgets.Menu.OnKey(Retro.Crt.Input.KeyEvent key, Retro.Crt.Tui.Application! app) -> bool
 override Retro.Crt.Tui.Widgets.Menu.OnMouse(Retro.Crt.Input.MouseEvent mouse, Retro.Crt.Tui.Application! app) -> void
 override Retro.Crt.Tui.Widgets.Panel.OnDraw(Retro.Crt.ScreenBuffer! screen) -> void
 override Retro.Crt.Tui.Widgets.StackPanel.ArrangeChildren() -> void
@@ -232,7 +232,7 @@ static Retro.Crt.Tui.Layout.LayoutSize.Star(int weight = 1) -> Retro.Crt.Tui.Lay
 static Retro.Crt.Tui.Layout.Split.Horizontal(Retro.Crt.Tui.Layout.Rect bounds, System.ReadOnlySpan<Retro.Crt.Tui.Layout.LayoutSize> sizes, System.Span<Retro.Crt.Tui.Layout.Rect> output) -> void
 static Retro.Crt.Tui.Layout.Split.Vertical(Retro.Crt.Tui.Layout.Rect bounds, System.ReadOnlySpan<Retro.Crt.Tui.Layout.LayoutSize> sizes, System.Span<Retro.Crt.Tui.Layout.Rect> output) -> void
 static readonly Retro.Crt.Tui.Layout.Rect.Empty -> Retro.Crt.Tui.Layout.Rect
-virtual Retro.Crt.Tui.View.OnKey(Retro.Crt.Input.KeyEvent key, Retro.Crt.Tui.Application! app) -> void
+virtual Retro.Crt.Tui.View.OnKey(Retro.Crt.Input.KeyEvent key, Retro.Crt.Tui.Application! app) -> bool
 virtual Retro.Crt.Tui.View.OnMouse(Retro.Crt.Input.MouseEvent mouse, Retro.Crt.Tui.Application! app) -> void
 virtual Retro.Crt.Tui.View.OnPaste(string! text, Retro.Crt.Tui.Application! app) -> void
 Retro.Crt.Tui.View.OwnerApplication.get -> Retro.Crt.Tui.Application?

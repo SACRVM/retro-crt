@@ -138,17 +138,18 @@ public class LogViewer : View
             screen[sx, b.Y + thumbY + i] = new Cell('█', ScrollbarThumb, Background);
     }
 
-    public override void OnKey(KeyEvent key, Application app)
+    public override bool OnKey(KeyEvent key, Application app)
     {
         switch (key.Key)
         {
-            case Key.Up:       ScrollBy(-1); break;
-            case Key.Down:     ScrollBy( 1); break;
-            case Key.PageUp:   PageUp();     break;
-            case Key.PageDown: PageDown();   break;
-            case Key.Home:     ScrollToStart(); break;
-            case Key.End:      ScrollToEnd();   break;
+            case Key.Up:       ScrollBy(-1);    return true;
+            case Key.Down:     ScrollBy( 1);    return true;
+            case Key.PageUp:   PageUp();        return true;
+            case Key.PageDown: PageDown();      return true;
+            case Key.Home:     ScrollToStart(); return true;
+            case Key.End:      ScrollToEnd();   return true;
         }
+        return false;
     }
 
     public override void OnMouse(MouseEvent mouse, Application app)
