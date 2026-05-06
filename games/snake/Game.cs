@@ -29,9 +29,12 @@ internal sealed class Game
     private (int X, int Y) _apple;
 
     public int Score { get; private set; }
-    public int Length => _body.Count;
     public bool IsAlive { get; private set; } = true;
     public bool IsPaused { get; private set; }
+    public bool IsStarted { get; private set; }
+
+    /// <summary>Begin ticking. Called by the host once the player presses Space on the intro screen.</summary>
+    public void Start() => IsStarted = true;
 
     public Game(int width, int height, int? seed = null)
     {
@@ -70,14 +73,16 @@ internal sealed class Game
 
     public void HandleKey(KeyEvent key)
     {
-        switch (key.Key)
+        if (key.Key != Key.Glyph) return;
+
+        switch (key.Glyph)
         {
-            case Key.Up:    Queue(Direction.Up);    break;
-            case Key.Down:  Queue(Direction.Down);  break;
-            case Key.Left:  Queue(Direction.Left);  break;
-            case Key.Right: Queue(Direction.Right); break;
-            case Key.Glyph when key.Glyph is 'p' or 'P':
-                if (IsAlive) IsPaused = !IsPaused;
+            case 'w' or 'W': Queue(Direction.Up);    break;
+            case 's' or 'S': Queue(Direction.Down);  break;
+            case 'a' or 'A': Queue(Direction.Left);  break;
+            case 'd' or 'D': Queue(Direction.Right); break;
+            case 'p' or 'P':
+                if (IsAlive && IsStarted) IsPaused = !IsPaused;
                 break;
         }
     }
@@ -96,7 +101,7 @@ internal sealed class Game
 
     public void Step()
     {
-        if (!IsAlive || IsPaused) return;
+        if (!IsStarted || !IsAlive || IsPaused) return;
 
         _direction = _pending;
         var head = _body.First!.Value;
@@ -160,13 +165,14 @@ internal sealed class Game
         DrawBorder(screen);
         DrawApple(screen);
         DrawSnake(screen);
-        if (IsPaused) DrawCenterBanner(screen, "  PAUSE  ", Color.Black, Color.Yellow);
+        if (!IsStarted) DrawIntro(screen);
+        else if (IsPaused) DrawCenterBanner(screen, "  PAUSE  ", Color.Black, Color.Yellow);
         if (!IsAlive) DrawGameOver(screen);
     }
 
     private void DrawHud(ScreenBuffer screen)
     {
-        var label = $" Snake  ·  Score {Score}  ·  Length {_body.Count}  ·  ↑↓←→ move  ·  P pause  ·  Esc quit ";
+        var label = $" Snake  ·  Score {Score}  ·  WASD move  ·  P pause  ·  Esc quit ";
         var clipped = label.Length > _width ? label.AsSpan(0, _width) : label.AsSpan();
         screen.FillRect(0, 0, _width, 1, new Cell(' ', Color.LightGray, Color.DarkBlue));
         screen.PutString(0, 0, clipped, Color.LightGray, Color.DarkBlue, CellAttrs.Bold);
@@ -189,7 +195,7 @@ internal sealed class Game
 
     private void DrawApple(ScreenBuffer screen)
     {
-        screen[_apple.X, _apple.Y] = new Cell('*', Color.LightRed, Color.Black, CellAttrs.Bold);
+        screen[_apple.X, _apple.Y] = new Cell('@', Color.LightRed, Color.Black, CellAttrs.Bold);
     }
 
     private void DrawSnake(ScreenBuffer screen)
@@ -220,10 +226,29 @@ internal sealed class Game
         var lines = new[] {
             "  GAME OVER  ",
             $"  Final Score: {Score}  ",
-            $"  Length: {_body.Count}  ",
             "",
             "  R restart  ·  Esc quit  ",
         };
+        DrawCenteredBox(screen, lines, Color.White, Color.DarkRed);
+    }
+
+    private void DrawIntro(ScreenBuffer screen)
+    {
+        var lines = new[] {
+            "                            ",
+            "          S N A K E         ",
+            "                            ",
+            "   Press SPACE to start     ",
+            "                            ",
+            "   WASD move · P pause      ",
+            "   Esc quit                 ",
+            "                            ",
+        };
+        DrawCenteredBox(screen, lines, Color.White, Color.DarkBlue);
+    }
+
+    private void DrawCenteredBox(ScreenBuffer screen, string[] lines, Color fg, Color bg)
+    {
         var maxW = 0;
         for (var i = 0; i < lines.Length; i++) if (lines[i].Length > maxW) maxW = lines[i].Length;
         var w = maxW + 4;
@@ -231,12 +256,12 @@ internal sealed class Game
         var x0 = (_width  - w) / 2;
         var y0 = (_height - h) / 2;
 
-        screen.FillRect(x0, y0, w, h, new Cell(' ', Color.White, Color.DarkRed));
+        screen.FillRect(x0, y0, w, h, new Cell(' ', fg, bg));
         for (var i = 0; i < lines.Length; i++)
         {
             if (lines[i].Length == 0) continue;
             var lineX = x0 + (w - lines[i].Length) / 2;
-            screen.PutString(lineX, y0 + 1 + i, lines[i].AsSpan(), Color.White, Color.DarkRed, CellAttrs.Bold);
+            screen.PutString(lineX, y0 + 1 + i, lines[i].AsSpan(), fg, bg, CellAttrs.Bold);
         }
     }
 }

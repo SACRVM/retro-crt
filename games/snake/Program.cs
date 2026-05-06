@@ -65,6 +65,21 @@ static GameOverChoice Run(int width, int height)
             {
                 if (ev.Key.Key == Key.Escape) return GameOverChoice.Quit;
 
+                if (!game.IsStarted)
+                {
+                    // Intro screen — only Space (and Esc above) does
+                    // anything. Other keys are silently dropped so
+                    // mashed input doesn't prematurely commit a
+                    // direction.
+                    if (ev.Key.Key == Key.Glyph && ev.Key.Glyph == ' ')
+                    {
+                        game.Start();
+                        nextTick = sw.ElapsedMilliseconds + game.TickMs;
+                        dirty = true;
+                    }
+                    continue;
+                }
+
                 if (!game.IsAlive)
                 {
                     if (ev.Key.Key == Key.Glyph && (ev.Key.Glyph is 'r' or 'R'))
