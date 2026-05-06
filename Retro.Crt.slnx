@@ -4,6 +4,7 @@
   </Folder>
   <Folder Name="/games/">
     <Project Path="games/snake/Retro.Crt.Snake.csproj" />
+    <Project Path="games/life/Retro.Crt.Life.csproj" />
   </Folder>
   <Folder Name="/samples/">
     <Project Path="samples/Retro.Crt.Demo/Retro.Crt.Demo.csproj" />
