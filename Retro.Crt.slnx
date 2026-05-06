@@ -6,6 +6,7 @@
     <Project Path="games/snake/Retro.Crt.Snake.csproj" />
     <Project Path="games/life/Retro.Crt.Life.csproj" />
     <Project Path="games/matrix-rain/Retro.Crt.MatrixRain.csproj" />
+    <Project Path="games/invaders/Retro.Crt.Invaders.csproj" />
   </Folder>
   <Folder Name="/samples/">
     <Project Path="samples/Retro.Crt.Demo/Retro.Crt.Demo.csproj" />
