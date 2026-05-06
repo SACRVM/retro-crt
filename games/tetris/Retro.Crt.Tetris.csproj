@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Retro.Crt.Tetris</RootNamespace>
+    <AssemblyName>Retro.Crt.Tetris</AssemblyName>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Retro.Crt\Retro.Crt.csproj" />
+  </ItemGroup>
+
+</Project>
