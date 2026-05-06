@@ -275,6 +275,10 @@ public static class Crt
     private static bool _bracketedPasteExitHandlerRegistered;
     private static readonly Lock BracketedPasteGate = new();
 
+    private static int _hiddenCursorDepth;
+    private static bool _hiddenCursorExitHandlerRegistered;
+    private static readonly Lock HiddenCursorGate = new();
+
     /// <summary>
     /// Ask the terminal to send mouse events as SGR-encoded reports
     /// (xterm mode 1006) for the duration of the returned scope, with
@@ -403,6 +407,63 @@ public static class Crt
                 // Sink may be disposed during shutdown.
             }
             _bracketedPasteDepth = 0;
+        }
+    }
+
+    /// <summary>
+    /// Hide the terminal cursor for the duration of the returned scope —
+    /// pairs naturally with full-screen takeovers (game loops, TUI
+    /// redraws) where a parked, blinking cursor would flicker on top of
+    /// the painted frame. Disposing emits the show-cursor escape so the
+    /// user's shell isn't left blind after your app exits.
+    /// </summary>
+    /// <remarks>
+    /// No-op when output is redirected or the host isn't a real
+    /// terminal. Nests by reference count. <c>CancelKeyPress</c> and
+    /// <c>ProcessExit</c> handlers are registered lazily so a Ctrl-C
+    /// always restores the cursor.
+    /// </remarks>
+    public static IDisposable UseHiddenCursor()
+    {
+        if (!IsInteractive) return NullScope.Instance;
+
+        lock (HiddenCursorGate)
+        {
+            if (++_hiddenCursorDepth == 1)
+            {
+                EnsureHiddenCursorExitHandler();
+                Sink.Write(AnsiCodes.HideCursor);
+                Sink.Flush();
+            }
+        }
+
+        return new HiddenCursorScope();
+    }
+
+    private static void EnsureHiddenCursorExitHandler()
+    {
+        if (_hiddenCursorExitHandlerRegistered) return;
+        _hiddenCursorExitHandlerRegistered = true;
+
+        Console.CancelKeyPress += (_, _) => RestoreHiddenCursorOnExit();
+        AppDomain.CurrentDomain.ProcessExit += (_, _) => RestoreHiddenCursorOnExit();
+    }
+
+    private static void RestoreHiddenCursorOnExit()
+    {
+        lock (HiddenCursorGate)
+        {
+            if (_hiddenCursorDepth <= 0) return;
+            try
+            {
+                Sink.Write(AnsiCodes.ShowCursor);
+                Sink.Flush();
+            }
+            catch
+            {
+                // Sink may be disposed during shutdown.
+            }
+            _hiddenCursorDepth = 0;
         }
     }
 
@@ -599,6 +660,27 @@ public static class Crt
                 if (--_bracketedPasteDepth == 0)
                 {
                     Sink.Write(AnsiCodes.BracketedPasteLeave);
+                    Sink.Flush();
+                }
+            }
+        }
+    }
+
+    private sealed class HiddenCursorScope : IDisposable
+    {
+        private bool _disposed;
+
+        public void Dispose()
+        {
+            if (_disposed) return;
+            _disposed = true;
+
+            lock (HiddenCursorGate)
+            {
+                if (_hiddenCursorDepth <= 0) return;
+                if (--_hiddenCursorDepth == 0)
+                {
+                    Sink.Write(AnsiCodes.ShowCursor);
                     Sink.Flush();
                 }
             }

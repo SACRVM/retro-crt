@@ -189,7 +189,7 @@ internal sealed class Game
 
     private void DrawApple(ScreenBuffer screen)
     {
-        screen[_apple.X, _apple.Y] = new Cell('●', Color.LightRed, Color.Black, CellAttrs.Bold);
+        screen[_apple.X, _apple.Y] = new Cell('*', Color.LightRed, Color.Black, CellAttrs.Bold);
     }
 
     private void DrawSnake(ScreenBuffer screen)
@@ -197,7 +197,12 @@ internal sealed class Game
         var first = true;
         foreach (var seg in _body)
         {
-            var glyph = first ? '◉' : '█';
+            // Head is '@' (classic roguelike, ASCII-safe everywhere);
+            // body is '█' (CP437 full block, fine in every console
+            // font Chloe tested). Avoiding U+25C9/U+25CF made the
+            // glyphs survive on fonts that don't ship with the
+            // miscellaneous-symbols block.
+            var glyph = first ? '@' : '█';
             var fg    = first ? Color.LightGreen : Color.DarkGreen;
             var attr  = first ? CellAttrs.Bold : CellAttrs.None;
             screen[seg.X, seg.Y] = new Cell(glyph, fg, Color.Black, attr);

@@ -17,8 +17,9 @@ if (width < 30 || height < 12)
     return 1;
 }
 
-using var alt = Crt.UseAlternateScreen();
-using var raw = RawMode.Enter();
+using var alt    = Crt.UseAlternateScreen();
+using var hidden = Crt.UseHiddenCursor();
+using var raw    = RawMode.Enter();
 
 // Each Run() returns when the player either quits or asks for a
 // restart on the game-over screen. Loop the whole thing so restarts
