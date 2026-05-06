@@ -56,7 +56,9 @@ static void Run(int width, int height)
         {
             if (ev.Kind == InputEventKind.Key)
             {
-                if (ev.Key.Key == Key.Escape) return;
+                // Esc quits — except while the help overlay is up, where
+                // any key (incl. Esc) just closes the overlay.
+                if (ev.Key.Key == Key.Escape && !game.IsHelpOpen) return;
 
                 var prevStarted = game.IsStarted;
                 var prevTick    = game.TickMs;

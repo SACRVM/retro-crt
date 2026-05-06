@@ -51,6 +51,7 @@ internal sealed class Game
     public int Alive { get; private set; }
     public bool IsStarted { get; private set; }
     public bool IsPaused { get; private set; }
+    public bool IsHelpOpen { get; private set; }
     public Pattern Current => _current;
     public int TickMs => _tickMs;
 
@@ -163,7 +164,7 @@ internal sealed class Game
 
     public void Step()
     {
-        if (!IsStarted || IsPaused) return;
+        if (!IsStarted || IsPaused || IsHelpOpen) return;
         StepOnce();
     }
 
@@ -219,6 +220,13 @@ internal sealed class Game
 
     public void HandleKey(KeyEvent key)
     {
+        // Help is modal: while it's up, any key dismisses it and nothing
+        // else fires this turn. Cheap-and-cheerful "press any key" UX.
+        if (IsHelpOpen)
+        {
+            IsHelpOpen = false;
+            return;
+        }
         if (key.Key != Key.Glyph) return;
         switch (key.Glyph)
         {
@@ -237,6 +245,9 @@ internal sealed class Game
                 break;
             case '-':
                 _tickMs = Math.Min(500, _tickMs + 20);
+                break;
+            case 'h' or 'H' or '?':
+                IsHelpOpen = true;
                 break;
             case '0': Seed(Pattern.Pentadecathlon); IsPaused = false; break;
             case '1': Seed(Pattern.Random);         IsPaused = false; break;
@@ -258,7 +269,8 @@ internal sealed class Game
         DrawFooter(screen);
         DrawBorder(screen);
         DrawField(screen);
-        if (!IsStarted) DrawIntro(screen);
+        if (!IsStarted)  DrawIntro(screen);
+        if (IsHelpOpen)  DrawHelp(screen);
     }
 
     private void DrawHud(ScreenBuffer screen)
@@ -280,9 +292,9 @@ internal sealed class Game
         // sim is on hold — same row, no separate overlay so we never
         // collide with a centered intro/dialog.
         var (text, fg, bg) = IsPaused
-            ? ("  PAUSE  ·  N step  ·  SPACE resume  ·  Esc quit  ",
+            ? ("  PAUSE  ·  N step  ·  SPACE resume  ·  H help  ·  Esc quit  ",
                Color.Black, Color.Yellow)
-            : (" SPACE pause  ·  0-9 patterns  ·  R reset  ·  N step  ·  +/- speed  ·  Esc quit ",
+            : (" SPACE pause  ·  0-9 patterns  ·  R reset  ·  N step  ·  +/- speed  ·  H help  ·  Esc quit ",
                Color.LightGray, Color.DarkBlue);
 
         var y = _renderHeight - 1;
@@ -385,8 +397,42 @@ internal sealed class Game
             "    N      step (when paused)          ",
             "    R      reseed current pattern      ",
             "    +/-    faster / slower             ",
+            "    H      help (rules + colors)       ",
             "    Esc    quit                        ",
             "                                       ",
+        };
+        DrawCenteredBox(screen, lines, Color.White, Color.DarkBlue);
+    }
+
+    private void DrawHelp(ScreenBuffer screen)
+    {
+        var lines = new[] {
+            "                                            ",
+            "                R U L E S                   ",
+            "           Conway's Game of Life            ",
+            "                                            ",
+            "    Each cell looks at its 8 neighbors.     ",
+            "                                            ",
+            "    B3   dead  + exactly 3   ->  born       ",
+            "    S23  alive + 2 or 3      ->  survives   ",
+            "    else                     ->  dies       ",
+            "         (lonely <2 · crowded >3)           ",
+            "                                            ",
+            "           A G E   ·   C O L O R            ",
+            "                                            ",
+            "    Yellow       newborn    (gen 1)         ",
+            "    LightGreen   young      (gen 2-3)       ",
+            "    DarkGreen    mature     (gen 4-9)       ",
+            "    LightCyan    stable     (gen 10-29)     ",
+            "    DarkCyan     ancient    (gen 30+)       ",
+            "                                            ",
+            "    Each terminal cell stacks two grid      ",
+            "    cells via '▀': fg = top half,           ",
+            "    bg = bottom half. Twice the vertical    ",
+            "    resolution for free.                    ",
+            "                                            ",
+            "          Press any key to close            ",
+            "                                            ",
         };
         DrawCenteredBox(screen, lines, Color.White, Color.DarkBlue);
     }
