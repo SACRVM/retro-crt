@@ -197,15 +197,13 @@ internal sealed class Game
         var first = true;
         foreach (var seg in _body)
         {
-            // Head is '@' (classic roguelike, ASCII-safe everywhere);
-            // body is '█' (CP437 full block, fine in every console
-            // font Chloe tested). Avoiding U+25C9/U+25CF made the
-            // glyphs survive on fonts that don't ship with the
-            // miscellaneous-symbols block.
-            var glyph = first ? '@' : '█';
-            var fg    = first ? Color.LightGreen : Color.DarkGreen;
-            var attr  = first ? CellAttrs.Bold : CellAttrs.None;
-            screen[seg.X, seg.Y] = new Cell(glyph, fg, Color.Black, attr);
+            // Head is a yellow block; body is a green block. Same glyph
+            // ('█', CP437 full block) for both — color carries the
+            // distinction. Bold on the head bumps the yellow toward
+            // bright yellow on terminals that distinguish.
+            var fg = first ? Color.Yellow : Color.DarkGreen;
+            var attr = first ? CellAttrs.Bold : CellAttrs.None;
+            screen[seg.X, seg.Y] = new Cell('█', fg, Color.Black, attr);
             first = false;
         }
     }

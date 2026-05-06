@@ -41,6 +41,21 @@ static GameOverChoice Run(int width, int height)
 
     while (true)
     {
+        // Render first when dirty — guarantees the player sees a frame
+        // *before* we block on input, so the game appears immediately
+        // on launch (and any stray stdin byte from the launching shell
+        // can't suppress the initial paint).
+        if (dirty)
+        {
+            current.Clear();
+            game.Draw(current);
+            ScreenRenderer.Render(previous, current, Crt.Sink);
+            Crt.Sink.Flush();
+            previous = current;
+            current  = ReferenceEquals(current, bufA) ? bufB : bufA;
+            dirty    = false;
+        }
+
         var now       = sw.ElapsedMilliseconds;
         var remaining = (int)(nextTick - now);
 
@@ -72,16 +87,6 @@ static GameOverChoice Run(int width, int height)
             nextTick = now + game.TickMs;
             dirty = true;
         }
-
-        if (!dirty) continue;
-
-        current.Clear();
-        game.Draw(current);
-        ScreenRenderer.Render(previous, current, Crt.Sink);
-        Crt.Sink.Flush();
-        previous = current;
-        current  = ReferenceEquals(current, bufA) ? bufB : bufA;
-        dirty    = false;
     }
 }
 
