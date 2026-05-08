@@ -124,4 +124,41 @@ public class TerminalInputTests : IDisposable
         Assert.False(second);
     }
 
+    [Fact]
+    public void WaitForEvent_commits_lone_ESC_as_Escape_after_timeout_without_follow_up()
+    {
+        _source.FeedAscii("\x1b");
+
+        // Drain the byte: parser reports Incomplete (could still be the
+        // start of a CSI/SS3 sequence), so no event surfaces yet.
+        var first = TerminalInput.WaitForEvent(0, out _);
+        Assert.False(first);
+
+        // Caller's wait elapsed without any follow-up bytes — commit
+        // the buffered ESC as a real Escape keypress so apps that bind
+        // Escape don't have to wait for the next keystroke.
+        var got = TerminalInput.WaitForEvent(50, out var ev);
+        Assert.True(got);
+        Assert.Equal(InputEventKind.Key, ev.Kind);
+        Assert.Equal(Key.Escape, ev.Key.Key);
+    }
+
+    [Fact]
+    public void WaitForEvent_does_not_commit_Escape_when_CSI_sequence_completes()
+    {
+        // ESC and the rest of the cursor-key sequence arrive in two
+        // reads. The bare-ESC fallback must NOT fire while the parser
+        // is still legitimately Incomplete — otherwise an arrow key
+        // split across reads would surface as a phantom Escape.
+        _source.FeedAscii("\x1b");
+        _source.FeedAscii("[A");
+
+        var first = TerminalInput.WaitForEvent(0, out _);
+        Assert.False(first);
+
+        var got = TerminalInput.WaitForEvent(50, out var ev);
+        Assert.True(got);
+        Assert.Equal(Key.Up, ev.Key.Key);
+    }
+
 }

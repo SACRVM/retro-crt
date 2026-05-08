@@ -76,6 +76,17 @@ public static class TerminalInput
     /// indefinitely (equivalent to <see cref="ReadEvent"/> minus the
     /// EOF exception).
     /// </summary>
+    /// <remarks>
+    /// Resolves the classic ESC-vs-CSI ambiguity: a lone <c>0x1b</c>
+    /// byte could be the user pressing Escape OR the start of a still-
+    /// arriving cursor / function key sequence, so the parser stays
+    /// optimistic and reports Incomplete. After a non-zero
+    /// <paramref name="timeoutMs"/> wait that delivered no follow-up
+    /// bytes, this method commits the buffered ESC as a real Escape
+    /// keypress — otherwise apps that bind Escape (modal close, menu
+    /// dismiss) would feel stuck until the next keystroke nudged the
+    /// parser forward.
+    /// </remarks>
     public static bool WaitForEvent(int timeoutMs, out InputEvent ev)
     {
         lock (Gate)
@@ -83,10 +94,23 @@ public static class TerminalInput
             if (TryParseFromBuffer(out ev)) return true;
             if (_eof) return false;
 
-            if (Source.TryWait(timeoutMs))
-                FillBufferBlocking();
+            var dataReady = Source.TryWait(timeoutMs);
+            if (dataReady) FillBufferBlocking();
 
-            return TryParseFromBuffer(out ev);
+            if (TryParseFromBuffer(out ev)) return true;
+
+            // Bare-ESC commit: the wait already gave any follow-up
+            // bytes their chance. Tied to the caller's own
+            // timeoutMs so a tighter loop (e.g. 16 ms tick) gets a
+            // tighter Esc latency.
+            if (!dataReady && timeoutMs > 0 && _charLen == 1 && CharBuf[0] == '\x1b')
+            {
+                ev = new InputEvent(new KeyEvent(Key.Escape));
+                _charLen = 0;
+                return true;
+            }
+
+            return false;
         }
     }
 
