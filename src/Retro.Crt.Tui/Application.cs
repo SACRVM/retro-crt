@@ -286,6 +286,15 @@ public sealed class Application
 
     private void DispatchMouse(MouseEvent mouse)
     {
+        // Shift+mouse is the standard 'force native selection' gesture
+        // across modern terminals (Windows Terminal, iTerm2, gnome-
+        // terminal, kitty, Alacritty, foot). Most of them swallow the
+        // event client-side when Shift is held; the ones that forward
+        // it would otherwise feed it to the focused view and rob the
+        // user of click-and-drag-to-select. Drop the event so the
+        // terminal's own selection layer wins on every backend.
+        if ((mouse.Modifiers & KeyModifiers.Shift) != 0) return;
+
         // Mouse coordinates from InputParser are 1-based; our Rect
         // model is 0-based.
         var x = mouse.X - 1;

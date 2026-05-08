@@ -677,17 +677,24 @@ new Application(root).Run();
 `Application` enters the alternate screen, raw mode, mouse tracking,
 and bracketed paste; redraws via the core's diff renderer; routes
 input to a focus tree (Tab / Shift+Tab cycles, mouse clicks set
-focus). The shipped widgets are: `Panel`, `Label` (with `TextAlign`),
-`Button`, `LogViewer` (scrollable with scrollbar + drag), `TextBox`
-(single-line editor with bracketed-paste support), `Menu` (vertical
-list, disabled-row skipping), `Dialog` (centered modal —
-`app.ShowModal(...)` restricts input to its subtree, plus a
-`Dialog.MessageBox(app, title, msg)` helper for the one-button case).
-`ScrollViewer` is an abstract base — subclass it with your own
-`ContentHeight` + `DrawContent`. `Container` + `StackPanel` cover the
-basic layouts; `Layout.Split` / `Layout.Dock` are span-based zero-alloc
-helpers for hand-rolled layouts. SIGWINCH is wired on Unix, polled on
-Windows, so resize lands cleanly.
+focus). **Shift+click and Shift+drag are reserved as the user's
+escape hatch:** any mouse event with the Shift modifier set is
+dropped before dispatch so the terminal's native click-and-drag
+text selection wins. `LogViewer` and friends auto-follow new
+content with sticky-tail semantics — the viewport snaps to the
+bottom only while the user is pinned there, so a chatty log pane
+won't yank them away from past output mid-read; pressing `End`
+re-pins to the live tail. The shipped widgets are: `Panel`, `Label`
+(with `TextAlign`), `Button`, `LogViewer` (scrollable with scrollbar
++ drag), `TextBox` (single-line editor with bracketed-paste
+support), `Menu` (vertical list, disabled-row skipping), `Dialog`
+(centered modal — `app.ShowModal(...)` restricts input to its
+subtree, plus a `Dialog.MessageBox(app, title, msg)` helper for the
+one-button case). `ScrollViewer` is an abstract base — subclass it
+with your own `ContentHeight` + `DrawContent`. `Container` +
+`StackPanel` cover the basic layouts; `Layout.Split` / `Layout.Dock`
+are span-based zero-alloc helpers for hand-rolled layouts. SIGWINCH
+is wired on Unix, polled on Windows, so resize lands cleanly.
 
 The `samples/Retro.Crt.Tui.Demo` project tours all of the above —
 menu, log viewer, text box, send button, modal dialog, paste — in

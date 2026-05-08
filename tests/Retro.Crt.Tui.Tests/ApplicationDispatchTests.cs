@@ -45,6 +45,45 @@ public class ApplicationDispatchTests
     }
 
     [Fact]
+    public void Shift_modifier_drops_mouse_event_for_native_selection()
+    {
+        // Modern terminals reserve Shift+click / Shift+drag for native
+        // text selection, bypassing the app's mouse capture. Some
+        // forward the event anyway; the Application drops it so the
+        // gesture works the same on every backend.
+        var view = new RecordingView { IsFocusable = true, Bounds = new Rect(0, 0, 10, 5) };
+        var root = new TestContainer { Children = { view } };
+        var app  = new Application(root);
+
+        DispatchMouse(app, new MouseEvent(
+            MouseButton.Left, MouseEventKind.Press, 5, 3, KeyModifiers.Shift));
+        DispatchMouse(app, new MouseEvent(
+            MouseButton.Left, MouseEventKind.Drag, 6, 3, KeyModifiers.Shift));
+        DispatchMouse(app, new MouseEvent(
+            MouseButton.WheelDown, MouseEventKind.Wheel, 5, 3, KeyModifiers.Shift));
+
+        Assert.Equal(0, view.MouseEvents);
+    }
+
+    [Fact]
+    public void Non_shift_mouse_events_still_dispatch_normally()
+    {
+        // Negative case: bare mouse and Ctrl/Alt-modified mouse still
+        // route to the view tree as usual — only Shift is reserved.
+        var view = new RecordingView { IsFocusable = true, Bounds = new Rect(0, 0, 10, 5) };
+        var root = new TestContainer { Children = { view } };
+        var app  = new Application(root);
+
+        DispatchMouse(app, new MouseEvent(MouseButton.Left, MouseEventKind.Press, 5, 3));
+        DispatchMouse(app, new MouseEvent(
+            MouseButton.Left, MouseEventKind.Press, 5, 3, KeyModifiers.Ctrl));
+        DispatchMouse(app, new MouseEvent(
+            MouseButton.Left, MouseEventKind.Press, 5, 3, KeyModifiers.Alt));
+
+        Assert.Equal(3, view.MouseEvents);
+    }
+
+    [Fact]
     public void Release_clears_capture()
     {
         var capture = new RecordingView { IsFocusable = true, Bounds = new Rect(0, 0, 10, 5) };
