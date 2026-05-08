@@ -93,12 +93,20 @@ internal sealed class Game
         _rng          = seed is { } s ? new Random(s) : new Random();
 
         // Layout: HUD (row 0), top border (1), arena (2..h-3), bottom
-        // border (h-2), footer (h-1). Field occupies the left of the
-        // arena; sidebar (NEXT + score panel) sits two cells to its
-        // right with the rest of the arena width to play with.
-        _fieldOffsetX = 2;
+        // border (h-2), footer (h-1). Center the well+sidebar block in
+        // the arena so the playfield sits toward the middle and the
+        // stats panel gets breathing room rather than hugging the left
+        // edge. Sidebar width is the widest sidebar line: a 4-cell
+        // NEXT preview at CellW=2 → 8 columns.
+        const int SidebarWidth = 8;
+        const int Gap          = 4;
+        var blockWidth = FieldW * CellW + 2 + Gap + SidebarWidth;
+        var marginX    = (width - blockWidth) / 2;
+        if (marginX < 1) marginX = 1;
+
+        _fieldOffsetX = marginX + 1;
         _fieldOffsetY = 2;
-        _sidebarX     = _fieldOffsetX + FieldW * CellW + 2;
+        _sidebarX     = _fieldOffsetX + FieldW * CellW + 1 + Gap;
 
         _nextId = _rng.Next(7);
         SpawnNext();
