@@ -9,7 +9,8 @@
 
 Pascal CRT-Unit verbs (`TextColor`, `GotoXY`, `ClrScr`, `ClrEol`,
 `Bell`), truecolor with graceful 256-color, 16-color, and `NO_COLOR`
-fallback, six era-faithful themes, and a small set of curated output
+fallback, nine built-in themes (six era-faithful retro presets and
+three modern dark themes), and a small set of curated output
 blocks — framed banners, in-place progress bars, animated spinners,
 aligned tables, interactive prompts, a five-level logger, and a
 typewriter that fades characters in. Plus alt-screen takeover for
@@ -32,12 +33,26 @@ using (Crt.WithStyle(Color.Yellow, bold: true))
 > **Demos to run live** (cast recordings coming soon):
 >
 > ```bash
+> # samples/ — small single-feature tours
 > dotnet run --project samples/Retro.Crt.Demo            # 25 s feature tour
-> dotnet run --project samples/Retro.Crt.Themes.Demo     # all 6 themes side by side
+> dotnet run --project samples/Retro.Crt.Themes.Demo     # all 9 themes side by side
 > dotnet run --project samples/Retro.Crt.Matrix.Demo     # "Wake up, Neo" cinematic
 > dotnet run --project samples/Retro.Crt.Boot.Demo       # fake AMIBIOS POST + DOS prompt
 > dotnet run --project samples/Retro.Crt.Capabilities.Demo   # color-depth fallback (FORCE_COLOR=3/2/1, NO_COLOR)
 > dotnet run --project samples/Retro.Crt.AltScreen.Demo  # alt-screen takeover, restores your shell
+> dotnet run --project samples/Retro.Crt.ScreenBuffer.Demo   # cell-grid + diff renderer
+> dotnet run --project samples/Retro.Crt.Input.Demo      # live input event probe
+> dotnet run --project samples/Retro.Crt.Tui.Demo        # Tui widget tour (menu/log/textbox/dialog/paste)
+>
+> # games/ — five ASCII showcases on the core's ScreenBuffer + RawMode
+> dotnet run --project games/snake -c Release            # WASD + apple
+> dotnet run --project games/life -c Release             # Conway's Life with patterns
+> dotnet run --project games/matrix-rain -c Release      # cinematic digital rain
+> dotnet run --project games/invaders -c Release         # Space Invaders w/ bunkers
+> dotnet run --project games/tetris -c Release           # 10×20 well, SRS-ish
+>
+> # apps/ — substantial tech demos
+> dotnet run --project apps/commander -c Release         # Norton-Commander-Lite
 > ```
 >
 > The Capabilities demo prints the same scene under whatever depth the
@@ -72,7 +87,7 @@ widgets, and nothing more elaborate than a table.
 | Spinner                | ✅          | ✅              | ❌        | ❌      |
 | Aligned tables         | ✅ (basic) | ✅ (rich)       | ❌        | ❌      |
 | Interactive prompts    | ✅ (3 verbs)| ✅ (rich)      | ❌        | ❌      |
-| Themes                 | ✅ (6 presets)| ✅          | ❌        | ❌      |
+| Themes                 | ✅ (9 presets)| ✅          | ❌        | ❌      |
 | Trees / forms / panels | ❌          | ✅              | ❌        | ❌      |
 | Live regions / layout  | ❌          | ✅              | ❌        | ❌      |
 | Markup language        | ❌          | ✅              | ❌        | ❌      |
@@ -434,7 +449,7 @@ Table.Print(
     headers: ["Demo",   "Time", "Vibe"],
     rows:    [
         ["tour",   "24s", "feature tour"],
-        ["themes", "16s", "all 6 themes"],
+        ["themes", "16s", "all 9 themes"],
         ["matrix", "25s", "wake up, neo"],
         ["boot",   "22s", "AMIBIOS POST"],
     ],
@@ -449,7 +464,7 @@ Renders as:
 │ Demo   │ Time │ Vibe         │
 ├────────┼──────┼──────────────┤
 │ tour   │ 24s  │ feature tour │
-│ themes │ 16s  │ all 6 themes │
+│ themes │ 16s  │ all 9 themes │
 │ matrix │ 25s  │ wake up, neo │
 │ boot   │ 22s  │ AMIBIOS POST │
 └────────┴──────┴──────────────┘
@@ -662,25 +677,34 @@ new Application(root).Run();
 `Application` enters the alternate screen, raw mode, mouse tracking,
 and bracketed paste; redraws via the core's diff renderer; routes
 input to a focus tree (Tab / Shift+Tab cycles, mouse clicks set
-focus). The shipped widgets are: `Panel`, `Button`, `LogViewer`
-(scrollable with scrollbar + drag), `TextBox` (single-line editor),
-`Menu` (vertical list), `Dialog` (centered modal — `app.ShowModal(...)`
-restricts input to its subtree). `Container` + `StackPanel` cover the
+focus). The shipped widgets are: `Panel`, `Label` (with `TextAlign`),
+`Button`, `LogViewer` (scrollable with scrollbar + drag), `TextBox`
+(single-line editor with bracketed-paste support), `Menu` (vertical
+list, disabled-row skipping), `Dialog` (centered modal —
+`app.ShowModal(...)` restricts input to its subtree, plus a
+`Dialog.MessageBox(app, title, msg)` helper for the one-button case).
+`ScrollViewer` is an abstract base — subclass it with your own
+`ContentHeight` + `DrawContent`. `Container` + `StackPanel` cover the
 basic layouts; `Layout.Split` / `Layout.Dock` are span-based zero-alloc
-helpers for hand-rolled layouts.
+helpers for hand-rolled layouts. SIGWINCH is wired on Unix, polled on
+Windows, so resize lands cleanly.
 
 The `samples/Retro.Crt.Tui.Demo` project tours all of the above —
 menu, log viewer, text box, send button, modal dialog, paste — in
 under 250 lines.
 
-## NuGet package
+## NuGet packages
 
-Published on nuget.org:
-[**Retro.Crt**](https://www.nuget.org/packages/Retro.Crt) — the core package — and (soon)
-**Retro.Crt.Tui** for the widget layer. Install with:
+Two packages on nuget.org from the same repo:
+
+- [**Retro.Crt**](https://www.nuget.org/packages/Retro.Crt) — the core
+  (Pascal CRT verbs, palette, output blocks, screen buffer, input).
+- [**Retro.Crt.Tui**](https://www.nuget.org/packages/Retro.Crt.Tui) —
+  the widget layer (Application, View, layouts, widgets) on top.
 
 ```bash
 dotnet add package Retro.Crt
+dotnet add package Retro.Crt.Tui    # only if you want the widget layer
 ```
 
 Symbols are shipped as a `.snupkg` so `Source Link` and step-into

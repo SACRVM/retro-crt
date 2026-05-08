@@ -8,40 +8,178 @@ versions; breaking changes are called out below.
 
 ## [Unreleased]
 
+_Nothing yet._
+
+## [0.7.1] — 2026-05-08
+
 ### Added
 
-- `Retro.Crt.Input` namespace — pure parsers + types for terminal input.
-  `KeyEvent` (with `Key`, `Glyph`, `KeyModifiers`), `MouseEvent` (with
-  `MouseButton`, `MouseEventKind`), and the `InputEvent` tagged-union
-  on top. `InputParser.TryParseKey` / `TryParseMouse` / `TryParseEvent`
-  decode ANSI escape sequences (cursor keys, F1..F12 in SS3 *and* CSI
-  forms, modifier-augmented variants), control bytes, Alt-prefixed
-  printables, Ctrl+letter, and SGR-encoded mouse reports (xterm mode
-  1006). Stateless and zero-alloc; `InputParseStatus` separates
-  complete from incomplete-buffer from invalid-sequence cases so input
-  loops can buffer correctly. Reading stdin in raw mode and dispatching
-  parsed events is a follow-up (Stage 2b — needs the OS-specific
-  termios / SetConsoleMode work).
+- `Crt.UseHiddenCursor()` — `IDisposable` scope around the
+  hide-cursor / show-cursor SGR pair. Reference-counted, with the
+  same `CancelKeyPress` / `ProcessExit` safety net as
+  `UseAlternateScreen` and `UseMouse` so a Ctrl-C never leaves the
+  user's terminal cursorless. Pairs cleanly with `UseAlternateScreen`
+  for full-screen game loops.
+- `apps/Retro.Crt.Commander` — first entry in a new `apps/` tier.
+  Norton Commander style two-pane file browser exercising the lib
+  end-to-end: marquee-scrolling long filenames, color-coded
+  entries, multi-select via `Ins` / `Shift+↑` / `Shift+↓`, file
+  ops (F4 dup, F5 copy, F6 move, F8 delete) with a `█`/`░` progress
+  modal mirroring `ProgressBar`'s glyphs, F3 viewer with binary
+  detection. Auto-generates a fake workspace under `%TEMP%` so
+  destructive ops can never escape into the real filesystem.
+
+### Fixed
+
+- `TerminalInput.WaitForEvent` commits a buffered lone `ESC` byte
+  as a real `Escape` keypress when its wait elapses without
+  follow-up bytes. The classic ESC-vs-CSI ambiguity left every
+  Esc-bound shortcut (modal close, menu dismiss, app quit) feeling
+  stuck until the next keystroke nudged the parser forward; the
+  fix bounds Esc latency to the caller's own `timeoutMs`. New
+  tests cover both the synth path and the no-regression case
+  (CSI sequence split across two reads still surfaces as the
+  right cursor key).
+- Snake cursor flicker on Windows + glyph fallback on non-unicode
+  hosts. The fix added the `Crt.UseHiddenCursor()` scope and a
+  ASCII-fallback path in the renderer's glyph table.
+
+### Performance
+
+- `ScreenRenderer.Render` batches the whole frame's output into a
+  single `Sink.Write` call instead of dribbling it cell-by-cell.
+  Measurable improvement on busy frames (full-screen
+  reflows, big diffs); the `Crt.Sink.Flush()` afterwards still
+  pushes one syscall per frame.
+
+## [Retro.Crt.Tui 0.1.1] — 2026-05-06
+
+### Fixed
+
+- Bumps the core dependency to `Retro.Crt >= 0.7.0`. The 0.1.0 nupkg
+  shipped pinned to `>= 0.6.0`, but its compiled DLL referenced
+  `WindowResize` (added on `main` between v0.6.0 and v0.7.0), so
+  downstream consumers got a `TypeLoadException` at runtime. **Use
+  this version, not 0.1.0.**
+
+## [0.7.0] — 2026-05-06
+
+### Added
+
+- `Retro.Crt.Internals.WindowResize.Install()` — SIGWINCH handler
+  on Unix, lightweight polling on Windows. Internal so only
+  `Retro.Crt.Tui` consumes it (via `InternalsVisibleTo`), but the
+  public surface is the smooth resize behavior in any
+  `Retro.Crt.Tui.Application`-driven app.
+- `InternalsVisibleTo("Retro.Crt.Tui")` — the Tui package can ride
+  on core internals (currently `WindowResize`, `CursorState`,
+  `Glyphs`) without forcing a wider public API.
+
+## [Retro.Crt.Tui 0.1.0] — 2026-05-06
+
+First release of the second package — Stages 3–5 of the staged
+roadmap, all in one cut.
+
+### Added
+
+- `Retro.Crt.Tui.Layout` — `Rect`, `LayoutSize` (`Cells(int)` /
+  `Star(double)`), `Split.Horizontal/Vertical`, `Dock.Peel` with
+  `DockSide`. Pure geometry, span-based, zero-alloc.
+- `Application` — sealed event loop on top of `ScreenBuffer` +
+  `ScreenRenderer` + `TerminalInput`. Enters alt-screen, raw mode,
+  mouse tracking, and bracketed paste; redraws via diff whenever a
+  view marks itself dirty; tab/shift+tab cycles a focus tree; mouse
+  capture between Press / Release; wheel events route to whatever
+  view sits under the cursor. SIGWINCH integration on Unix, polling
+  on Windows. Window size sampled *after* alt-screen + raw-mode are
+  active so the first frame paints at the right dimensions.
+- `View` base + `Container` base. `OnKey(KeyEvent, Application)`
+  returns `bool` — `true` consumes the key and stops bubble-up.
+  `OnDraw(ScreenBuffer)`, `OnMouse`, `OnPaste`, `IsFocusable`,
+  `IsFocused`, `MarkDirty()`, `Bounds`.
+- `Application.ShowModal(View)` / `CloseModal()` / `Modal` — single
+  modal slot; while a modal is open, all input is restricted to its
+  subtree and the background root sees nothing. Saves and restores
+  focus across the modal lifetime.
+- `Application.SetFocus(View?)` — direct focus, scope-validated, in
+  addition to Tab traversal.
+- Widgets: `Panel`, `Label` (with `TextAlign`), `Button` (with
+  `Click` event), `LogViewer` (scrollable + scrollbar + drag thumb,
+  `Append(string, Color?)` / `Clear()`), `TextBox` (single-line
+  editor + `Submit` event + `TextChanged`, paste-aware), `Menu`
+  (vertical list + disabled-row skipping + activate), `Dialog`
+  (centered modal with title + content + buttons + `Closed`
+  event), `StackPanel`.
+- `ScrollViewer` — abstract base. Subclasses implement
+  `ContentHeight` + `DrawContent(ScreenBuffer)`; the base provides
+  scrollbar, thumb-drag, and key/wheel scrolling. `LogViewer` is
+  the reference subclass.
+- `Dialog.MessageBox(app, title, message)` — one-button modal
+  helper for the common case.
+- Bracketed paste — `Crt.UseBracketedPaste()`, `InputEventKind.Paste`,
+  `View.OnPaste`, `TextBox` bulk-inserts printables atomically.
+- `samples/Retro.Crt.Tui.Demo` — under-250-line widget tour
+  (menu / log / textbox / button / modal dialog / paste).
+
+## [0.6.0] — 2026-05-05
+
+Big core release — Stages 1, 2a, and 2b of the staged roadmap.
+Sets up everything `Retro.Crt.Tui` will need without taking a UI
+dependency itself.
+
+### Added
+
+- `Retro.Crt.Input` namespace — pure parsers + types for terminal
+  input. `KeyEvent` (`Key`, `Glyph`, `KeyModifiers`), `MouseEvent`
+  (`MouseButton`, `MouseEventKind`), and the `InputEvent`
+  tagged-union on top. `InputParser.TryParseKey` / `TryParseMouse`
+  / `TryParseEvent` decode ANSI escape sequences (cursor keys,
+  F1..F12 in SS3 *and* CSI forms, modifier-augmented variants),
+  control bytes, Alt-prefixed printables, Ctrl+letter, and
+  SGR-encoded mouse reports (xterm mode 1006). Stateless and
+  zero-alloc; `InputParseStatus` separates complete from
+  incomplete-buffer from invalid-sequence cases so input loops can
+  buffer correctly.
+- `Retro.Crt.Input.RawMode.Enter()` — per-OS raw mode scope.
+  `[LibraryImport]`-backed termios on Linux + Darwin (split into
+  `TermiosLinux` / `TermiosDarwin` because the `c_cc` array layouts
+  differ), `SetConsoleMode` on Windows. `ISIG` is stripped by
+  default; pass `keepSignals: true` to preserve Ctrl-C delivery.
+  VT-input only on Windows.
+- `Retro.Crt.Input.TerminalInput` — stdin reader that drives the
+  parser with a small UTF-8 byte buffer + decoder state. Three
+  read modes: blocking `ReadEvent`, non-blocking `TryReadEvent`,
+  bounded-wait `WaitForEvent(timeoutMs, out ev)`. Bracketed-paste
+  envelope handled before the regular parser so injected ESC
+  sequences inside a paste body don't get re-interpreted as
+  cursor keys.
 - `Crt.UseMouse()` — `IDisposable` scope that turns on SGR mouse
-  reporting (xterm modes 1006 + 1003) on entry and disables them on
-  exit. Reference-counted so nesting works; lazy `CancelKeyPress` /
-  `ProcessExit` handlers shut tracking off if a Ctrl-C kills the
-  process before the scope disposes. Emit-side only — to actually
-  receive the events you need a stdin reader in raw mode.
-- `ScreenBuffer` + `ScreenRenderer` — a stateful cell grid plus a
-  minimal-ANSI diff renderer. Every cell carries a `Glyph`, foreground,
+  reporting (xterm modes 1006 + 1003) on entry and off on exit.
+  Reference-counted; lazy `CancelKeyPress` / `ProcessExit` handlers
+  shut tracking off if a Ctrl-C kills the process before the scope
+  disposes.
+- `ScreenBuffer` + `ScreenRenderer` — stateful cell grid + minimal
+  diff renderer. Every cell carries a `Glyph`, foreground,
   background, and `CellAttrs` (`None` / `Bold` / `Underline`); the
-  renderer walks two buffers and emits cursor moves + SGR + chars only
-  for cells that actually changed. Pair with
-  `Crt.UseAlternateScreen()` to drive flicker-free game loops or
-  manual TUIs. Helpers: `Clear`, `PutString` (clipping), `FillRect`
-  (clipping), per-cell indexer (throws on out-of-bounds). One cell ==
-  one terminal column; surrogate pairs / wide East-Asian glyphs are
-  not modeled in v1.
+  renderer walks two buffers and emits cursor moves + SGR + chars
+  only for cells that actually changed. Pair with
+  `Crt.UseAlternateScreen()` for flicker-free game loops or hand-
+  rolled TUIs. Helpers: `Clear`, `PutString` (clipping), `FillRect`
+  (clipping), per-cell indexer (throws on out-of-bounds). One cell
+  == one terminal column; surrogate pairs / wide East-Asian glyphs
+  are not modeled in v1.
+- `samples/Retro.Crt.Input.Demo` — live event probe; prints every
+  decoded `InputEvent` as it arrives, useful for verifying
+  modifier-byte decoding on a given terminal.
 - `samples/Retro.Crt.ScreenBuffer.Demo` — short bouncing-ball demo
-  inside an alternate-screen scope. Two buffers ping-ponged, only the
-  ball's old + new positions get repainted per frame (~30 fps,
+  inside an alternate-screen scope. Two buffers ping-ponged, only
+  the ball's old + new positions get repainted per frame (~30 fps,
   flicker-free).
+- `games/` directory with five ASCII showcases: Snake, Conway's
+  Life (with patterns + age coloring), Matrix Rain, Space Invaders,
+  Tetris. All ride on the same core stack
+  (`ScreenBuffer` + `ScreenRenderer` + `RawMode` + `TerminalInput`)
+  with their own per-game tick loops.
 
 ## [0.5.0] — 2026-05-05
 
@@ -288,7 +426,13 @@ versions; breaking changes are called out below.
   verbs (`TextColor`, `TextBackground`, `GotoXY`, `ClrScr`, `ClrEol`,
   `WithStyle`), Windows VT enablement via `LibraryImport`.
 
-[Unreleased]: https://github.com/chloe-dream/retro-crt/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/chloe-dream/retro-crt/compare/v0.7.1...HEAD
+[0.7.1]: https://github.com/chloe-dream/retro-crt/releases/tag/v0.7.1
+[Retro.Crt.Tui 0.1.1]: https://github.com/chloe-dream/retro-crt/releases/tag/tui-v0.1.1
+[0.7.0]: https://github.com/chloe-dream/retro-crt/releases/tag/v0.7.0
+[Retro.Crt.Tui 0.1.0]: https://github.com/chloe-dream/retro-crt/releases/tag/tui-v0.1.0
+[0.6.0]: https://github.com/chloe-dream/retro-crt/releases/tag/v0.6.0
+[0.5.0]: https://github.com/chloe-dream/retro-crt/releases/tag/v0.5.0
 [0.4.0]: https://github.com/chloe-dream/retro-crt/releases/tag/v0.4.0
 [0.3.0]: https://github.com/chloe-dream/retro-crt/releases/tag/v0.3.0
 [0.2.1]: https://github.com/chloe-dream/retro-crt/releases/tag/v0.2.1

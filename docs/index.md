@@ -66,16 +66,29 @@ flavours of prompt — this library.
 
 ## Demos
 
-Short live samples under `samples/` on GitHub — clone the repo and run
-any of them:
+Three tiers under the repo on GitHub — clone and run any of them:
 
 ```bash
+# samples/ — small single-feature tours
 dotnet run --project samples/Retro.Crt.Demo            # 25 s feature tour
 dotnet run --project samples/Retro.Crt.Themes.Demo     # all 9 themes side by side
 dotnet run --project samples/Retro.Crt.Matrix.Demo     # "Wake up, Neo" cinematic
 dotnet run --project samples/Retro.Crt.Boot.Demo       # fake AMIBIOS POST + DOS prompt
 dotnet run --project samples/Retro.Crt.Capabilities.Demo   # color-depth fallback
 dotnet run --project samples/Retro.Crt.AltScreen.Demo  # alt-screen takeover, restores your shell
+dotnet run --project samples/Retro.Crt.ScreenBuffer.Demo   # cell-grid + diff renderer
+dotnet run --project samples/Retro.Crt.Input.Demo      # live input event probe
+dotnet run --project samples/Retro.Crt.Tui.Demo        # Tui widget tour
+
+# games/ — five ASCII games on the core's ScreenBuffer + RawMode
+dotnet run --project games/snake -c Release
+dotnet run --project games/life -c Release
+dotnet run --project games/matrix-rain -c Release
+dotnet run --project games/invaders -c Release
+dotnet run --project games/tetris -c Release
+
+# apps/ — substantial tech demos
+dotnet run --project apps/commander -c Release         # Norton-Commander-Lite
 ```
 
 ## Public surface at a glance
@@ -134,6 +147,38 @@ dotnet run --project samples/Retro.Crt.AltScreen.Demo  # alt-screen takeover, re
   `ColorDepth`, `IsInteractive`, encoding, env vars; `ToString()` gives
   a one-line dense summary for support tickets.
 
+### Cell grid + input (Stage 3 + 2a/2b)
+
+- [`ScreenBuffer`](api/Retro.Crt.ScreenBuffer.html) +
+  [`ScreenRenderer`](api/Retro.Crt.ScreenRenderer.html) — stateful cell
+  grid (`Cell` per coordinate, each `Glyph` + `Fg` + `Bg` +
+  `CellAttrs`) plus a minimal-ANSI diff renderer that emits cursor
+  moves + SGR + chars only for cells that actually changed. Pair with
+  `Crt.UseAlternateScreen()` for flicker-free game loops.
+- [`Retro.Crt.Input`](api/Retro.Crt.Input.html) — `KeyEvent` with
+  `KeyModifiers`, `MouseEvent`, `InputEvent` tagged union; stateless
+  `InputParser` for ANSI/CSI/SS3 decode; `RawMode.Enter()` for
+  per-OS termios + `SetConsoleMode`; `TerminalInput.ReadEvent` /
+  `TryReadEvent` / `WaitForEvent` for the actual stdin pump.
+- `Crt.UseMouse()` / `Crt.UseBracketedPaste()` /
+  `Crt.UseHiddenCursor()` — IDisposable scopes for SGR mouse mode,
+  paste envelopes, and cursor hiding.
+
+## Retro.Crt.Tui
+
+Separate package on top of the core's `ScreenBuffer` + diff renderer +
+input parser, for full-screen DOS-style UIs (Midnight Commander /
+Turbo Vision style). `Application` runs the alt-screen + raw + mouse +
+diff-redraw event loop; `View` and `Container` are the bases; widgets
+include `Panel`, `Label`, `Button`, `LogViewer`, `TextBox`, `Menu`,
+`Dialog` (with `Dialog.MessageBox` helper), `StackPanel`, plus an
+abstract `ScrollViewer`. `Layout.Split` / `Layout.Dock` are span-based
+zero-alloc geometry helpers.
+
+```bash
+dotnet add package Retro.Crt.Tui
+```
+
 Browse the full namespace in the [API reference](api/Retro.Crt.html).
 
 ## More
@@ -148,8 +193,10 @@ Browse the full namespace in the [API reference](api/Retro.Crt.html).
   — BenchmarkDotNet baseline numbers.
 - [Contributing](https://github.com/chloe-dream/retro-crt/blob/main/CONTRIBUTING.md)
   — how to file issues, propose features, and submit PRs.
-- [NuGet package](https://www.nuget.org/packages/Retro.Crt) — released
-  on tag pushes via `.github/workflows/release.yml`.
+- [Retro.Crt on NuGet](https://www.nuget.org/packages/Retro.Crt) and
+  [Retro.Crt.Tui on NuGet](https://www.nuget.org/packages/Retro.Crt.Tui) —
+  released on tag pushes via `.github/workflows/release.yml` (`v*`
+  tags ship core, `tui-v*` tags ship the widget layer).
 
 ## License
 

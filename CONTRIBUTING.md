@@ -20,9 +20,10 @@ Probably no:
 - Anything that requires a NuGet dependency on the library project.
 - Reflection, `Activator.CreateInstance`, JSON serialisation without a
   source-gen context, or anything else that breaks `IsTrimmable=true`.
-- Re-implementing TUI features from Spectre.Console / Terminal.Gui.
-  They are complete and excellent — pick them instead if you want
-  trees, tables, prompts, or live regions.
+- Tui widgets without a real consumer driving them. The Tui surface
+  is deliberately small (Stage 5 + ScrollViewer abstract). New
+  widgets are driver-led — when something downstream actually wants a
+  TextArea or a ScrollViewer-as-host, we build it.
 - Sound, audio, or process spawning of any kind.
 
 If you're unsure, open a draft issue first and we'll talk.
@@ -71,10 +72,14 @@ dotnet publish samples/Retro.Crt.Demo \
 
 ## Tests
 
-- New behaviour requires a test. Pure logic goes in
-  `tests/Retro.Crt.Tests/` directly; anything that touches `Console.Out`
-  goes in `tests/Retro.Crt.Tests/Integration/` and uses the
-  `ConsoleCapture` helper.
+- Two test projects, one per package:
+  - `tests/Retro.Crt.Tests/` — core. Pure logic at the root, anything
+    that touches `Console.Out` under `Integration/` using the
+    `ConsoleCapture` helper.
+  - `tests/Retro.Crt.Tui.Tests/` — Tui (Application dispatch, focus,
+    layouts, widgets, package-level smoke).
+- New behaviour requires a test. The combined suite is **558+** at
+  the time of writing and stays AOT/Trim-clean.
 - Tests that mutate environment variables, `Console.Out`, or the
   `TerminalCapabilities` cache must declare
   `[Collection(EnvMutatingCollection.Name)]`.
@@ -88,15 +93,16 @@ dotnet publish samples/Retro.Crt.Demo \
 
 ## Recording the demo casts
 
-Retro.Crt ships **four** sample showcases under `samples/`, each with
-its own asciinema cast in `docs/images/<demo>.cast` plus a rendered
-GIF in `docs/images/<demo>.gif`. Both are version-controlled; the
-cast is the canonical source.
+Retro.Crt has three demo tiers in the repo: small single-feature
+samples under `samples/`, five ASCII games under `games/`, and one
+substantial app under `apps/`. The `record-demo` script targets the
+samples (the games and apps are interactive — record those by hand
+with `asciinema rec` if you want a cast).
 
 | `-Demo`  | Project                         | Vibe                                      |
 |----------|---------------------------------|-------------------------------------------|
 | `tour`   | `Retro.Crt.Demo`                | The 25-second feature tour (default)      |
-| `themes` | `Retro.Crt.Themes.Demo`         | All six built-in themes side by side      |
+| `themes` | `Retro.Crt.Themes.Demo`         | All nine built-in themes side by side     |
 | `matrix` | `Retro.Crt.Matrix.Demo`         | "Wake up, Neo" cinematic                  |
 | `boot`   | `Retro.Crt.Boot.Demo`           | Fake AMIBIOS POST + DOS prompt            |
 
