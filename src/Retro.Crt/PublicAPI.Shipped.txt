@@ -254,6 +254,7 @@ static Retro.Crt.Crt.TextBackground(Retro.Crt.Color color) -> void
 static Retro.Crt.Crt.TextColor(Retro.Crt.Color color) -> void
 static Retro.Crt.Crt.UseAlternateScreen() -> System.IDisposable!
 static Retro.Crt.Crt.UseBracketedPaste() -> System.IDisposable!
+static Retro.Crt.Crt.UseHiddenCursor() -> System.IDisposable!
 static Retro.Crt.Crt.UseMouse() -> System.IDisposable!
 static Retro.Crt.Crt.UseTheme(Retro.Crt.Theme theme) -> System.IDisposable!
 static Retro.Crt.Crt.WindowHeight.get -> int
