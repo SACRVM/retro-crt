@@ -12,9 +12,12 @@ public readonly record struct LogEntry(string Text, Color? Foreground = null);
 /// Vertically scrollable list of text rows with a thin track-and-thumb
 /// scrollbar on the right edge. Focusable; arrow keys / Page / Home /
 /// End scroll the viewport, the mouse wheel scrolls three rows at a
-/// time. <see cref="ScrollViewer.AutoScroll"/> follows new entries as
-/// they arrive — the keystone widget for log panes, REPL output, and
-/// chat-style histories.
+/// time. <see cref="ScrollViewer.AutoScroll"/> follows new entries
+/// while the user is pinned to the tail
+/// (<see cref="ScrollViewer.IsPinnedToTail"/>); once they scroll up
+/// to read past output, fresh rows append silently behind them.
+/// Pressing <c>End</c> re-pins to live tail. Keystone widget for log
+/// panes, REPL output, and chat-style histories.
 /// </summary>
 /// <remarks>
 /// v1 has no per-row selection and no filter predicate; both can land
@@ -32,7 +35,7 @@ public class LogViewer : ScrollViewer
     public void Append(LogEntry entry)
     {
         Items.Add(entry);
-        if (AutoScroll) ScrollToEnd();
+        AutoScrollOnContentGrowth();
         MarkDirty();
     }
 

@@ -277,4 +277,138 @@ public class LogViewerTests
 
         Assert.Equal(Color.LightRed, screen[0, 0].Fg);
     }
+
+    [Fact]
+    public void Sticky_tail_holds_viewport_after_user_scrolls_up()
+    {
+        var v = new LogViewer { Bounds = new Rect(0, 0, 10, 3) };
+        var app = new Application(v);
+
+        // Fill enough to overflow so the viewport actually scrolls.
+        for (var i = 0; i < 10; i++) v.Append($"L{i}");
+        Assert.True(v.IsPinnedToTail);
+        Assert.Equal(7, v.ScrollOffset);
+
+        // User pages up to read past output.
+        v.OnKey(new KeyEvent(Key.PageUp), app);
+        Assert.False(v.IsPinnedToTail);
+        var savedOffset = v.ScrollOffset;
+
+        // Fresh entries arrive while user is reading. They should NOT
+        // drag the viewport away.
+        for (var i = 10; i < 20; i++) v.Append($"L{i}");
+
+        Assert.Equal(savedOffset, v.ScrollOffset);
+        Assert.False(v.IsPinnedToTail);
+    }
+
+    [Fact]
+    public void Pressing_End_re_pins_user_to_live_tail()
+    {
+        var v = new LogViewer { Bounds = new Rect(0, 0, 10, 3) };
+        var app = new Application(v);
+
+        for (var i = 0; i < 10; i++) v.Append($"L{i}");
+        v.OnKey(new KeyEvent(Key.PageUp), app);
+        Assert.False(v.IsPinnedToTail);
+
+        // Append one while unpinned — viewport stays put.
+        v.Append("L10");
+        Assert.False(v.IsPinnedToTail);
+
+        // User presses End → re-pins.
+        v.OnKey(new KeyEvent(Key.End), app);
+        Assert.True(v.IsPinnedToTail);
+
+        // Now appended entries follow again.
+        v.Append("L11");
+        Assert.True(v.IsPinnedToTail);
+        Assert.Equal(v.MaxScrollOffset, v.ScrollOffset);
+    }
+
+    [Fact]
+    public void Manually_scrolling_back_to_bottom_re_pins()
+    {
+        var v = new LogViewer { Bounds = new Rect(0, 0, 10, 3) };
+        var app = new Application(v);
+
+        for (var i = 0; i < 10; i++) v.Append($"L{i}");
+        // Scroll up two rows: pin breaks.
+        v.OnKey(new KeyEvent(Key.Up), app);
+        v.OnKey(new KeyEvent(Key.Up), app);
+        Assert.False(v.IsPinnedToTail);
+
+        // Walk back down to the bottom one row at a time.
+        v.OnKey(new KeyEvent(Key.Down), app);
+        Assert.False(v.IsPinnedToTail);
+        v.OnKey(new KeyEvent(Key.Down), app);
+        Assert.True(v.IsPinnedToTail);
+
+        // Subsequent appends follow again.
+        v.Append("L10");
+        Assert.True(v.IsPinnedToTail);
+    }
+
+    [Fact]
+    public void Wheel_up_off_the_tail_breaks_pin_and_freezes_viewport()
+    {
+        var v = new LogViewer { Bounds = new Rect(0, 0, 10, 3) };
+        var app = new Application(v);
+
+        for (var i = 0; i < 20; i++) v.Append($"L{i}");
+        Assert.True(v.IsPinnedToTail);
+
+        v.OnMouse(new MouseEvent(MouseButton.WheelUp, MouseEventKind.Wheel, 1, 1), app);
+        Assert.False(v.IsPinnedToTail);
+        var saved = v.ScrollOffset;
+
+        for (var i = 20; i < 25; i++) v.Append($"L{i}");
+        Assert.Equal(saved, v.ScrollOffset);
+    }
+
+    [Fact]
+    public void Drag_to_bottom_of_track_re_pins()
+    {
+        var v = new LogViewer { Bounds = new Rect(0, 0, 10, 4) };
+        var app = new Application(v);
+
+        for (var i = 0; i < 20; i++) v.Append($"L{i}");
+        v.OnKey(new KeyEvent(Key.PageUp), app);
+        Assert.False(v.IsPinnedToTail);
+
+        // Click bottom of scrollbar (column 9, row 3 → localY = 3,
+        // 100% of MaxOffset).
+        v.OnMouse(
+            new MouseEvent(MouseButton.Left, MouseEventKind.Press, 10, 4),
+            app);
+
+        Assert.True(v.IsPinnedToTail);
+        Assert.Equal(v.MaxScrollOffset, v.ScrollOffset);
+    }
+
+    [Fact]
+    public void Empty_viewer_starts_pinned_so_first_entry_is_visible()
+    {
+        var v = new LogViewer { Bounds = new Rect(0, 0, 10, 3) };
+        Assert.True(v.IsPinnedToTail);
+
+        v.Append("first");
+        Assert.True(v.IsPinnedToTail);
+        Assert.Equal(0, v.ScrollOffset);
+    }
+
+    [Fact]
+    public void AutoScroll_off_does_not_follow_even_when_pinned()
+    {
+        var v = new LogViewer
+        {
+            Bounds     = new Rect(0, 0, 10, 3),
+            AutoScroll = false,
+        };
+        Assert.True(v.IsPinnedToTail);
+
+        for (var i = 0; i < 10; i++) v.Append($"L{i}");
+
+        Assert.Equal(0, v.ScrollOffset);
+    }
 }

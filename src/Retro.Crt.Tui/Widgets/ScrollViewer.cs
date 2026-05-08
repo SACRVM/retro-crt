@@ -16,10 +16,11 @@ namespace Retro.Crt.Tui.Widgets;
 /// The viewport reserves the rightmost column for the scrollbar
 /// whenever <see cref="ContentHeight"/> exceeds <c>Bounds.Height</c>.
 /// When everything fits the bar disappears and the subclass gets the
-/// full width. <see cref="AutoScroll"/> snaps the viewport to the
-/// bottom on the next paint when content has grown — handy for log
-/// panes; subclasses call <see cref="ScrollToEnd"/> after appending
-/// rows to opt in.
+/// full width. <see cref="AutoScroll"/> follows new content **only
+/// while the user is pinned to the tail** (sticky-tail semantics):
+/// once they scroll up to read past output, new entries no longer
+/// drag the viewport away. Subclasses opt in by calling
+/// <see cref="AutoScrollOnContentGrowth"/> after appending rows.
 /// </remarks>
 public abstract class ScrollViewer : View
 {
@@ -34,14 +35,29 @@ public abstract class ScrollViewer : View
     public Color ScrollbarThumb { get; set; } = Color.LightGray;
 
     /// <summary>
-    /// When true, the viewport jumps to the bottom whenever
-    /// <see cref="ScrollToEnd"/> is called by a subclass — typical
-    /// log-pane behavior.
+    /// When true, <see cref="AutoScrollOnContentGrowth"/> follows
+    /// freshly-appended content — but only while
+    /// <see cref="IsPinnedToTail"/> is also true. The sticky-tail bit
+    /// flips off the moment the user scrolls up; pressing <c>End</c>
+    /// (or scrolling back down to the bottom) re-pins them.
     /// </summary>
     public bool AutoScroll { get; set; } = true;
 
     private int _scrollOffset;
     private int _dragGrabOffset;
+    // Fresh viewers start pinned: the first item that arrives gets
+    // followed automatically, matching `tail -f` defaults.
+    private bool _pinnedToTail = true;
+
+    /// <summary>
+    /// True when the most recent scroll write left
+    /// <see cref="ScrollOffset"/> at <see cref="MaxScrollOffset"/> —
+    /// the user is sitting on the last row and wants new content to
+    /// follow. Updated by every <see cref="ScrollOffset"/> write
+    /// (user input, programmatic, or <see cref="AutoScrollOnContentGrowth"/>);
+    /// content growth alone does NOT silently un-pin them.
+    /// </summary>
+    public bool IsPinnedToTail => _pinnedToTail;
 
     /// <summary>
     /// Logical row count of the rendered content. Drives the scrollbar
@@ -60,6 +76,11 @@ public abstract class ScrollViewer : View
         set
         {
             var clamped = ClampOffset(value);
+            // Pin recomputation runs even on idempotent writes: an
+            // explicit `ScrollOffset = MaxScrollOffset` is the user
+            // saying 'pin me to the tail' regardless of where they
+            // already were.
+            _pinnedToTail = clamped >= MaxScrollOffset;
             if (clamped == _scrollOffset) return;
             _scrollOffset = clamped;
             MarkDirty();
@@ -75,6 +96,20 @@ public abstract class ScrollViewer : View
     public void ScrollBy(int delta) => ScrollOffset = _scrollOffset + delta;
     public void PageUp()   => ScrollBy(-Math.Max(1, Bounds.Height));
     public void PageDown() => ScrollBy( Math.Max(1, Bounds.Height));
+
+    /// <summary>
+    /// Subclass hook for log-pane-style 'follow the tail when fresh
+    /// rows arrive'. No-op when <see cref="AutoScroll"/> is off OR the
+    /// user has scrolled up (<see cref="IsPinnedToTail"/> is false).
+    /// Otherwise jumps to <see cref="MaxScrollOffset"/> so the new
+    /// last row is on screen. Call after the underlying content
+    /// (<see cref="ContentHeight"/>) has grown.
+    /// </summary>
+    protected void AutoScrollOnContentGrowth()
+    {
+        if (!AutoScroll || !_pinnedToTail) return;
+        ScrollOffset = MaxScrollOffset;
+    }
 
     /// <summary>
     /// Paint the visible rows into <paramref name="content"/>.
