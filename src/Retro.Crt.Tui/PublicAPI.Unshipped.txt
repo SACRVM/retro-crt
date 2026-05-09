@@ -1,3 +1,1 @@
 #nullable enable
-Retro.Crt.Tui.Widgets.ScrollViewer.IsPinnedToTail.get -> bool
-Retro.Crt.Tui.Widgets.ScrollViewer.AutoScrollOnContentGrowth() -> void

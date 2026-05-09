@@ -159,10 +159,12 @@ Retro.Crt.Tui.Widgets.Panel.Title.set -> void
 Retro.Crt.Tui.Widgets.ScrollViewer
 Retro.Crt.Tui.Widgets.ScrollViewer.AutoScroll.get -> bool
 Retro.Crt.Tui.Widgets.ScrollViewer.AutoScroll.set -> void
+Retro.Crt.Tui.Widgets.ScrollViewer.AutoScrollOnContentGrowth() -> void
 Retro.Crt.Tui.Widgets.ScrollViewer.Background.get -> Retro.Crt.Color
 Retro.Crt.Tui.Widgets.ScrollViewer.Background.set -> void
 Retro.Crt.Tui.Widgets.ScrollViewer.Foreground.get -> Retro.Crt.Color
 Retro.Crt.Tui.Widgets.ScrollViewer.Foreground.set -> void
+Retro.Crt.Tui.Widgets.ScrollViewer.IsPinnedToTail.get -> bool
 Retro.Crt.Tui.Widgets.ScrollViewer.MaxScrollOffset.get -> int
 Retro.Crt.Tui.Widgets.ScrollViewer.PageDown() -> void
 Retro.Crt.Tui.Widgets.ScrollViewer.PageUp() -> void
