@@ -2,7 +2,7 @@
 
 Loose, opinionated. Order is roughly the order things landed in.
 Stages 1–5 are all shipped to nuget.org as `Retro.Crt 0.7.1` plus
-`Retro.Crt.Tui 0.1.2` (mono-repo, two packages, separate tag schemes).
+`Retro.Crt.Tui 0.1.5` (mono-repo, two packages, separate tag schemes).
 Anything without a stage number is unscoped — interesting, but not
 promised.
 
@@ -81,7 +81,7 @@ do.
   (bounded). 0.7.1 added the lone-ESC commit so Esc-bound shortcuts
   feel snappy.
 
-## Stage 4 — Tui Application (shipped, `Retro.Crt.Tui 0.1.0` → `0.1.2`)
+## Stage 4 — Tui Application (shipped, `Retro.Crt.Tui 0.1.0` → `0.1.5`)
 
 The second package: `Retro.Crt.Tui` rides on the core's
 `ScreenBuffer` + diff renderer + input parser to do full-screen
@@ -101,15 +101,18 @@ constraints as core: tiny, dependency-free, trim- and AOT-clean.
 - `View` base + `Container` base. `OnKey -> bool` (`true` consumes,
   stops bubble-up).
 
-## Stage 5 — Tui widgets (shipped, `Retro.Crt.Tui 0.1.0` → `0.1.2`)
+## Stage 5 — Tui widgets (shipped, `Retro.Crt.Tui 0.1.0` → `0.1.5`)
 
 - `Panel`, `Label`, `Button`, `LogViewer`, `TextBox`, `Menu`,
-  `Dialog`, `StackPanel`.
+  `Dialog`, `StackPanel`, `Separator` (added in 0.1.5 — one-cell-thick
+  rule for chrome bands).
 - `ScrollViewer` — abstract base; subclasses implement `ContentHeight`
   + `DrawContent`. `LogViewer` is the reference subclass. Tui 0.1.2
   added sticky-tail semantics (`IsPinnedToTail` +
   `AutoScrollOnContentGrowth`) so chatty log panes no longer drag the
-  viewport away while the user is reading past output.
+  viewport away while the user is reading past output. Tui 0.1.5
+  added `LogViewer.UpdateLast` (in-place tail rewrites for spinner /
+  download / countdown lines) and `LogViewer.MaxItems` (ring cap).
 - `Dialog.MessageBox(app, title, message)` — one-button modal
   helper.
 - `Application.SetFocus(View?)` — direct focus, scope-validated.

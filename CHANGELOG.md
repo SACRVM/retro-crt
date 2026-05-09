@@ -8,6 +8,31 @@ versions; breaking changes are called out below.
 
 ## [Unreleased]
 
+## [Retro.Crt.Tui 0.1.5] — 2026-05-09
+
+### Added
+
+- `Retro.Crt.Tui.Widgets.Separator` — one-cell-thick rule painted as
+  a single repeating glyph across `Bounds`. Useful as a chrome band
+  between header / content / footer rows. Default `Glyph` is U+2500
+  (`─`); set to `'═'` / `'┄'` / `'·'` / `'-'` for different rule
+  styles. Vertical rules are just `Bounds.Width = 1` instances with
+  `Glyph = '│'` — no `Orientation` enum in v1.
+- `LogViewer.UpdateLast(string text, Color? foreground = null)` —
+  rewrites `Items[^1]` in place without growing the list. Foundation
+  for spinner frames, download bars, graceful-shutdown countdown
+  lines. Caller dispatches between `Append` (new line) and
+  `UpdateLast` (rewrite tail); the widget does not model an
+  "in-place entry is held" state. Documented thread-safety contract:
+  call from the application thread.
+- `LogViewer.MaxItems` — `int` ring cap, default `0` (= unbounded,
+  historic behaviour). When `Append` would push the count past the
+  cap, oldest entries are dropped from the head until the cap holds.
+  Lowering `MaxItems` on a populated viewer does NOT retroactively
+  trim; only `Append` enforces the cap. Sticky-tail (`IsPinnedToTail`,
+  shipped in 0.1.2) survives across trims so a pinned viewport keeps
+  following the tail.
+
 ## [Retro.Crt.Tui 0.1.2] — 2026-05-09
 
 ### Added
@@ -459,7 +484,8 @@ dependency itself.
   verbs (`TextColor`, `TextBackground`, `GotoXY`, `ClrScr`, `ClrEol`,
   `WithStyle`), Windows VT enablement via `LibraryImport`.
 
-[Unreleased]: https://github.com/chloe-dream/retro-crt/compare/tui-v0.1.2...HEAD
+[Unreleased]: https://github.com/chloe-dream/retro-crt/compare/tui-v0.1.5...HEAD
+[Retro.Crt.Tui 0.1.5]: https://github.com/chloe-dream/retro-crt/releases/tag/tui-v0.1.5
 [Retro.Crt.Tui 0.1.2]: https://github.com/chloe-dream/retro-crt/releases/tag/tui-v0.1.2
 [0.7.1]: https://github.com/chloe-dream/retro-crt/releases/tag/v0.7.1
 [Retro.Crt.Tui 0.1.1]: https://github.com/chloe-dream/retro-crt/releases/tag/tui-v0.1.1
