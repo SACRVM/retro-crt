@@ -122,6 +122,9 @@ Retro.Crt.Tui.Widgets.LogViewer.Append(string! text, Retro.Crt.Color? foreground
 Retro.Crt.Tui.Widgets.LogViewer.Clear() -> void
 Retro.Crt.Tui.Widgets.LogViewer.Items.get -> System.Collections.Generic.IList<Retro.Crt.Tui.Widgets.LogEntry>!
 Retro.Crt.Tui.Widgets.LogViewer.LogViewer() -> void
+Retro.Crt.Tui.Widgets.LogViewer.MaxItems.get -> int
+Retro.Crt.Tui.Widgets.LogViewer.MaxItems.set -> void
+Retro.Crt.Tui.Widgets.LogViewer.UpdateLast(string! text, Retro.Crt.Color? foreground = null) -> void
 Retro.Crt.Tui.Widgets.Menu
 Retro.Crt.Tui.Widgets.Menu.Activate() -> void
 Retro.Crt.Tui.Widgets.Menu.Background.get -> Retro.Crt.Color
@@ -178,6 +181,14 @@ Retro.Crt.Tui.Widgets.ScrollViewer.ScrollbarThumb.get -> Retro.Crt.Color
 Retro.Crt.Tui.Widgets.ScrollViewer.ScrollbarThumb.set -> void
 Retro.Crt.Tui.Widgets.ScrollViewer.ScrollbarTrack.get -> Retro.Crt.Color
 Retro.Crt.Tui.Widgets.ScrollViewer.ScrollbarTrack.set -> void
+Retro.Crt.Tui.Widgets.Separator
+Retro.Crt.Tui.Widgets.Separator.Background.get -> Retro.Crt.Color
+Retro.Crt.Tui.Widgets.Separator.Background.set -> void
+Retro.Crt.Tui.Widgets.Separator.Foreground.get -> Retro.Crt.Color
+Retro.Crt.Tui.Widgets.Separator.Foreground.set -> void
+Retro.Crt.Tui.Widgets.Separator.Glyph.get -> char
+Retro.Crt.Tui.Widgets.Separator.Glyph.set -> void
+Retro.Crt.Tui.Widgets.Separator.Separator() -> void
 Retro.Crt.Tui.Widgets.StackPanel
 Retro.Crt.Tui.Widgets.StackPanel.Orientation.get -> Retro.Crt.Tui.Orientation
 Retro.Crt.Tui.Widgets.StackPanel.Orientation.set -> void
@@ -229,6 +240,7 @@ override Retro.Crt.Tui.Widgets.Panel.OnDraw(Retro.Crt.ScreenBuffer! screen) -> v
 override Retro.Crt.Tui.Widgets.ScrollViewer.OnDraw(Retro.Crt.ScreenBuffer! screen) -> void
 override Retro.Crt.Tui.Widgets.ScrollViewer.OnKey(Retro.Crt.Input.KeyEvent key, Retro.Crt.Tui.Application! app) -> bool
 override Retro.Crt.Tui.Widgets.ScrollViewer.OnMouse(Retro.Crt.Input.MouseEvent mouse, Retro.Crt.Tui.Application! app) -> void
+override Retro.Crt.Tui.Widgets.Separator.OnDraw(Retro.Crt.ScreenBuffer! screen) -> void
 override Retro.Crt.Tui.Widgets.StackPanel.ArrangeChildren() -> void
 override Retro.Crt.Tui.Widgets.TextBox.OnDraw(Retro.Crt.ScreenBuffer! screen) -> void
 override Retro.Crt.Tui.Widgets.TextBox.OnKey(Retro.Crt.Input.KeyEvent key, Retro.Crt.Tui.Application! app) -> bool
