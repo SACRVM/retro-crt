@@ -42,6 +42,32 @@ public class LogViewer : ScrollViewer
     public void Append(string text, Color? foreground = null)
         => Append(new LogEntry(text, foreground));
 
+    /// <summary>
+    /// Replace the last entry's text (and optionally its foreground
+    /// color) without growing the list. No-op when <see cref="Items"/>
+    /// is empty. <see cref="ScrollViewer.ContentHeight"/> stays the
+    /// same, so the viewport does not auto-follow — use this for
+    /// in-place tail rewrites like spinner frames, download bars, or
+    /// graceful-shutdown countdowns. The caller dispatches between
+    /// <see cref="Append(string, Color?)"/> (new line) and
+    /// <see cref="UpdateLast"/> (rewrite tail); the widget does not
+    /// model an "in-place entry is held" state.
+    /// </summary>
+    /// <remarks>
+    /// Call from the application thread. The Tui model is
+    /// single-threaded — view mutations during a draw pass would
+    /// race regardless of the API shape, so a timer-driven caller
+    /// (e.g. a spinner ticking on a <see cref="System.Threading.Timer"/>)
+    /// must either marshal back to the app thread or accept that a
+    /// torn read is theoretically possible across one frame.
+    /// </remarks>
+    public void UpdateLast(string text, Color? foreground = null)
+    {
+        if (Items.Count == 0) return;
+        Items[^1] = new LogEntry(text, foreground);
+        MarkDirty();
+    }
+
     public void Clear()
     {
         Items.Clear();

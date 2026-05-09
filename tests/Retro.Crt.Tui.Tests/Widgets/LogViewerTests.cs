@@ -411,4 +411,88 @@ public class LogViewerTests
 
         Assert.Equal(0, v.ScrollOffset);
     }
+
+    [Fact]
+    public void UpdateLast_on_empty_viewer_is_a_noop()
+    {
+        var v = new LogViewer { Bounds = new Rect(0, 0, 10, 3) };
+
+        v.UpdateLast("nothing");
+
+        Assert.Empty(v.Items);
+    }
+
+    [Fact]
+    public void UpdateLast_rewrites_tail_text_in_place()
+    {
+        var v = new LogViewer { Bounds = new Rect(0, 0, 10, 3) };
+        v.Append("first");
+        v.Append("second");
+
+        v.UpdateLast("second-edited");
+
+        Assert.Equal(2, v.Items.Count);
+        Assert.Equal("first",          v.Items[0].Text);
+        Assert.Equal("second-edited",  v.Items[1].Text);
+    }
+
+    [Fact]
+    public void UpdateLast_respects_foreground_override()
+    {
+        var v = new LogViewer { Bounds = new Rect(0, 0, 10, 3) };
+        v.Append("plain");
+
+        v.UpdateLast("colored", Color.LightRed);
+
+        Assert.Equal(Color.LightRed, v.Items[0].Foreground);
+    }
+
+    [Fact]
+    public void UpdateLast_does_not_grow_content()
+    {
+        var v = new LogViewer { Bounds = new Rect(0, 0, 10, 3) };
+        // Pin scroll mid-content.
+        for (var i = 0; i < 10; i++) v.Append($"L{i}");
+        v.OnKey(new KeyEvent(Key.Up), new Application(v));
+        var beforeOffset = v.ScrollOffset;
+        var beforeMax    = v.MaxScrollOffset;
+
+        v.UpdateLast("rewritten");
+
+        // ContentHeight didn't change → MaxScrollOffset unchanged →
+        // user's saved offset preserved.
+        Assert.Equal(beforeMax,    v.MaxScrollOffset);
+        Assert.Equal(beforeOffset, v.ScrollOffset);
+    }
+
+    [Fact]
+    public void UpdateLast_marks_view_dirty()
+    {
+        var v = new LogViewer { Bounds = new Rect(0, 0, 10, 3) };
+        v.Append("x");
+        var screen = new ScreenBuffer(10, 3);
+        v.OnDraw(screen);
+        // ClearDirty isn't part of the public API, but a draw isn't
+        // automatic — just check dirty toggles when content changes.
+        v.UpdateLast("y");
+        Assert.True(v.IsDirty);
+    }
+
+    [Fact]
+    public void UpdateLast_followed_by_Append_creates_a_new_line()
+    {
+        var v = new LogViewer { Bounds = new Rect(0, 0, 10, 3) };
+        v.Append("downloading...");
+
+        // Mutate the in-place line a few times, then "complete" with a
+        // fresh entry below — this is the spinner-driver workflow.
+        v.UpdateLast("downloading 25%");
+        v.UpdateLast("downloading 50%");
+        v.UpdateLast("downloading 100%");
+        v.Append("done");
+
+        Assert.Equal(2, v.Items.Count);
+        Assert.Equal("downloading 100%", v.Items[0].Text);
+        Assert.Equal("done",             v.Items[1].Text);
+    }
 }

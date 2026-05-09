@@ -7,4 +7,5 @@ Retro.Crt.Tui.Widgets.Separator.Foreground.set -> void
 Retro.Crt.Tui.Widgets.Separator.Glyph.get -> char
 Retro.Crt.Tui.Widgets.Separator.Glyph.set -> void
 Retro.Crt.Tui.Widgets.Separator.Separator() -> void
+Retro.Crt.Tui.Widgets.LogViewer.UpdateLast(string! text, Retro.Crt.Color? foreground = null) -> void
 override Retro.Crt.Tui.Widgets.Separator.OnDraw(Retro.Crt.ScreenBuffer! screen) -> void
