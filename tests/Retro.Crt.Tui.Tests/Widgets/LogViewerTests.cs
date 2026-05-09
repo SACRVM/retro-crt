@@ -495,4 +495,101 @@ public class LogViewerTests
         Assert.Equal("downloading 100%", v.Items[0].Text);
         Assert.Equal("done",             v.Items[1].Text);
     }
+
+    [Fact]
+    public void MaxItems_defaults_to_zero_meaning_unbounded()
+    {
+        var v = new LogViewer { Bounds = new Rect(0, 0, 10, 3) };
+        Assert.Equal(0, v.MaxItems);
+
+        for (var i = 0; i < 1000; i++) v.Append($"L{i}");
+        Assert.Equal(1000, v.Items.Count);
+    }
+
+    [Fact]
+    public void MaxItems_caps_count_and_drops_oldest()
+    {
+        var v = new LogViewer
+        {
+            Bounds   = new Rect(0, 0, 10, 3),
+            MaxItems = 5,
+        };
+
+        for (var i = 0; i < 10; i++) v.Append($"L{i}");
+
+        Assert.Equal(5, v.Items.Count);
+        // Newest five survive; head of the list is the 5th-newest.
+        Assert.Equal("L5", v.Items[0].Text);
+        Assert.Equal("L9", v.Items[4].Text);
+    }
+
+    [Fact]
+    public void MaxItems_keeps_sticky_tail_pinned_across_trims()
+    {
+        var v = new LogViewer
+        {
+            Bounds   = new Rect(0, 0, 10, 3),
+            MaxItems = 5,
+        };
+
+        for (var i = 0; i < 10; i++) v.Append($"L{i}");
+
+        // ContentHeight = 5, viewport = 3 → MaxScrollOffset = 2.
+        Assert.True(v.IsPinnedToTail);
+        Assert.Equal(v.MaxScrollOffset, v.ScrollOffset);
+    }
+
+    [Fact]
+    public void Lowering_MaxItems_does_not_retroactively_trim()
+    {
+        var v = new LogViewer { Bounds = new Rect(0, 0, 10, 3) };
+
+        for (var i = 0; i < 10; i++) v.Append($"L{i}");
+        Assert.Equal(10, v.Items.Count);
+
+        v.MaxItems = 3;
+        Assert.Equal(10, v.Items.Count);   // no reactive trim
+
+        v.Append("L10");
+        Assert.Equal(3, v.Items.Count);    // trim fires on next Append
+        Assert.Equal("L8",  v.Items[0].Text);
+        Assert.Equal("L10", v.Items[2].Text);
+    }
+
+    [Fact]
+    public void MaxItems_one_keeps_only_the_latest_entry()
+    {
+        var v = new LogViewer
+        {
+            Bounds   = new Rect(0, 0, 10, 3),
+            MaxItems = 1,
+        };
+
+        v.Append("a");
+        v.Append("b");
+        v.Append("c");
+
+        Assert.Single(v.Items);
+        Assert.Equal("c", v.Items[0].Text);
+    }
+
+    [Fact]
+    public void MaxItems_does_not_trim_below_count_via_UpdateLast()
+    {
+        // UpdateLast doesn't grow the list, so it never triggers trim.
+        // The active in-place tail entry is therefore safe — it lives
+        // at Items[^1] and only the head is ever dropped.
+        var v = new LogViewer
+        {
+            Bounds   = new Rect(0, 0, 10, 3),
+            MaxItems = 3,
+        };
+
+        for (var i = 0; i < 5; i++) v.Append($"L{i}");
+        Assert.Equal(3, v.Items.Count);
+
+        v.UpdateLast("rewritten");
+        Assert.Equal(3,            v.Items.Count);
+        Assert.Equal("rewritten",  v.Items[2].Text);
+    }
 }

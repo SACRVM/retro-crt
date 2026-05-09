@@ -32,11 +32,38 @@ public class LogViewer : ScrollViewer
 
     public override int ContentHeight => Items.Count;
 
+    /// <summary>
+    /// Maximum number of entries kept in <see cref="Items"/>. When
+    /// <see cref="Append(Retro.Crt.Tui.Widgets.LogEntry)"/> would push
+    /// the count past this cap, the oldest entries are dropped (head
+    /// of the list) until the cap holds. Default <c>0</c> = unbounded
+    /// (the historic behaviour).
+    /// </summary>
+    /// <remarks>
+    /// Trim only fires on <see cref="Append(Retro.Crt.Tui.Widgets.LogEntry)"/> —
+    /// lowering <see cref="MaxItems"/> on a viewer that already exceeds
+    /// it does NOT retroactively shrink the list. Call
+    /// <see cref="Clear"/> if you want an immediate flush. Sticky-tail
+    /// is preserved across trims: a pinned viewport stays pinned to
+    /// the new (lower) <see cref="ScrollViewer.MaxScrollOffset"/>, so
+    /// fresh entries keep following the tail without the user dropping
+    /// off-pin.
+    /// </remarks>
+    public int MaxItems { get; set; }
+
     public void Append(LogEntry entry)
     {
         Items.Add(entry);
+        TrimToMaxItems();
         AutoScrollOnContentGrowth();
         MarkDirty();
+    }
+
+    private void TrimToMaxItems()
+    {
+        if (MaxItems <= 0) return;
+        while (Items.Count > MaxItems)
+            Items.RemoveAt(0);
     }
 
     public void Append(string text, Color? foreground = null)
