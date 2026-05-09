@@ -8,7 +8,38 @@ versions; breaking changes are called out below.
 
 ## [Unreleased]
 
-_Nothing yet._
+### Added
+
+- `ScrollViewer.IsPinnedToTail` — bool getter exposing whether the
+  most recent scroll write left the viewport at `MaxScrollOffset`.
+  Recomputed on every `ScrollOffset` write so user input flips it
+  through the public setter; auto-scroll consults it before
+  following new content.
+- `ScrollViewer.AutoScrollOnContentGrowth()` — protected hook for
+  log-pane subclasses. Replaces the old
+  `if (AutoScroll) ScrollToEnd()` pattern; only follows the tail
+  when both `AutoScroll` and `IsPinnedToTail` are set.
+
+### Fixed
+
+- `LogViewer` (and any `ScrollViewer` subclass that follows new
+  content) is now sticky-tail: once the user scrolls up to read past
+  output, fresh entries no longer drag the viewport away. Pressing
+  `End`, scrolling back down past the last row, or clicking the
+  bottom of the scrollbar track all re-pin them to the live tail.
+  Previously `AutoScroll` was a binary 'always follow' that made
+  chatty log panes unreadable while scrolled up.
+- `Application.DispatchMouse` drops mouse events whose modifiers
+  include `Shift` so the terminal's native click-and-drag text
+  selection wins on every backend. Modern terminals already swallow
+  Shift+mouse client-side; the ones that forward it would otherwise
+  rob the user of selection. README's TUI section documents the
+  gesture.
+- `Application.Run` opens a `Crt.UseHiddenCursor` scope alongside
+  the alt-screen / raw / mouse / paste scopes so the real terminal
+  cursor isn't left blinking at row 0/col 0 over the chrome. The
+  scope tears down on `Run` exit so the user's shell gets its
+  cursor back.
 
 ## [0.7.1] — 2026-05-08
 
