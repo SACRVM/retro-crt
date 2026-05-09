@@ -8,6 +8,8 @@ versions; breaking changes are called out below.
 
 ## [Unreleased]
 
+## [Retro.Crt.Tui 0.1.2] — 2026-05-09
+
 ### Added
 
 - `ScrollViewer.IsPinnedToTail` — bool getter exposing whether the
@@ -457,7 +459,8 @@ dependency itself.
   verbs (`TextColor`, `TextBackground`, `GotoXY`, `ClrScr`, `ClrEol`,
   `WithStyle`), Windows VT enablement via `LibraryImport`.
 
-[Unreleased]: https://github.com/chloe-dream/retro-crt/compare/v0.7.1...HEAD
+[Unreleased]: https://github.com/chloe-dream/retro-crt/compare/tui-v0.1.2...HEAD
+[Retro.Crt.Tui 0.1.2]: https://github.com/chloe-dream/retro-crt/releases/tag/tui-v0.1.2
 [0.7.1]: https://github.com/chloe-dream/retro-crt/releases/tag/v0.7.1
 [Retro.Crt.Tui 0.1.1]: https://github.com/chloe-dream/retro-crt/releases/tag/tui-v0.1.1
 [0.7.0]: https://github.com/chloe-dream/retro-crt/releases/tag/v0.7.0
