@@ -161,10 +161,16 @@ public sealed class Application
         // avoids a parallel ReadConsoleInput pipeline.
         WindowResize.Install();
 
-        using var alt   = Crt.UseAlternateScreen();
-        using var raw   = RawMode.Enter();
-        using var mouse = Crt.UseMouse();
-        using var paste = Crt.UseBracketedPaste();
+        using var alt    = Crt.UseAlternateScreen();
+        using var raw    = RawMode.Enter();
+        using var mouse  = Crt.UseMouse();
+        using var paste  = Crt.UseBracketedPaste();
+        // Hide the real terminal cursor while the app is running.
+        // Without this, terminals leave a blinking caret at the alt-
+        // screen's last write position (typically 0,0) that fights
+        // with whatever the chrome paints. Widgets that need a visible
+        // caret (TextBox) draw their own inverted cell instead.
+        using var cursor = Crt.UseHiddenCursor();
 
         // Sample size AFTER alt-screen + raw-mode are active. On
         // Windows the visible width/height can shift between the
