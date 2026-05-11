@@ -8,6 +8,28 @@ versions; breaking changes are called out below.
 
 ## [Unreleased]
 
+### Added
+
+- `Application.MouseCapture` (`MouseCaptureMode`) — opt-out switch for
+  terminal mouse reporting. Default `Full` is the historic behaviour
+  (`Crt.UseMouse()` enables xterm mode 1003+1006 so the alt-screen app
+  gets click / drag / wheel events). Set to `None` to skip
+  `UseMouse()` entirely: click-to-focus, scrollbar drag, and wheel
+  scrolling stop working, but the terminal's native click-and-drag
+  text selection stays alive inside the alt-screen viewport — so
+  users can copy a single log line into chat instead of grabbing the
+  whole buffer with the existing `[s] save logs` action. Set before
+  `Run()`; changes after start are ignored. Closes #19.
+
+### Docs
+
+- README — note that the terminal's own scrollbar can stay visible
+  over the alt-screen if the user's terminal profile pins it
+  (`scrollbarState: "visible"` in Windows Terminal). The alt-screen
+  entry sequence (`?1049h`) is shipped correctly; suppressing the
+  outer scrollbar is a terminal-level setting, not a library knob.
+  Addresses #20.
+
 ## [Retro.Crt.Tui 0.1.5] — 2026-05-09
 
 ### Added

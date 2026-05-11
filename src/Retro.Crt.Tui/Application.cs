@@ -44,6 +44,18 @@ public sealed class Application
     /// <summary>The root view this application drives.</summary>
     public View Root => _root;
 
+    /// <summary>
+    /// Whether to enable terminal mouse reporting on
+    /// <see cref="Run"/>. Defaults to <see cref="MouseCaptureMode.Full"/>
+    /// (current behaviour: click-to-focus, scrollbar drag, wheel). Set
+    /// to <see cref="MouseCaptureMode.None"/> to leave mouse reporting
+    /// off so the terminal's native text selection stays usable inside
+    /// the alt-screen viewport — at the cost of click-to-focus / wheel.
+    /// Must be set before <see cref="Run"/> is called; later changes
+    /// are ignored.
+    /// </summary>
+    public MouseCaptureMode MouseCapture { get; set; } = MouseCaptureMode.Full;
+
     /// <summary>The view currently owning keyboard focus, or <c>null</c>.</summary>
     public View? Focus => _focus;
 
@@ -163,7 +175,9 @@ public sealed class Application
 
         using var alt    = Crt.UseAlternateScreen();
         using var raw    = RawMode.Enter();
-        using var mouse  = Crt.UseMouse();
+        using var mouse  = MouseCapture == MouseCaptureMode.Full
+                               ? Crt.UseMouse()
+                               : NoOpScope.Instance;
         using var paste  = Crt.UseBracketedPaste();
         // Hide the real terminal cursor while the app is running.
         // Without this, terminals leave a blinking caret at the alt-
@@ -419,5 +433,11 @@ public sealed class Application
             for (var i = 0; i < c.Children.Count; i++)
                 MarkDirtyAll(c.Children[i]);
         }
+    }
+
+    private sealed class NoOpScope : IDisposable
+    {
+        public static readonly IDisposable Instance = new NoOpScope();
+        public void Dispose() { }
     }
 }

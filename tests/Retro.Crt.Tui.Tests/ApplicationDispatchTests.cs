@@ -129,6 +129,20 @@ public class ApplicationDispatchTests
         Assert.Equal(1, root.Keys);
     }
 
+    [Fact]
+    public void MouseCapture_defaults_to_Full()
+    {
+        var app = new Application(new TestContainer());
+        Assert.Equal(MouseCaptureMode.Full, app.MouseCapture);
+    }
+
+    [Fact]
+    public void MouseCapture_is_settable_before_Run()
+    {
+        var app = new Application(new TestContainer()) { MouseCapture = MouseCaptureMode.None };
+        Assert.Equal(MouseCaptureMode.None, app.MouseCapture);
+    }
+
     private static void DispatchMouse(Application app, MouseEvent ev)
     {
         var m = typeof(Application).GetMethod(

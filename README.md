@@ -680,7 +680,20 @@ input to a focus tree (Tab / Shift+Tab cycles, mouse clicks set
 focus). **Shift+click and Shift+drag are reserved as the user's
 escape hatch:** any mouse event with the Shift modifier set is
 dropped before dispatch so the terminal's native click-and-drag
-text selection wins. `LogViewer` and friends auto-follow new
+text selection wins. Apps that want users to be able to copy
+content with the mouse — log lines, table cells — can also opt out
+of mouse capture entirely by setting `app.MouseCapture =
+MouseCaptureMode.None` before `Run()`; the terminal's selection
+layer then stays fully alive, at the cost of click-to-focus,
+scrollbar drag, and wheel scrolling (keyboard nav still works).
+
+The alt-screen takeover uses `CSI ?1049h` / `?1049l`, which on most
+terminals also hides their own scrollbar (the alt-screen has no
+scrollback to scroll through). Some terminals — notably Windows
+Terminal with `scrollbarState: "visible"` — pin their scrollbar on
+regardless; if you see both your `LogViewer`'s scrollbar and the
+terminal's chrome scrollbar at the same time, that's the setting to
+flip in your terminal profile, not a library knob. `LogViewer` and friends auto-follow new
 content with sticky-tail semantics — the viewport snaps to the
 bottom only while the user is pinned there, so a chatty log pane
 won't yank them away from past output mid-read; pressing `End`
