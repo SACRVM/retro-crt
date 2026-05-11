@@ -1,6 +1,1 @@
 #nullable enable
-Retro.Crt.Tui.Application.MouseCapture.get -> Retro.Crt.Tui.MouseCaptureMode
-Retro.Crt.Tui.Application.MouseCapture.set -> void
-Retro.Crt.Tui.MouseCaptureMode
-Retro.Crt.Tui.MouseCaptureMode.Full = 0 -> Retro.Crt.Tui.MouseCaptureMode
-Retro.Crt.Tui.MouseCaptureMode.None = 1 -> Retro.Crt.Tui.MouseCaptureMode
