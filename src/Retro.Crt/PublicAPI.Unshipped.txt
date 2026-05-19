@@ -1,1 +1,5 @@
 #nullable enable
+Retro.Crt.StickyFooter
+Retro.Crt.StickyFooter.Dispose() -> void
+Retro.Crt.StickyFooter.Refresh() -> void
+static Retro.Crt.StickyFooter.Start(int rows, System.Action<Retro.Crt.ScreenBuffer!>! paint) -> Retro.Crt.StickyFooter!

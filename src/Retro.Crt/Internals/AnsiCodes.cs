@@ -20,6 +20,18 @@ internal static class AnsiCodes
     public const string HideCursor  = Csi + "?25l";
     public const string ShowCursor  = Csi + "?25h";
 
+    // DECSC / DECRC — save and restore cursor position + SGR pen. Two-byte
+    // escapes (no CSI), supported by every VT100-descendant terminal.
+    public const string SaveCursor    = "\x1b" + "7";
+    public const string RestoreCursor = "\x1b" + "8";
+
+    // DECSTBM — set top and bottom margins of the scroll region. While
+    // active, line feeds at the bottom of the region scroll only the
+    // region instead of the whole screen, so a fixed footer can live
+    // below it. ResetScrollRegion (no parameters) returns the region to
+    // the full screen.
+    public const string ResetScrollRegion = Csi + "r";
+
     // \x1b[?1049h saves cursor + switches to the alternate screen buffer
     // and clears it; \x1b[?1049l switches back and restores the cursor.
     // This is the same pair vim, less, htop and tmux use.
@@ -53,6 +65,20 @@ internal static class AnsiCodes
         if (n == 1) return CursorLeft1;
         return string.Create(CultureInfo.InvariantCulture, $"{Csi}{n}D");
     }
+
+    /// <summary>SU — scroll the screen contents up by <paramref name="n"/> lines.</summary>
+    public static string ScrollUp(int n)
+    {
+        if (n <= 0) return "";
+        return string.Create(CultureInfo.InvariantCulture, $"{Csi}{n}S");
+    }
+
+    /// <summary>
+    /// DECSTBM — set the scroll region to the inclusive 1-based row range
+    /// <paramref name="top"/> .. <paramref name="bottom"/>.
+    /// </summary>
+    public static string SetScrollRegion(int top, int bottom)
+        => string.Create(CultureInfo.InvariantCulture, $"{Csi}{top};{bottom}r");
 
     public static string Foreground(Color c) => c.Mode switch
     {
