@@ -1,2 +1,1 @@
 #nullable enable
-Retro.Crt.Tui.Application.Invalidate() -> void

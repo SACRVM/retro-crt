@@ -6,6 +6,7 @@ Retro.Crt.Tui.Application.Exit() -> void
 Retro.Crt.Tui.Application.Focus.get -> Retro.Crt.Tui.View?
 Retro.Crt.Tui.Application.FocusNext() -> void
 Retro.Crt.Tui.Application.FocusPrevious() -> void
+Retro.Crt.Tui.Application.Invalidate() -> void
 Retro.Crt.Tui.Application.Modal.get -> Retro.Crt.Tui.View?
 Retro.Crt.Tui.Application.MouseCapture.get -> Retro.Crt.Tui.MouseCaptureMode
 Retro.Crt.Tui.Application.MouseCapture.set -> void
