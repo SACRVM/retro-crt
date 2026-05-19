@@ -10,6 +10,42 @@ versions; breaking changes are called out below.
 
 ### Added
 
+- `Retro.Crt.StickyFooter` — persistent N-row region pinned to the
+  bottom of the terminal. While alive, `Crt.Write` / `Crt.WriteLine`
+  output scrolls in the region *above* it (native terminal scrollback,
+  selection, and wheel intact); the footer rows are reserved out-of-
+  band and repainted on demand. Mechanism is DECSTBM (`ESC[t;b r`) +
+  `ESC[<n>S` to scroll existing content up at start, with a 250 ms
+  background watcher that reflows the footer on terminal resize
+  (SIGWINCH on Unix, polled width/height on Windows). Use once via
+  `using var footer = StickyFooter.Start(2, Paint);`; `Refresh()` is
+  thread-safe so worker threads can nudge it directly. Closes the gap
+  between line-mode and the full alt-screen `Application`: a downstream
+  app gets a fixed footer / status bar without giving up the terminal's
+  own selection or scrollback. No-op fallback when
+  `Crt.IsInteractive` is false or the terminal is too small to host
+  both the scroll region and the reserved rows. Closes #21.
+- `Application.Invalidate()` — thread-safe convenience for nudging
+  the loop into repainting from a worker thread, semantically
+  identical to `Root.MarkDirty()` but named for the cross-thread
+  wake-up use case. The dirty-flag loop already polls every 16 ms,
+  so a background `MarkDirty` reaches the screen on the next tick;
+  the new entry point documents that and gives callers a single,
+  obvious name for it. Addresses #22.
+
+### Docs
+
+- `Application.Run` XML — clarify that the loop polls
+  `TerminalInput.WaitForEvent(16ms)` and is dirty-flag-driven, not
+  blocked on input. Stale text from the pre-polling era claimed
+  resizes only took effect on the next event; the actual loop has
+  drained SIGWINCH and re-sampled the terminal size every 16 ms
+  since `9ac9ddb`. Part of #22.
+
+## [Retro.Crt.Tui 0.2.0] — 2026-05-11
+
+### Added
+
 - `Application.MouseCapture` (`MouseCaptureMode`) — opt-out switch for
   terminal mouse reporting. Default `Full` is the historic behaviour
   (`Crt.UseMouse()` enables xterm mode 1003+1006 so the alt-screen app
