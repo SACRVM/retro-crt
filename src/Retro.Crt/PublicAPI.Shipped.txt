@@ -165,6 +165,9 @@ Retro.Crt.SpinnerStyle.Block = 3 -> Retro.Crt.SpinnerStyle
 Retro.Crt.SpinnerStyle.Braille = 2 -> Retro.Crt.SpinnerStyle
 Retro.Crt.SpinnerStyle.Dots = 1 -> Retro.Crt.SpinnerStyle
 Retro.Crt.SpinnerStyle.Pipe = 0 -> Retro.Crt.SpinnerStyle
+Retro.Crt.StickyFooter
+Retro.Crt.StickyFooter.Dispose() -> void
+Retro.Crt.StickyFooter.Refresh() -> void
 Retro.Crt.Table
 Retro.Crt.TableBorder
 Retro.Crt.TableBorder.Box = 0 -> Retro.Crt.TableBorder
@@ -292,6 +295,7 @@ static Retro.Crt.Prompt.Confirm(string! question, bool defaultYes = false, Retro
 static Retro.Crt.Prompt.Select(string! question, string![]! options, int initialIndex = 0, Retro.Crt.Color? color = null) -> int
 static Retro.Crt.ScreenRenderer.Render(Retro.Crt.ScreenBuffer? previous, Retro.Crt.ScreenBuffer! current, System.IO.TextWriter! sink) -> void
 static Retro.Crt.Spinner.Show(string! label, Retro.Crt.SpinnerStyle style = Retro.Crt.SpinnerStyle.Pipe, Retro.Crt.Color? color = null, int msPerFrame = 80) -> Retro.Crt.Spinner!
+static Retro.Crt.StickyFooter.Start(int rows, System.Action<Retro.Crt.ScreenBuffer!>! paint) -> Retro.Crt.StickyFooter!
 static Retro.Crt.Table.Print(string![]? headers, string![]![]! rows, Retro.Crt.TableBorder border = Retro.Crt.TableBorder.Box, Retro.Crt.Color? headerColor = null, Retro.Crt.Color? borderColor = null) -> void
 static Retro.Crt.Typewriter.Blink(int totalMs, Retro.Crt.TypewriterCursor cursor = Retro.Crt.TypewriterCursor.MatrixBlock, Retro.Crt.Color? fg = null, int blinkRateMs = 500) -> void
 static Retro.Crt.Typewriter.BlinkAsync(int totalMs, Retro.Crt.TypewriterCursor cursor = Retro.Crt.TypewriterCursor.MatrixBlock, Retro.Crt.Color? fg = null, int blinkRateMs = 500, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
