@@ -14,12 +14,13 @@ namespace Retro.Crt.Tui;
 /// </summary>
 /// <remarks>
 /// <para>
-/// Resize: the loop re-samples the terminal size at the top of every
-/// iteration and reallocates buffers when the size changes. Because
-/// <see cref="TerminalInput.ReadEvent"/> blocks, a resize that happens
-/// while no input is arriving only takes effect on the next event;
-/// nudging the terminal usually delivers one. SIGWINCH integration is
-/// still on the roadmap.
+/// The loop polls <see cref="TerminalInput.WaitForEvent"/> with a 16 ms
+/// timeout (≈ 60 Hz). Every tick — even on an idle stdin — it drains
+/// the SIGWINCH flag, re-samples the terminal size, and repaints when
+/// any view's dirty flag is set. Background threads that mutate view
+/// state and call <see cref="View.MarkDirty"/> (or
+/// <see cref="Invalidate"/>) reach the screen on the next tick, no
+/// keystroke needed.
 /// </para>
 /// <para>
 /// One application per process at a time; nesting is not supported
@@ -104,6 +105,15 @@ public sealed class Application
     public void Exit() => _running = false;
 
     /// <summary>
+    /// Mark the root view dirty so the loop repaints on its next tick.
+    /// Thread-safe — call from a worker thread that mutated view state
+    /// to nudge a frame out without waiting for the next keystroke.
+    /// Equivalent to <c>Root.MarkDirty()</c>, just named for the
+    /// cross-thread "wake the loop" use case.
+    /// </summary>
+    public void Invalidate() => _root.MarkDirty();
+
+    /// <summary>
     /// Move focus to the next focusable view in tree order, wrapping
     /// at the end. No-op when the tree contains no focusable views.
     /// </summary>
@@ -165,6 +175,13 @@ public sealed class Application
     /// up alt-screen / raw / mouse scopes that are torn down on return,
     /// even on exception, so the user's shell is restored cleanly.
     /// </summary>
+    /// <remarks>
+    /// The loop is dirty-flag-driven on a 16 ms tick — it does not block
+    /// for input. A background-fed UI (worker threads pushing log lines
+    /// or updating status) reaches the screen within one tick of
+    /// <see cref="View.MarkDirty"/> / <see cref="Invalidate"/>, with no
+    /// keystroke required.
+    /// </remarks>
     public void Run()
     {
         // Install SIGWINCH on Unix so an idle event loop wakes up on a

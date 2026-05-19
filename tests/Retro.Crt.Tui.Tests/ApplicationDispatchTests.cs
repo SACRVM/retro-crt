@@ -143,6 +143,23 @@ public class ApplicationDispatchTests
         Assert.Equal(MouseCaptureMode.None, app.MouseCapture);
     }
 
+    [Fact]
+    public void Invalidate_marks_root_dirty()
+    {
+        // After OnDraw the loop clears the dirty flag; a background
+        // thread that mutates view state should be able to nudge the
+        // loop into repainting by calling Invalidate without having
+        // to reach into a specific child view.
+        var root = new TestContainer();
+        var app  = new Application(root);
+        root.ClearDirty();
+        Assert.False(root.IsDirty);
+
+        app.Invalidate();
+
+        Assert.True(root.IsDirty);
+    }
+
     private static void DispatchMouse(Application app, MouseEvent ev)
     {
         var m = typeof(Application).GetMethod(
