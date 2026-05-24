@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text;
 
 namespace Retro.Crt.Internals;
 
@@ -58,6 +59,45 @@ internal static class AnsiCodes
     // BEL — predates ANSI, every terminal honours it. No newline trigger,
     // so the writer must be flushed for the beep to actually ring.
     public const string Bell = "\a";
+
+    // OSC introducer — Operating System Command. Used for the window-title
+    // and icon-name escapes below.
+    public const string Osc = "\x1b]";
+
+    // XTWINOPS — push the current window title onto the terminal's title
+    // stack and pop it back. Lets an app set its own title and restore the
+    // user's on exit without having to read the current one (which isn't
+    // portably queryable). Supported by xterm-family terminals and Windows
+    // Terminal; ignored (harmless) elsewhere.
+    public const string PushWindowTitle = Csi + "22;0t";
+    public const string PopWindowTitle  = Csi + "23;0t";
+
+    /// <summary>
+    /// OSC 2 — set the terminal window title. Control characters that could
+    /// terminate the OSC string early (or smuggle in another escape) are
+    /// stripped. Terminated with BEL, which every OSC-aware terminal accepts.
+    /// </summary>
+    public static string SetWindowTitle(string title)
+        => Osc + "2;" + StripControls(title) + Bell;
+
+    /// <summary>OSC 1 — set the terminal icon name (taskbar / tab label).</summary>
+    public static string SetIconName(string name)
+        => Osc + "1;" + StripControls(name) + Bell;
+
+    // Drop C0 controls + DEL so a title can't break out of the OSC string
+    // with an embedded ESC / BEL. Allocation-free on the common (clean) path.
+    private static string StripControls(string s)
+    {
+        var dirty = false;
+        foreach (var ch in s)
+            if (ch < 0x20 || ch == 0x7f) { dirty = true; break; }
+        if (!dirty) return s;
+
+        var sb = new StringBuilder(s.Length);
+        foreach (var ch in s)
+            if (ch >= 0x20 && ch != 0x7f) sb.Append(ch);
+        return sb.ToString();
+    }
 
     public static string CursorLeft(int n)
     {

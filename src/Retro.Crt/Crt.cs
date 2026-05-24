@@ -316,6 +316,87 @@ public static class Crt
         Sink.Flush();
     }
 
+    /// <summary>
+    /// Set the terminal window title (OSC 2). Fire-and-forget: use this
+    /// when you don't need the user's original title restored — for the
+    /// save-and-restore case prefer <see cref="UseWindowTitle"/>. Control
+    /// characters in <paramref name="title"/> are stripped so it can't
+    /// break out of the escape. No-op when output is redirected or the
+    /// host isn't a real, VT-capable terminal.
+    /// </summary>
+    public static void SetWindowTitle(string title)
+    {
+        ArgumentNullException.ThrowIfNull(title);
+        if (!IsInteractive) return;
+        Sink.Write(AnsiCodes.SetWindowTitle(title));
+        Sink.Flush();
+    }
+
+    /// <summary>
+    /// Set the terminal window title to <paramref name="title"/> for the
+    /// duration of the returned scope, restoring the user's previous title
+    /// on dispose. Uses the terminal's title stack (XTWINOPS push / pop)
+    /// rather than reading the current title, which isn't portably
+    /// queryable — so the restore works even on Unix where
+    /// <c>Console.Title</c> can't be read back.
+    /// </summary>
+    /// <remarks>
+    /// No-op when output is redirected or the host isn't a real terminal.
+    /// Each scope pushes on entry and pops on dispose, so nested scopes
+    /// restore in LIFO order — matching the terminal's own title stack. A
+    /// <c>CancelKeyPress</c> and a <c>ProcessExit</c> handler are registered
+    /// lazily on first use so a Ctrl-C doesn't leave the user's shell stuck
+    /// with the app's title. Terminals that don't implement the title stack
+    /// ignore the push / pop and simply keep the last title set — graceful
+    /// degradation, not breakage.
+    /// </remarks>
+    public static IDisposable UseWindowTitle(string title)
+    {
+        ArgumentNullException.ThrowIfNull(title);
+        if (!IsInteractive) return NullScope.Instance;
+
+        lock (WindowTitleGate)
+        {
+            EnsureWindowTitleExitHandler();
+            _windowTitleDepth++;
+            Sink.Write(AnsiCodes.PushWindowTitle);
+            Sink.Write(AnsiCodes.SetWindowTitle(title));
+            Sink.Flush();
+        }
+
+        return new WindowTitleScope();
+    }
+
+    private static void EnsureWindowTitleExitHandler()
+    {
+        if (_windowTitleExitHandlerRegistered) return;
+        _windowTitleExitHandlerRegistered = true;
+
+        Console.CancelKeyPress += (_, _) => RestoreWindowTitleOnExit();
+        AppDomain.CurrentDomain.ProcessExit += (_, _) => RestoreWindowTitleOnExit();
+    }
+
+    private static void RestoreWindowTitleOnExit()
+    {
+        lock (WindowTitleGate)
+        {
+            while (_windowTitleDepth > 0)
+            {
+                try
+                {
+                    Sink.Write(AnsiCodes.PopWindowTitle);
+                }
+                catch
+                {
+                    // Sink may be disposed during shutdown — stop trying.
+                    break;
+                }
+                _windowTitleDepth--;
+            }
+            try { Sink.Flush(); } catch { /* shutting down */ }
+        }
+    }
+
     private static int _alternateScreenDepth;
     private static bool _alternateScreenExitHandlerRegistered;
     private static readonly Lock AlternateScreenGate = new();
@@ -331,6 +412,10 @@ public static class Crt
     private static int _hiddenCursorDepth;
     private static bool _hiddenCursorExitHandlerRegistered;
     private static readonly Lock HiddenCursorGate = new();
+
+    private static int _windowTitleDepth;
+    private static bool _windowTitleExitHandlerRegistered;
+    private static readonly Lock WindowTitleGate = new();
 
     /// <summary>
     /// Ask the terminal to send mouse events as SGR-encoded reports
@@ -736,6 +821,25 @@ public static class Crt
                     Sink.Write(AnsiCodes.ShowCursor);
                     Sink.Flush();
                 }
+            }
+        }
+    }
+
+    private sealed class WindowTitleScope : IDisposable
+    {
+        private bool _disposed;
+
+        public void Dispose()
+        {
+            if (_disposed) return;
+            _disposed = true;
+
+            lock (WindowTitleGate)
+            {
+                if (_windowTitleDepth <= 0) return;
+                _windowTitleDepth--;
+                Sink.Write(AnsiCodes.PopWindowTitle);
+                Sink.Flush();
             }
         }
     }

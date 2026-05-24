@@ -1,2 +1,4 @@
 #nullable enable
 static Retro.Crt.Crt.EnableUtf8() -> bool
+static Retro.Crt.Crt.SetWindowTitle(string! title) -> void
+static Retro.Crt.Crt.UseWindowTitle(string! title) -> System.IDisposable!

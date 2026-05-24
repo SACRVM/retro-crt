@@ -108,4 +108,34 @@ public class AnsiCodesTests
         Assert.Equal("\x1b[2J\x1b[H", AnsiCodes.ClearScreen);
         Assert.Equal("\x1b[K",        AnsiCodes.ClearToEol);
     }
+
+    [Fact]
+    public void SetWindowTitle_emits_osc_2_terminated_with_bel()
+    {
+        Assert.Equal("\x1b]2;Husky: app\a", AnsiCodes.SetWindowTitle("Husky: app"));
+    }
+
+    [Fact]
+    public void SetIconName_emits_osc_1_terminated_with_bel()
+    {
+        Assert.Equal("\x1b]1;tab\a", AnsiCodes.SetIconName("tab"));
+    }
+
+    [Fact]
+    public void SetWindowTitle_strips_control_chars_that_could_break_the_escape()
+    {
+        // An embedded BEL / ESC / newline would terminate the OSC string
+        // early (or smuggle in another escape) — all must be stripped.
+        // Built from char codes to keep raw control bytes out of the source.
+        var input = "a" + (char)0x1b + "b" + (char)0x07 + "c" + (char)0x0a + "d";
+        var s = AnsiCodes.SetWindowTitle(input);
+        Assert.Equal("\x1b]2;abcd\a", s);
+    }
+
+    [Fact]
+    public void WindowTitle_stack_constants_are_xtwinops()
+    {
+        Assert.Equal("\x1b[22;0t", AnsiCodes.PushWindowTitle);
+        Assert.Equal("\x1b[23;0t", AnsiCodes.PopWindowTitle);
+    }
 }

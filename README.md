@@ -344,6 +344,31 @@ the leave sequence so the user's shell isn't left stuck on the alt
 screen. No-op when output is redirected or the host isn't a real
 terminal.
 
+### Window title
+
+`Crt.SetWindowTitle(title)` sets the terminal window title (OSC 2) —
+handy for a launcher that wants the title bar to reflect what's running.
+For the common "set it, then restore the user's original on exit" case,
+`Crt.UseWindowTitle(title)` returns a scope that does both:
+
+```csharp
+using (Crt.UseWindowTitle($"Husky: {app} v{version}"))
+{
+    RunHostedApp();
+}
+// The user's original terminal title is back.
+```
+
+Restore uses the terminal's own title stack (XTWINOPS push / pop) rather
+than reading the current title — which isn't portably queryable, so this
+works on Unix too where `Console.Title` can't be read back. Nested scopes
+restore in LIFO order. Like the other scopes it lazily registers
+`Console.CancelKeyPress` / `AppDomain.ProcessExit` handlers so a Ctrl-C
+still restores the title. Control characters in the title are stripped so
+it can't break out of the escape. No-op when output is redirected or the
+host isn't a real terminal; terminals without the title stack keep the
+last title set rather than breaking.
+
 ### Anchoring widgets to a cursor position
 
 `GotoXY` followed by `Banner.Box`, `ProgressBar.Start`, or

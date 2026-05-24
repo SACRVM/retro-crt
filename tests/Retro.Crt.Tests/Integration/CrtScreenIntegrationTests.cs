@@ -146,6 +146,83 @@ public class CrtScreenIntegrationTests
         Assert.Equal(string.Empty, c.Out);
     }
 
+    [Fact]
+    public void SetWindowTitle_emits_osc_when_interactive()
+    {
+        using var c = ConsoleCapture.Start(ansi: true, interactive: true);
+
+        Crt.SetWindowTitle("Husky: app");
+
+        Assert.Contains("\x1b]2;Husky: app\a", c.Out);
+    }
+
+    [Fact]
+    public void SetWindowTitle_is_noop_when_not_interactive()
+    {
+        using var c = ConsoleCapture.Start(ansi: false, interactive: false);
+
+        Crt.SetWindowTitle("Husky: app");
+
+        Assert.DoesNotContain("\x1b]", c.Out);
+    }
+
+    [Fact]
+    public void UseWindowTitle_pushes_sets_and_pops_around_the_scope()
+    {
+        using var c = ConsoleCapture.Start(ansi: true, interactive: true);
+
+        using (Crt.UseWindowTitle("inner"))
+            Crt.Write("payload");
+
+        var pushIdx    = c.Out.IndexOf("\x1b[22;0t",     StringComparison.Ordinal);
+        var titleIdx   = c.Out.IndexOf("\x1b]2;inner\a", StringComparison.Ordinal);
+        var payloadIdx = c.Out.IndexOf("payload",        StringComparison.Ordinal);
+        var popIdx     = c.Out.IndexOf("\x1b[23;0t",     StringComparison.Ordinal);
+
+        Assert.True(pushIdx >= 0 && titleIdx > pushIdx, "push must precede the title set");
+        Assert.True(titleIdx < payloadIdx, "title must be set before the payload");
+        Assert.True(payloadIdx < popIdx,  "pop must follow the payload on dispose");
+    }
+
+    [Fact]
+    public void UseWindowTitle_is_noop_when_not_interactive()
+    {
+        using var c = ConsoleCapture.Start(ansi: false, interactive: false);
+
+        using (Crt.UseWindowTitle("inner"))
+            Crt.Write("payload");
+
+        Assert.DoesNotContain("\x1b[22;0t", c.Out);
+        Assert.DoesNotContain("\x1b[23;0t", c.Out);
+        Assert.Contains("payload", c.Out);
+    }
+
+    [Fact]
+    public void UseWindowTitle_nested_scopes_pop_in_lifo_order()
+    {
+        using var c = ConsoleCapture.Start(ansi: true, interactive: true);
+
+        using (Crt.UseWindowTitle("outer"))
+        using (Crt.UseWindowTitle("inner"))
+            Crt.Write("payload");
+
+        // Two pushes and two pops — one per scope.
+        Assert.Equal(2, CountOccurrences(c.Out, "\x1b[22;0t"));
+        Assert.Equal(2, CountOccurrences(c.Out, "\x1b[23;0t"));
+    }
+
+    [Fact]
+    public void UseWindowTitle_dispose_is_idempotent()
+    {
+        using var c = ConsoleCapture.Start(ansi: true, interactive: true);
+
+        var scope = Crt.UseWindowTitle("inner");
+        scope.Dispose();
+        scope.Dispose();
+
+        Assert.Equal(1, CountOccurrences(c.Out, "\x1b[23;0t"));
+    }
+
     private static int CountOccurrences(string haystack, string needle)
     {
         var count = 0;

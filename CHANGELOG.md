@@ -10,6 +10,15 @@ versions; breaking changes are called out below.
 
 ### Added
 
+- `Crt.SetWindowTitle(title)` / `Crt.UseWindowTitle(title)` — set the
+  terminal window title (OSC 2). The `Use*` scope sets the title and
+  restores the user's previous one on dispose via the terminal's title
+  stack (XTWINOPS push / pop), so the restore works even on Unix where
+  `Console.Title` can't be read back. Nested scopes restore in LIFO
+  order; lazily-registered `CancelKeyPress` / `ProcessExit` handlers
+  restore on Ctrl-C. Control characters in the title are stripped so it
+  can't break out of the escape. No-op when output is redirected or the
+  host isn't a real terminal. Closes #25.
 - `Crt.EnableUtf8()` — explicit opt-in that switches the console to
   BOM-less UTF-8 output (on Windows also flips the output code page to
   65001) so the box-drawing, shading, and spinner glyphs render instead
