@@ -10,6 +10,18 @@ versions; breaking changes are called out below.
 
 ### Added
 
+- `Crt.EnableUtf8()` — explicit opt-in that switches the console to
+  BOM-less UTF-8 output (on Windows also flips the output code page to
+  65001) so the box-drawing, shading, and spinner glyphs render instead
+  of their ASCII fallbacks. Retro.Crt still never changes the encoding
+  implicitly — it detects the active `Console.OutputEncoding` and
+  degrades to ASCII when it can't represent the glyphs; this is the one
+  explicit hook for the prettier output, mainly for fresh Windows
+  consoles that boot on a legacy code page. Best-effort and wrapped in a
+  try/catch: a harmless no-op when the host forbids the change
+  (redirected stdout, no console). Returns `true` when UTF-8 glyphs will
+  render after the call. Refreshes the cached capability detection so
+  widgets and `Diagnostics` immediately see the new encoding.
 - `Retro.Crt.StickyFooter` — persistent N-row region pinned to the
   bottom of the terminal. While alive, `Crt.Write` / `Crt.WriteLine`
   output scrolls in the region *above* it (native terminal scrollback,

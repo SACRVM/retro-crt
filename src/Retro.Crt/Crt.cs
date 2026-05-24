@@ -1,3 +1,4 @@
+using System.Text;
 using Retro.Crt.Internals;
 
 namespace Retro.Crt;
@@ -36,6 +37,58 @@ public static class Crt
     /// <c>TERM=dumb</c>, and Windows hosts where VT enablement failed.
     /// </summary>
     public static bool IsInteractive => TerminalCapabilities.IsInteractive;
+
+    private const int Utf8CodePage = 65001;
+
+    /// <summary>
+    /// Best-effort opt-in: switch the console to UTF-8 output so the pretty
+    /// box-drawing, shading, and spinner glyphs render (<c>┌─┐ █░ ▌</c>)
+    /// instead of their 7-bit ASCII fallbacks (<c>+-+ #- |</c>). Call this
+    /// once at startup, before any drawing.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Retro.Crt never changes the console encoding implicitly — it
+    /// <em>detects</em> the active <see cref="Console.OutputEncoding"/> and
+    /// degrades to ASCII when that encoding can't represent the glyphs (the
+    /// default on a fresh Windows console, which still boots on a legacy
+    /// code page). This method is the explicit opt-in for the prettier
+    /// output: it sets <see cref="Console.OutputEncoding"/> to BOM-less
+    /// UTF-8, which on Windows also flips the console output code page to
+    /// 65001 under the hood.
+    /// </para>
+    /// <para>
+    /// Wrapped in a try/catch: some hosts forbid changing the encoding
+    /// (redirected stdout, no console attached). On failure the call is a
+    /// harmless no-op and the glyphs stay on their ASCII fallbacks. After a
+    /// successful switch the cached Unicode detection is refreshed so the
+    /// widgets and <see cref="Diagnostics"/> immediately see the new
+    /// encoding.
+    /// </para>
+    /// </remarks>
+    /// <returns>
+    /// True when UTF-8 box glyphs will render after this call (the encoding
+    /// is now UTF-8, or already was); false when the host refused the change
+    /// and output stays on the ASCII fallbacks.
+    /// </returns>
+    public static bool EnableUtf8()
+    {
+        try
+        {
+            if (Console.OutputEncoding.CodePage != Utf8CodePage)
+                Console.OutputEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+        }
+        catch
+        {
+            // Redirected stdout / no console attached — nothing to switch.
+            // Glyphs stay on their ASCII fallbacks.
+        }
+
+        // The encoding may have changed under the cached SupportsUnicode
+        // flag; force a re-detect so the next draw picks the right glyphs.
+        TerminalCapabilities.ResetUnicode();
+        return TerminalCapabilities.SupportsUnicode;
+    }
 
     /// <summary>
     /// Visible terminal width in cells, with a sensible default when the

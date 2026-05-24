@@ -1,1 +1,2 @@
 #nullable enable
+static Retro.Crt.Crt.EnableUtf8() -> bool

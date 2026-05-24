@@ -90,6 +90,18 @@ internal static class TerminalCapabilities
     }
 
     /// <summary>
+    /// Drop only the cached Unicode result so the next access re-detects
+    /// against the current <see cref="Console.OutputEncoding"/>. Called by
+    /// <see cref="Crt.EnableUtf8"/> after it switches the encoding — the
+    /// color depth and interactivity are unaffected by an encoding change,
+    /// so there's no need to re-run VT enablement.
+    /// </summary>
+    internal static void ResetUnicode()
+    {
+        lock (Gate) _supportsUnicode = null;
+    }
+
+    /// <summary>
     /// Force the cached values for testing — bypasses real detection.
     /// Pass <c>null</c> to keep the default behaviour for that capability.
     /// When <paramref name="ansi"/> is supplied without an explicit

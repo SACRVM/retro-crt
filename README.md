@@ -147,6 +147,37 @@ if (Color.TryParse(userInput, out var c))
     Crt.TextColor(c);
 ```
 
+### Unicode glyphs (box-drawing, shading, spinners)
+
+The pretty output — `Banner.Box` frames, `Table` borders, the
+`ProgressBar` fill, the `Block` / `Braille` / `Arc` spinners — uses
+unicode box-drawing and shading glyphs (`┌─┐ █░ ▌`). Retro.Crt **detects**
+whether the console's output encoding can represent them and silently
+falls back to 7-bit ASCII (`+-+ #- |`) when it can't — so nothing ever
+prints as `?` or mojibake. Tables and boxes still draw; they just look
+plainer.
+
+The catch: a fresh **Windows** console often boots on a legacy code page
+(e.g. 850/1252) that can't encode those glyphs, so you get the ASCII
+fallback even though the terminal *could* show the nice ones. To opt into
+UTF-8 output, call this **once at startup, before any drawing**:
+
+```csharp
+Crt.EnableUtf8();   // ┌─┐ instead of +-+
+```
+
+`EnableUtf8()` sets `Console.OutputEncoding` to BOM-less UTF-8 (on Windows
+that also flips the console output code page to 65001) and refreshes the
+capability detection. It's best-effort: on hosts that forbid the change
+(redirected stdout, no console attached) it's a harmless no-op and the
+ASCII fallback stays. Returns `true` when UTF-8 glyphs will render after
+the call, `false` when the host refused. Retro.Crt never changes the
+encoding implicitly — this is the single explicit opt-in.
+
+Note that glyphs also need a **font** that ships the relevant ranges (see
+the [Spinner](#spinner) note); UTF-8 encoding is necessary but not
+sufficient for the fancier spinner styles.
+
 ### Themes
 
 Six built-in palettes — three era-faithful retro presets and three
@@ -361,7 +392,9 @@ Banner.Gradient(
 ```
 
 `Box` uses unicode box-drawing glyphs when the terminal can render them,
-and falls back to `+--+` on legacy ASCII code pages. The `width`
+and falls back to `+--+` on legacy ASCII code pages — call
+[`Crt.EnableUtf8()`](#unicode-glyphs-box-drawing-shading-spinners) at
+startup to get the nice frames on a fresh Windows console. The `width`
 parameter sizes the total frame in cells; values smaller than the
 longest line are clamped to fit. `Crt.FillWidth` (-1) sizes to the
 current terminal. `align` picks how short lines sit inside the inner
@@ -414,7 +447,9 @@ s.Stop("connected", Color.LightGreen);
 - `Arc` — rotating quarter-circle arcs
 
 The unicode styles silently fall back to `Pipe` on terminals without
-unicode encoding support. Note: `Braille`, `Block`, and `Arc` also
+unicode encoding support (call
+[`Crt.EnableUtf8()`](#unicode-glyphs-box-drawing-shading-spinners) at
+startup to opt into UTF-8 output). Note: `Braille`, `Block`, and `Arc` also
 require the **font** to ship the relevant unicode ranges — Cascadia
 Code, JetBrains Mono, and Fira Code all do; many system defaults do
 not. If you see `?` instead of glyphs, switch font or stick with
@@ -477,7 +512,9 @@ still aligned, header still bold, but no box glyphs:
 Table.Print(headers, rows, border: TableBorder.None);
 ```
 
-ASCII fallback (`+`/`-`/`|`) on terminals without unicode. When ANSI
+ASCII fallback (`+`/`-`/`|`) on terminals without unicode — call
+[`Crt.EnableUtf8()`](#unicode-glyphs-box-drawing-shading-spinners) at
+startup for the box-drawing borders on a fresh Windows console. When ANSI
 is unavailable the table is emitted as plain text — colors disappear,
 structure stays intact.
 
