@@ -42,6 +42,7 @@ using (Crt.WithStyle(Color.Yellow, bold: true))
 > dotnet run --project samples/Retro.Crt.AltScreen.Demo  # alt-screen takeover, restores your shell
 > dotnet run --project samples/Retro.Crt.ScreenBuffer.Demo   # cell-grid + diff renderer
 > dotnet run --project samples/Retro.Crt.Input.Demo      # live input event probe
+> dotnet run --project samples/Retro.Crt.Status.Demo     # status panel: titled Rule + colored status column + clickable URLs
 > dotnet run --project samples/Retro.Crt.Tui.Demo        # Tui widget tour (menu/log/textbox/dialog/paste)
 >
 > # games/ — five ASCII showcases on the core's ScreenBuffer + RawMode

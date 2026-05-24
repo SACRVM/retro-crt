@@ -66,6 +66,31 @@ public class TableCellIntegrationTests
     }
 
     [Fact]
+    public void Hyperlink_cell_aligns_by_visible_width_not_escape_length()
+    {
+        using var c = ConsoleCapture.Start(ansi: true, interactive: true, unicode: true);
+
+        // The endpoint cell holds an OSC 8 link whose escape bytes must NOT
+        // inflate the column — the bottom border must match the visible
+        // width of the header cell, not the raw string length.
+        var link = Crt.Link("localhost:8080", "http://localhost:8080");
+        Table.Print(
+            ["Service", "Endpoint"],
+            [["web", link]]);
+
+        var lines = c.Out.Split('\n');
+        // Every box line spans the same visible width once escapes are
+        // stripped — pick the top border and the row, compare visible width.
+        var topBorder = System.Array.Find(lines, l => l.StartsWith('┌'));
+        var dataRow   = System.Array.Find(lines, l => l.Contains("web"));
+        Assert.NotNull(topBorder);
+        Assert.NotNull(dataRow);
+        Assert.Equal(
+            Retro.Crt.Internals.AnsiText.VisibleWidth(topBorder!),
+            Retro.Crt.Internals.AnsiText.VisibleWidth(dataRow!));
+    }
+
+    [Fact]
     public void Collection_expression_rows_still_resolve_to_the_plain_overload()
     {
         // Guards against the overload ambiguity that a string→cell implicit

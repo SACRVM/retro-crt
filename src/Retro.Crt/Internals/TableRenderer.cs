@@ -29,11 +29,17 @@ internal static class TableRenderer
 
         if (headers is not null)
             for (var c = 0; c < headers.Length && c < cols; c++)
-                if (headers[c].Length > widths[c]) widths[c] = headers[c].Length;
+            {
+                var w = AnsiText.VisibleWidth(headers[c]);
+                if (w > widths[c]) widths[c] = w;
+            }
 
         foreach (var row in rows)
             for (var c = 0; c < row.Length && c < cols; c++)
-                if (row[c].Length > widths[c]) widths[c] = row[c].Length;
+            {
+                var w = AnsiText.VisibleWidth(row[c]);
+                if (w > widths[c]) widths[c] = w;
+            }
 
         return widths;
     }
@@ -100,7 +106,9 @@ internal static class TableRenderer
         for (var c = 0; c < widths.Length; c++)
         {
             var content = c < cells.Length ? cells[c] : "";
-            sb.Append(pad).Append(content.PadRight(widths[c])).Append(pad);
+            sb.Append(pad);
+            AnsiText.AppendPadded(sb, content, widths[c]);
+            sb.Append(pad);
             // Cell padding already creates a visual gap between
             // borderless cells; only the box-bordered variant gets
             // an explicit vertical separator.

@@ -26,6 +26,17 @@ versions; breaking changes are called out below.
   `text` when not a terminal) for composing into e.g. a `Table` cell;
   `WriteLink` writes it. Terminals without OSC 8 show just the label.
   Part of #26.
+- `Retro.Crt.Status.Demo` — a self-hosted-app status panel sample tying
+  the #26 features together: a titled `Rule`, a colored status column,
+  and clickable endpoint URLs in table cells. Mirrors the Fishbowl
+  migration that drove the issue.
+
+### Changed
+
+- `Table` column widths and padding are now ANSI/OSC-aware: cells
+  measure by *visible* width, so a `Crt.Link` hyperlink (whose escape
+  bytes are invisible) no longer inflates its column or breaks border
+  alignment. Plain cells are unaffected. Part of #26.
 - `Color.Default` (`ColorMode.Default`) — the terminal's own
   foreground / background. Emits SGR `39` / `49` instead of a concrete
   color, so a `Cell` / `ScreenBuffer` widget can inherit the terminal's

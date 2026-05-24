@@ -117,9 +117,8 @@ public static class Table
         {
             for (var c = 0; c < widths.Length; c++)
             {
-                var content = (c < cells.Length ? cells[c] : "").PadRight(widths[c]);
                 Crt.Sink.Write(pad);
-                WriteCell(content, CellFg(rowColors, c) ?? uniformFg, bold);
+                WriteCell(Padded(cells, c, widths[c]), CellFg(rowColors, c) ?? uniformFg, bold);
                 Crt.Sink.Write(pad);
             }
             Crt.Sink.WriteLine();
@@ -131,9 +130,8 @@ public static class Table
         WriteColored(Glyphs.BoxVertical.ToString(), borderColor);
         for (var c = 0; c < widths.Length; c++)
         {
-            var content = (c < cells.Length ? cells[c] : "").PadRight(widths[c]);
             Crt.Sink.Write(pad);
-            WriteCell(content, CellFg(rowColors, c) ?? uniformFg, bold);
+            WriteCell(Padded(cells, c, widths[c]), CellFg(rowColors, c) ?? uniformFg, bold);
             Crt.Sink.Write(pad);
             WriteColored(Glyphs.BoxVertical.ToString(), borderColor);
         }
@@ -164,6 +162,15 @@ public static class Table
         {
             Crt.Sink.Write(text);
         }
+    }
+
+    // Cell text right-padded to the column's visible width — escape-aware,
+    // so a cell carrying a Crt.Link hyperlink lines up by what shows.
+    private static string Padded(string[] cells, int c, int width)
+    {
+        var raw = c < cells.Length ? cells[c] : "";
+        var deficit = width - AnsiText.VisibleWidth(raw);
+        return deficit > 0 ? raw + new string(' ', deficit) : raw;
     }
 
     private static Color?[]? RowColors(Color?[][]? all, int rowIndex)
