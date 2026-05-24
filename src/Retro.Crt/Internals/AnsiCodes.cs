@@ -21,6 +21,12 @@ internal static class AnsiCodes
     public const string HideCursor  = Csi + "?25l";
     public const string ShowCursor  = Csi + "?25h";
 
+    // SGR 39 / 49 — reset only the foreground / background to the
+    // terminal's default, leaving the other channel and attributes intact.
+    // Used by ColorMode.Default so a cell can inherit the terminal bg.
+    public const string DefaultFg = Csi + "39m";
+    public const string DefaultBg = Csi + "49m";
+
     // DECSC / DECRC — save and restore cursor position + SGR pen. Two-byte
     // escapes (no CSI), supported by every VT100-descendant terminal.
     public const string SaveCursor    = "\x1b" + "7";
@@ -84,6 +90,15 @@ internal static class AnsiCodes
     public static string SetIconName(string name)
         => Osc + "1;" + StripControls(name) + Bell;
 
+    /// <summary>
+    /// OSC 8 — wrap <paramref name="text"/> in a terminal hyperlink pointing
+    /// at <paramref name="uri"/>. The URI is control-stripped so it can't
+    /// break out of the escape. Terminals that don't support OSC 8 swallow
+    /// the wrapper and render <paramref name="text"/> as-is.
+    /// </summary>
+    public static string Hyperlink(string text, string uri)
+        => Osc + "8;;" + StripControls(uri) + Bell + text + Osc + "8;;" + Bell;
+
     // Drop C0 controls + DEL so a title can't break out of the OSC string
     // with an embedded ESC / BEL. Allocation-free on the common (clean) path.
     private static string StripControls(string s)
@@ -125,6 +140,7 @@ internal static class AnsiCodes
         ColorMode.Truecolor  => $"{Csi}38;2;{c.R};{c.G};{c.B}m",
         ColorMode.Standard16 => Standard16Fg(c.Index),
         ColorMode.Xterm256   => Indexed256Fg(c.Index),
+        ColorMode.Default    => DefaultFg,
         _                    => Reset,
     };
 
@@ -133,6 +149,7 @@ internal static class AnsiCodes
         ColorMode.Truecolor  => $"{Csi}48;2;{c.R};{c.G};{c.B}m",
         ColorMode.Standard16 => Standard16Bg(c.Index),
         ColorMode.Xterm256   => Indexed256Bg(c.Index),
+        ColorMode.Default    => DefaultBg,
         _                    => Reset,
     };
 

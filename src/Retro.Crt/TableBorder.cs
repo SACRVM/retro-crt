@@ -1,6 +1,6 @@
 namespace Retro.Crt;
 
-/// <summary>Border style for <see cref="Table.Print"/>.</summary>
+/// <summary>Border style for <see cref="Table"/>.</summary>
 public enum TableBorder : byte
 {
     /// <summary>

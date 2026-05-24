@@ -23,4 +23,12 @@ public enum ColorMode : byte
     /// 6×6×6 RGB cube; 232..255 are a 24-step grayscale ramp.
     /// </summary>
     Xterm256 = 2,
+
+    /// <summary>
+    /// The terminal's own default foreground / background — emits SGR
+    /// <c>39</c> (default fg) / <c>49</c> (default bg) instead of a concrete
+    /// color, so the cell inherits whatever the user's terminal is
+    /// configured with. See <see cref="Color.Default"/>.
+    /// </summary>
+    Default = 3,
 }

@@ -138,4 +138,31 @@ public class AnsiCodesTests
         Assert.Equal("\x1b[22;0t", AnsiCodes.PushWindowTitle);
         Assert.Equal("\x1b[23;0t", AnsiCodes.PopWindowTitle);
     }
+
+    [Fact]
+    public void Foreground_default_emits_sgr_39()
+    {
+        Assert.Equal("\x1b[39m", AnsiCodes.Foreground(Color.Default));
+    }
+
+    [Fact]
+    public void Background_default_emits_sgr_49()
+    {
+        Assert.Equal("\x1b[49m", AnsiCodes.Background(Color.Default));
+    }
+
+    [Fact]
+    public void Hyperlink_wraps_text_in_osc_8()
+    {
+        var s = AnsiCodes.Hyperlink("docs", "https://example.com");
+        Assert.Equal("\x1b]8;;https://example.com\adocs\x1b]8;;\a", s);
+    }
+
+    [Fact]
+    public void Hyperlink_strips_control_chars_from_the_uri()
+    {
+        var uri = "http://x" + (char)0x1b + "/" + (char)0x07 + "y";
+        var s = AnsiCodes.Hyperlink("label", uri);
+        Assert.Equal("\x1b]8;;http://x/y\alabel\x1b]8;;\a", s);
+    }
 }

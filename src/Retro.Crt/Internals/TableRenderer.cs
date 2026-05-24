@@ -4,7 +4,7 @@ namespace Retro.Crt.Internals;
 
 /// <summary>
 /// Pure string-builders for <see cref="Table"/>. No I/O, no colors —
-/// the public <see cref="Table.Print"/> wraps these with ANSI styling.
+/// the public <see cref="Table"/> wraps these with ANSI styling.
 /// Splitting it out keeps the rendering snapshot-testable.
 /// </summary>
 internal static class TableRenderer
@@ -40,7 +40,7 @@ internal static class TableRenderer
 
     /// <summary>
     /// Render the full table to a single plain-text string (no colors,
-    /// no ANSI). Used by tests and by <see cref="Table.Print"/>'s
+    /// no ANSI). Used by tests and by <see cref="Table"/>'s
     /// non-ANSI fallback path.
     /// </summary>
     public static string RenderPlain(

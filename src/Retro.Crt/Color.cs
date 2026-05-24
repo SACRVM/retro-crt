@@ -71,6 +71,19 @@ public readonly record struct Color
     public static readonly Color White        = Standard(15);
 
     /// <summary>
+    /// The terminal's own default foreground / background. Emits SGR
+    /// <c>39</c> / <c>49</c> rather than a concrete color, so a cell or
+    /// style carrying it inherits whatever the user's terminal is
+    /// configured with — the same effect as <c>Crt.WithStyle(bg: null)</c>,
+    /// but expressible inside a non-nullable <see cref="Cell"/>. Use it for
+    /// <see cref="ScreenBuffer"/> widgets that should blend with the
+    /// surrounding terminal instead of forcing a fixed color (e.g. a
+    /// footer over native scrollback on a terminal whose background isn't
+    /// black).
+    /// </summary>
+    public static readonly Color Default = new(ColorMode.Default, 0, 0, 0, 0);
+
+    /// <summary>
     /// Return a color that <paramref name="depth"/> can render exactly.
     /// Truecolor values get quantized to the closest 256-palette entry
     /// or BIOS-16 anchor; Xterm256 values get folded into Standard16 if

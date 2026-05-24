@@ -10,6 +10,29 @@ versions; breaking changes are called out below.
 
 ### Added
 
+- `Table.Print` per-cell foreground colors — a new overload takes a
+  `Color?[][] cellColors` jagged array aligned to `rows`, so a status
+  column can render green `Running` / red `No listener`. `null` entries
+  (and short / missing rows) stay uncolored. Non-breaking: the plain
+  `string[][]` overload is unchanged and collection-expression callers
+  still resolve to it. Part of #26.
+- `Rule.Print(title, color, width)` — a thin full-width horizontal rule
+  with an optional centered title (`── THE FISHBOWL ──────`), the
+  lightweight section-header companion to `Banner.Box`. Defaults to the
+  terminal width; falls back to `-` without unicode and to a plain line
+  without ANSI; color falls back to the theme's `Muted`. Part of #26.
+- `Crt.Link(text, url)` / `Crt.WriteLink(text, url)` — OSC 8 terminal
+  hyperlinks. `Link` returns the escape string (capability-aware: plain
+  `text` when not a terminal) for composing into e.g. a `Table` cell;
+  `WriteLink` writes it. Terminals without OSC 8 show just the label.
+  Part of #26.
+- `Color.Default` (`ColorMode.Default`) — the terminal's own
+  foreground / background. Emits SGR `39` / `49` instead of a concrete
+  color, so a `Cell` / `ScreenBuffer` widget can inherit the terminal's
+  configured background instead of forcing one (e.g. a `StickyFooter`
+  over native scrollback on a non-black terminal). Mirrors
+  `WithStyle(bg: null)` but is expressible inside a non-nullable `Cell`.
+  Closes #24.
 - `Crt.SetWindowTitle(title)` / `Crt.UseWindowTitle(title)` — set the
   terminal window title (OSC 2). The `Use*` scope sets the title and
   restores the user's previous one on dispose via the terminal's title

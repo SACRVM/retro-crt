@@ -223,6 +223,37 @@ public class CrtScreenIntegrationTests
         Assert.Equal(1, CountOccurrences(c.Out, "\x1b[23;0t"));
     }
 
+    [Fact]
+    public void WriteLink_emits_osc_8_when_interactive()
+    {
+        using var c = ConsoleCapture.Start(ansi: true, interactive: true);
+
+        Crt.WriteLink("docs", "https://example.com");
+
+        Assert.Contains("\x1b]8;;https://example.com\adocs\x1b]8;;\a", c.Out);
+    }
+
+    [Fact]
+    public void Link_returns_plain_text_when_not_interactive()
+    {
+        using var c = ConsoleCapture.Start(ansi: false, interactive: false);
+
+        var link = Crt.Link("docs", "https://example.com");
+
+        Assert.Equal("docs", link);
+    }
+
+    [Fact]
+    public void WriteLink_falls_back_to_plain_label_when_not_interactive()
+    {
+        using var c = ConsoleCapture.Start(ansi: false, interactive: false);
+
+        Crt.WriteLink("docs", "https://example.com");
+
+        Assert.DoesNotContain("\x1b]8", c.Out);
+        Assert.Contains("docs", c.Out);
+    }
+
     private static int CountOccurrences(string haystack, string needle)
     {
         var count = 0;

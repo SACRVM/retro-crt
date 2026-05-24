@@ -137,6 +137,14 @@ Detection follows the npm convention:
 - `TERM` contains `256` → `Xterm256`
 - otherwise (with ANSI on) → `Standard16`
 
+`Color.Default` is the terminal's own foreground / background — it emits
+SGR `39` / `49` instead of a concrete color, so anything painted with it
+inherits whatever the user's terminal is configured with (the same effect
+as `WithStyle(bg: null)`, but expressible inside a non-nullable `Cell`).
+Reach for it when a `ScreenBuffer` widget should blend with the
+surrounding terminal instead of forcing a fixed color — e.g. a footer
+sitting over native scrollback on a terminal whose background isn't black.
+
 `Color.TryParse`, `Color.TryFromHex`, and `Color.TryFromName` accept
 hex strings (`#RRGGBB`, `#RGB`, with or without the leading hash) and
 the canonical DOS palette names (`LightCyan`, `Brown`, …, case
@@ -537,6 +545,29 @@ still aligned, header still bold, but no box glyphs:
 Table.Print(headers, rows, border: TableBorder.None);
 ```
 
+For a colored status column, pass `cellColors` — a jagged array aligned
+to `rows` where `cellColors[r][c]` tints `rows[r][c]` (or `null` to leave
+it as-is). Short / missing rows and columns default to uncolored, so you
+fill only the entries you want:
+
+```csharp
+Table.Print(
+    headers: ["Service", "Status"],
+    rows:    [
+        ["web", "Running"],
+        ["db",  "No listener"],
+    ],
+    cellColors: [
+        [null, Color.LightGreen],
+        [null, Color.LightRed],
+    ]);
+```
+
+Combine it with `Crt.Link` (see [Hyperlinks](#hyperlinks)) to put a
+clickable endpoint URL straight into a cell — `Crt.Link` returns plain
+text when output isn't a terminal, so the table still renders cleanly
+when redirected.
+
 ASCII fallback (`+`/`-`/`|`) on terminals without unicode — call
 [`Crt.EnableUtf8()`](#unicode-glyphs-box-drawing-shading-spinners) at
 startup for the box-drawing borders on a fresh Windows console. When ANSI
@@ -546,6 +577,42 @@ structure stays intact.
 Deliberately small surface: no row borders between body rows, no
 alignment options, no multi-line cells. Reach for `Spectre.Console`
 if you need any of that.
+
+### Rule
+
+A thin full-width horizontal rule with an optional centered title — the
+lightweight "section header" companion to `Banner.Box`. Where `Box` draws
+a full frame, `Rule` draws a single line:
+
+```csharp
+Rule.Print("THE FISHBOWL", Color.LightCyan);
+Rule.Print();   // plain divider, no title
+```
+
+```
+──────────────── THE FISHBOWL ─────────────────
+```
+
+Defaults to the current terminal width; pass `width:` for a fixed size.
+Falls back to `-` on terminals without unicode, and to a plain line (no
+escapes) when ANSI is unavailable. The color falls back to the active
+theme's `Muted` slot.
+
+### Hyperlinks
+
+`Crt.WriteLink(text, url)` emits an OSC 8 terminal hyperlink — `text`
+rendered as a clickable link to `url`. `Crt.Link(text, url)` returns the
+same as a string for composing (e.g. dropping a clickable URL into a
+`Table` cell).
+
+```csharp
+Crt.WriteLink("docs", "https://github.com/chloe-dream/retro-crt");
+```
+
+Both are capability-aware: when output isn't a real terminal (redirected,
+dumb) they fall back to the plain label, so piped output and table cells
+stay clean. Terminals that don't implement OSC 8 swallow the wrapper and
+show just the text.
 
 ### Prompt
 

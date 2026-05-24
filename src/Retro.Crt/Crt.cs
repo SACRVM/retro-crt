@@ -235,6 +235,29 @@ public static class Crt
     public static void WriteLine(string s) => Sink.WriteLine(s);
 
     /// <summary>
+    /// Build an OSC 8 terminal hyperlink — <paramref name="text"/> rendered
+    /// as a clickable link to <paramref name="url"/>. Capability-aware: when
+    /// the host isn't a real terminal (redirected, dumb) this returns
+    /// <paramref name="text"/> unchanged, so the result is safe to embed in
+    /// a <see cref="Table"/> cell or anywhere plain text is expected.
+    /// Terminals that don't implement OSC 8 swallow the wrapper and show
+    /// just the label.
+    /// </summary>
+    public static string Link(string text, string url)
+    {
+        ArgumentNullException.ThrowIfNull(text);
+        ArgumentNullException.ThrowIfNull(url);
+        return IsInteractive ? AnsiCodes.Hyperlink(text, url) : text;
+    }
+
+    /// <summary>
+    /// Write an OSC 8 terminal hyperlink to <see cref="Sink"/> — see
+    /// <see cref="Link"/>. Falls back to the plain label when the host
+    /// isn't a real terminal.
+    /// </summary>
+    public static void WriteLink(string text, string url) => Sink.Write(Link(text, url));
+
+    /// <summary>
     /// Apply optional foreground/background/bold for the duration of the
     /// returned scope. Disposing restores the previous styling via a single
     /// <c>RESET</c>.
