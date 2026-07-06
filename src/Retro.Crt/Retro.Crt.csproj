@@ -57,7 +57,7 @@
     <!-- Locks the public API. New / removed / changed members must be
          reflected in PublicAPI.Unshipped.txt; releases promote entries
          to PublicAPI.Shipped.txt. Build fails on accidental drift. -->
-    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="3.3.4">
+    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="5.6.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
