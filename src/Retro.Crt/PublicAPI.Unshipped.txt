@@ -1,11 +1,1 @@
 #nullable enable
-Retro.Crt.ColorMode.Default = 3 -> Retro.Crt.ColorMode
-Retro.Crt.Rule
-static readonly Retro.Crt.Color.Default -> Retro.Crt.Color
-static Retro.Crt.Crt.EnableUtf8() -> bool
-static Retro.Crt.Crt.Link(string! text, string! url) -> string!
-static Retro.Crt.Crt.SetWindowTitle(string! title) -> void
-static Retro.Crt.Crt.UseWindowTitle(string! title) -> System.IDisposable!
-static Retro.Crt.Crt.WriteLink(string! text, string! url) -> void
-static Retro.Crt.Rule.Print(string? title = null, Retro.Crt.Color? color = null, int width = -1) -> void
-static Retro.Crt.Table.Print(string![]? headers, string![]![]! rows, Retro.Crt.Color?[]![]? cellColors, Retro.Crt.TableBorder border = Retro.Crt.TableBorder.Box, Retro.Crt.Color? headerColor = null, Retro.Crt.Color? borderColor = null) -> void

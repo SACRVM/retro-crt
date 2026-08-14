@@ -33,6 +33,7 @@ Retro.Crt.ColorDepth.Standard16 = 1 -> Retro.Crt.ColorDepth
 Retro.Crt.ColorDepth.Truecolor = 3 -> Retro.Crt.ColorDepth
 Retro.Crt.ColorDepth.Xterm256 = 2 -> Retro.Crt.ColorDepth
 Retro.Crt.ColorMode
+Retro.Crt.ColorMode.Default = 3 -> Retro.Crt.ColorMode
 Retro.Crt.ColorMode.Standard16 = 1 -> Retro.Crt.ColorMode
 Retro.Crt.ColorMode.Truecolor = 0 -> Retro.Crt.ColorMode
 Retro.Crt.ColorMode.Xterm256 = 2 -> Retro.Crt.ColorMode
@@ -143,6 +144,7 @@ Retro.Crt.ProgressBar.Tick(long delta = 1) -> void
 Retro.Crt.ProgressBar.Total.get -> long
 Retro.Crt.ProgressBar.Value.get -> long
 Retro.Crt.Prompt
+Retro.Crt.Rule
 Retro.Crt.ScreenBuffer
 Retro.Crt.ScreenBuffer.Clear() -> void
 Retro.Crt.ScreenBuffer.Clear(Retro.Crt.Cell fill) -> void
@@ -248,10 +250,13 @@ static Retro.Crt.Crt.ColorEnabled.get -> bool
 static Retro.Crt.Crt.CurrentTheme.get -> Retro.Crt.Theme?
 static Retro.Crt.Crt.CursorLeft.get -> int
 static Retro.Crt.Crt.Depth.get -> Retro.Crt.ColorDepth
+static Retro.Crt.Crt.EnableUtf8() -> bool
 static Retro.Crt.Crt.GotoXY(int column, int row) -> void
 static Retro.Crt.Crt.IsInteractive.get -> bool
+static Retro.Crt.Crt.Link(string! text, string! url) -> string!
 static Retro.Crt.Crt.PaintBackground() -> void
 static Retro.Crt.Crt.ResetColor() -> void
+static Retro.Crt.Crt.SetWindowTitle(string! title) -> void
 static Retro.Crt.Crt.Sink.get -> System.IO.TextWriter!
 static Retro.Crt.Crt.TextBackground(Retro.Crt.Color color) -> void
 static Retro.Crt.Crt.TextColor(Retro.Crt.Color color) -> void
@@ -260,6 +265,7 @@ static Retro.Crt.Crt.UseBracketedPaste() -> System.IDisposable!
 static Retro.Crt.Crt.UseHiddenCursor() -> System.IDisposable!
 static Retro.Crt.Crt.UseMouse() -> System.IDisposable!
 static Retro.Crt.Crt.UseTheme(Retro.Crt.Theme theme) -> System.IDisposable!
+static Retro.Crt.Crt.UseWindowTitle(string! title) -> System.IDisposable!
 static Retro.Crt.Crt.WindowHeight.get -> int
 static Retro.Crt.Crt.WindowWidth.get -> int
 static Retro.Crt.Crt.WithSink(System.IO.TextWriter! sink) -> System.IDisposable!
@@ -267,6 +273,7 @@ static Retro.Crt.Crt.WithStyle(Retro.Crt.Color? fg = null, Retro.Crt.Color? bg =
 static Retro.Crt.Crt.Write(string! s) -> void
 static Retro.Crt.Crt.WriteLine() -> void
 static Retro.Crt.Crt.WriteLine(string! s) -> void
+static Retro.Crt.Crt.WriteLink(string! text, string! url) -> void
 static Retro.Crt.Diagnostics.Capture() -> Retro.Crt.TerminalReport
 static Retro.Crt.Input.InputParser.TryParseEvent(System.ReadOnlySpan<char> input, out Retro.Crt.Input.InputEvent ev, out int consumed) -> Retro.Crt.Input.InputParseStatus
 static Retro.Crt.Input.InputParser.TryParseKey(System.ReadOnlySpan<char> input, out Retro.Crt.Input.KeyEvent key, out int consumed) -> Retro.Crt.Input.InputParseStatus
@@ -293,9 +300,11 @@ static Retro.Crt.ProgressBar.Start(long total, int width = 30, string? label = n
 static Retro.Crt.Prompt.Ask(string! question, string? defaultValue = null, Retro.Crt.Color? color = null) -> string!
 static Retro.Crt.Prompt.Confirm(string! question, bool defaultYes = false, Retro.Crt.Color? color = null) -> bool
 static Retro.Crt.Prompt.Select(string! question, string![]! options, int initialIndex = 0, Retro.Crt.Color? color = null) -> int
+static Retro.Crt.Rule.Print(string? title = null, Retro.Crt.Color? color = null, int width = -1) -> void
 static Retro.Crt.ScreenRenderer.Render(Retro.Crt.ScreenBuffer? previous, Retro.Crt.ScreenBuffer! current, System.IO.TextWriter! sink) -> void
 static Retro.Crt.Spinner.Show(string! label, Retro.Crt.SpinnerStyle style = Retro.Crt.SpinnerStyle.Pipe, Retro.Crt.Color? color = null, int msPerFrame = 80) -> Retro.Crt.Spinner!
 static Retro.Crt.StickyFooter.Start(int rows, System.Action<Retro.Crt.ScreenBuffer!>! paint) -> Retro.Crt.StickyFooter!
+static Retro.Crt.Table.Print(string![]? headers, string![]![]! rows, Retro.Crt.Color?[]![]? cellColors, Retro.Crt.TableBorder border = Retro.Crt.TableBorder.Box, Retro.Crt.Color? headerColor = null, Retro.Crt.Color? borderColor = null) -> void
 static Retro.Crt.Table.Print(string![]? headers, string![]![]! rows, Retro.Crt.TableBorder border = Retro.Crt.TableBorder.Box, Retro.Crt.Color? headerColor = null, Retro.Crt.Color? borderColor = null) -> void
 static Retro.Crt.Typewriter.Blink(int totalMs, Retro.Crt.TypewriterCursor cursor = Retro.Crt.TypewriterCursor.MatrixBlock, Retro.Crt.Color? fg = null, int blinkRateMs = 500) -> void
 static Retro.Crt.Typewriter.BlinkAsync(int totalMs, Retro.Crt.TypewriterCursor cursor = Retro.Crt.TypewriterCursor.MatrixBlock, Retro.Crt.Color? fg = null, int blinkRateMs = 500, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
@@ -312,6 +321,7 @@ static readonly Retro.Crt.Color.DarkGray -> Retro.Crt.Color
 static readonly Retro.Crt.Color.DarkGreen -> Retro.Crt.Color
 static readonly Retro.Crt.Color.DarkMagenta -> Retro.Crt.Color
 static readonly Retro.Crt.Color.DarkRed -> Retro.Crt.Color
+static readonly Retro.Crt.Color.Default -> Retro.Crt.Color
 static readonly Retro.Crt.Color.LightBlue -> Retro.Crt.Color
 static readonly Retro.Crt.Color.LightCyan -> Retro.Crt.Color
 static readonly Retro.Crt.Color.LightGray -> Retro.Crt.Color
