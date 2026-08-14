@@ -99,6 +99,7 @@ public static class Crt
     {
         get
         {
+            if (_windowSizeOverride is { } o) return o.Width;
             try
             {
                 var w = Console.WindowWidth;
@@ -117,6 +118,7 @@ public static class Crt
     {
         get
         {
+            if (_windowSizeOverride is { } o) return o.Height;
             try
             {
                 var h = Console.WindowHeight;
@@ -125,6 +127,16 @@ public static class Crt
             catch { return DefaultHeight; }
         }
     }
+
+    private static (int Width, int Height)? _windowSizeOverride;
+
+    /// <summary>
+    /// Pin <see cref="WindowWidth"/> / <see cref="WindowHeight"/> to a fixed
+    /// size until cleared, so tests can simulate a terminal resize. Pass
+    /// <c>null</c> for either argument to clear the override.
+    /// </summary>
+    internal static void OverrideWindowSizeForTests(int? width, int? height)
+        => _windowSizeOverride = width is { } w && height is { } h ? (w, h) : null;
 
     /// <summary>
     /// Current cursor column (0-based), or 0 when the host can't report

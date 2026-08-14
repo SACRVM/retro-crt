@@ -100,8 +100,9 @@ public sealed class StickyFooter : IDisposable
         lock (_gate)
         {
             if (_disposed) return;
+            var prevHeight = _height;
             if (PollResizeLocked())
-                RestakeAfterResizeLocked();
+                RestakeAfterResizeLocked(prevHeight);
             PaintFooterLocked();
             Crt.Sink.Flush();
         }
@@ -197,8 +198,9 @@ public sealed class StickyFooter : IDisposable
         lock (_gate)
         {
             if (_disposed) return;
+            var prevHeight = _height;
             if (!PollResizeLocked()) return;
-            RestakeAfterResizeLocked();
+            RestakeAfterResizeLocked(prevHeight);
             PaintFooterLocked();
             Crt.Sink.Flush();
         }
@@ -225,11 +227,39 @@ public sealed class StickyFooter : IDisposable
         return true;
     }
 
-    private void RestakeAfterResizeLocked()
+    // Caller must hold _gate. Re-pins the scroll region to the new geometry
+    // and, when the terminal grew, erases the stale footer band left at the
+    // old bottom rows (now inside the enlarged scroll region) before it
+    // lingers mid-screen until output scrolls past it.
+    //
+    // The whole sequence is wrapped in SaveCursor/RestoreCursor: re-pinning
+    // the scroll region (DECSTBM) homes the cursor as a side effect, so the
+    // old unconditional GotoXY existed only to undo that. A host that anchors
+    // an in-place line to the cursor (a \r-rewritten progress line) saw that
+    // teleport land its next repaint on a fresh row every resize tick, one
+    // ghost frame per step. Saving and restoring keeps the host's cursor put.
+    // DECSC coordinates are absolute and may be slightly off after a reflow,
+    // but that is strictly better than moving the cursor on every tick.
+    private void RestakeAfterResizeLocked(int prevHeight)
     {
-        var sb = new StringBuilder(48);
+        var sb = new StringBuilder(64);
+        sb.Append(AnsiCodes.SaveCursor);
         sb.Append(AnsiCodes.SetScrollRegion(1, _height - _rows));
-        sb.Append(AnsiCodes.GotoXY(1, _height - _rows));
+
+        // On grow, the previous footer occupied rows prevHeight-_rows+1 ..
+        // prevHeight; those now sit above the new footer inside the scroll
+        // region and show a stale band. Erase only those old footer rows
+        // that are still on screen and now above the new band (rows the
+        // new footer repaints, or rows scrolled off on shrink, are skipped).
+        var newFooterTop = _height - _rows + 1;
+        for (var row = prevHeight - _rows + 1; row <= prevHeight; row++)
+        {
+            if (row < 1 || row >= newFooterTop || row > _height) continue;
+            sb.Append(AnsiCodes.GotoXY(1, row));
+            sb.Append(AnsiCodes.ClearToEol);
+        }
+
+        sb.Append(AnsiCodes.RestoreCursor);
         Crt.Sink.Write(sb.ToString());
     }
 

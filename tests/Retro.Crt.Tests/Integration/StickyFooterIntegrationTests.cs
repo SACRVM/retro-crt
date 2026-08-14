@@ -1,3 +1,4 @@
+using Retro.Crt.Internals;
 using Retro.Crt.Tests.Support;
 
 namespace Retro.Crt.Tests.Integration;
@@ -175,6 +176,42 @@ public class StickyFooterIntegrationTests
         Assert.Contains("[24;1H", c.Out);
         Assert.Contains("top",    c.Out);
         Assert.Contains("bottom", c.Out);
+    }
+
+    [Fact]
+    public void Resize_grow_re_pins_inside_save_restore_and_clears_old_band()
+    {
+        // Regression for issue #30: a terminal grow must not teleport the
+        // shared cursor (which strands a host's \r-anchored in-place line
+        // and stacks ghost frames), and the stale footer band left at the
+        // old bottom rows must be erased.
+        using var c = ConsoleCapture.Start(ansi: true);
+        try
+        {
+            // 80x24: footer reserves rows 23-24, scroll region pinned 1..22.
+            using var footer = StickyFooter.Start(2, _ => { });
+            var outBefore = c.Out.Length;
+
+            // Grow to 30 rows: footer moves to 29-30, region becomes 1..28,
+            // and rows 23-24 are now a stale band above the new footer.
+            Crt.OverrideWindowSizeForTests(80, 30);
+            footer.Refresh();
+            var slice = c.Out[outBefore..];
+
+            // Re-pin to the new region happens immediately after SaveCursor —
+            // no bare cursor teleport that a host could observe.
+            Assert.Contains(AnsiCodes.SaveCursor + AnsiCodes.SetScrollRegion(1, 28), slice);
+            Assert.Contains(AnsiCodes.RestoreCursor, slice);
+            // Stale band at the old footer rows (23, 24) is erased.
+            Assert.Contains(AnsiCodes.GotoXY(1, 23) + AnsiCodes.ClearToEol, slice);
+            Assert.Contains(AnsiCodes.GotoXY(1, 24) + AnsiCodes.ClearToEol, slice);
+            // New-blank rows below the old band are left untouched.
+            Assert.DoesNotContain(AnsiCodes.GotoXY(1, 25) + AnsiCodes.ClearToEol, slice);
+        }
+        finally
+        {
+            Crt.OverrideWindowSizeForTests(null, null);
+        }
     }
 
     private static int CountOccurrences(string haystack, string needle)
