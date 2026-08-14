@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "id": "retro-crt",
+
+  "quickLinks": [
+    { "name": "GitHub", "url": "https://github.com/SACRVM/retro-crt" }
+  ]
+}

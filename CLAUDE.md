@@ -32,6 +32,13 @@ stay:
   test | docs | chore | build`).
 - Status updates to Chloe in German.
 
+## Firepit-Inbox
+
+At session start, read and process all `.firepit/inbox/*.md`. Mark each handled
+message with `firepit_inbox_complete` (moves it to `inbox/processed/`). The tool
+only loads after a Claude Code restart — if it's missing, restart. If the tool
+is unavailable, move the file to `.firepit/inbox/processed/` by hand.
+
 ## When in doubt — ask in German
 
 Specifics, not open questions. Suggest 2–3 options, recommend one with a

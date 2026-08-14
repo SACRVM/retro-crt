@@ -52,5 +52,13 @@ StrykerOutput/
 # BenchmarkDotNet output
 BenchmarkDotNet.Artifacts/
 
-# Claude Code – personal permissions
+# Firepit + Claude Code — shared declarative config in repo, runtime/personal local
+.firepit/inbox/
+.firepit/runs/
+!.firepit/config.json
 .claude/settings.local.json
+.claude/*.lock
+.claude/agent-memory/
+
+# Sync-conflict debris (Syncthing-style duplicated trees)
+*_conflict_parent/

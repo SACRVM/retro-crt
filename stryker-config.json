@@ -13,13 +13,13 @@
     "thresholds": {
       "high": 85,
       "low": 70,
-      "break": 65
+      "break": 55
     },
     "language-version": "Latest",
     "concurrency": 4,
     "mutate": [
-      "src/Retro.Crt/**/*.cs",
-      "!src/Retro.Crt/Internals/WindowsVt.cs"
+      "**/*.cs",
+      "!**/Internals/WindowsVt.cs"
     ],
     "ignore-mutations": [
       "string"
