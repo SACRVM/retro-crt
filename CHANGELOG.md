@@ -597,17 +597,17 @@ dependency itself.
   verbs (`TextColor`, `TextBackground`, `GotoXY`, `ClrScr`, `ClrEol`,
   `WithStyle`), Windows VT enablement via `LibraryImport`.
 
-[Unreleased]: https://github.com/chloe-dream/retro-crt/compare/tui-v0.1.5...HEAD
-[Retro.Crt.Tui 0.1.5]: https://github.com/chloe-dream/retro-crt/releases/tag/tui-v0.1.5
-[Retro.Crt.Tui 0.1.2]: https://github.com/chloe-dream/retro-crt/releases/tag/tui-v0.1.2
-[0.7.1]: https://github.com/chloe-dream/retro-crt/releases/tag/v0.7.1
-[Retro.Crt.Tui 0.1.1]: https://github.com/chloe-dream/retro-crt/releases/tag/tui-v0.1.1
-[0.7.0]: https://github.com/chloe-dream/retro-crt/releases/tag/v0.7.0
-[Retro.Crt.Tui 0.1.0]: https://github.com/chloe-dream/retro-crt/releases/tag/tui-v0.1.0
-[0.6.0]: https://github.com/chloe-dream/retro-crt/releases/tag/v0.6.0
-[0.5.0]: https://github.com/chloe-dream/retro-crt/releases/tag/v0.5.0
-[0.4.0]: https://github.com/chloe-dream/retro-crt/releases/tag/v0.4.0
-[0.3.0]: https://github.com/chloe-dream/retro-crt/releases/tag/v0.3.0
-[0.2.1]: https://github.com/chloe-dream/retro-crt/releases/tag/v0.2.1
-[0.2.0]: https://github.com/chloe-dream/retro-crt/releases/tag/v0.2.0
-[0.1.0]: https://github.com/chloe-dream/retro-crt/releases/tag/v0.1.0
+[Unreleased]: https://github.com/SACRVM/retro-crt/compare/tui-v0.1.5...HEAD
+[Retro.Crt.Tui 0.1.5]: https://github.com/SACRVM/retro-crt/releases/tag/tui-v0.1.5
+[Retro.Crt.Tui 0.1.2]: https://github.com/SACRVM/retro-crt/releases/tag/tui-v0.1.2
+[0.7.1]: https://github.com/SACRVM/retro-crt/releases/tag/v0.7.1
+[Retro.Crt.Tui 0.1.1]: https://github.com/SACRVM/retro-crt/releases/tag/tui-v0.1.1
+[0.7.0]: https://github.com/SACRVM/retro-crt/releases/tag/v0.7.0
+[Retro.Crt.Tui 0.1.0]: https://github.com/SACRVM/retro-crt/releases/tag/tui-v0.1.0
+[0.6.0]: https://github.com/SACRVM/retro-crt/releases/tag/v0.6.0
+[0.5.0]: https://github.com/SACRVM/retro-crt/releases/tag/v0.5.0
+[0.4.0]: https://github.com/SACRVM/retro-crt/releases/tag/v0.4.0
+[0.3.0]: https://github.com/SACRVM/retro-crt/releases/tag/v0.3.0
+[0.2.1]: https://github.com/SACRVM/retro-crt/releases/tag/v0.2.1
+[0.2.0]: https://github.com/SACRVM/retro-crt/releases/tag/v0.2.0
+[0.1.0]: https://github.com/SACRVM/retro-crt/releases/tag/v0.1.0

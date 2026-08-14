@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
   - name: Security report
-    url: https://github.com/chloe-dream/retro-crt/security/advisories/new
+    url: https://github.com/SACRVM/retro-crt/security/advisories/new
     about: Privately disclose a security vulnerability — do not file a public issue.
   - name: Question / discussion
-    url: https://github.com/chloe-dream/retro-crt/discussions
+    url: https://github.com/SACRVM/retro-crt/discussions
     about: For open-ended questions or design discussion that isn't a bug or feature ask.

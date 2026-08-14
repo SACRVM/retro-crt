@@ -11,8 +11,8 @@
     <Company>Chloe Dream</Company>
     <Description>Text User Interface widgets on top of Retro.Crt's cell-buffer / diff-renderer core. Layout, focus, mouse + keyboard, scrollable log viewer, dialogs — DOS-style UI in a modern terminal. Tiny, dependency-free, trim- and AOT-clean.</Description>
     <PackageTags>console;ansi;truecolor;crt;tui;widgets;mouse;cli;terminal</PackageTags>
-    <PackageProjectUrl>https://github.com/chloe-dream/retro-crt</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/chloe-dream/retro-crt</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/SACRVM/retro-crt</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/SACRVM/retro-crt</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>

@@ -33,7 +33,7 @@ If you're unsure, open a draft issue first and we'll talk.
 Requires the .NET 10 SDK.
 
 ```bash
-git clone https://github.com/chloe-dream/retro-crt
+git clone https://github.com/SACRVM/retro-crt
 cd retro-crt
 dotnet restore
 dotnet build

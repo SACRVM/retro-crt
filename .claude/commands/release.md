@@ -154,7 +154,7 @@ Release v0.7.0 (core) ist raus.
 - Tag gepusht → release.yml läuft
 - nuget.org bekommt das Paket in ~3-5 min
 - GitHub Release wird automatisch erstellt mit generated release notes
-- CI-Status: https://github.com/chloe-dream/retro-crt/actions
+- CI-Status: https://github.com/SACRVM/retro-crt/actions
 ```
 
 For tui, replace `v0.7.0 (core)` with `tui-v0.1.0 (tui)` etc.

@@ -41,12 +41,12 @@
       "_enableSearch": true,
       "_disableContribution": false,
       "_gitContribute": {
-        "repo": "https://github.com/chloe-dream/retro-crt",
+        "repo": "https://github.com/SACRVM/retro-crt",
         "branch": "main"
       }
     },
     "sitemap": {
-      "baseUrl": "https://chloe-dream.github.io/retro-crt"
+      "baseUrl": "https://sacrvm.github.io/retro-crt"
     },
     "xref": [],
     "xrefService": [

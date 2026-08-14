@@ -11,8 +11,8 @@
     <Company>Chloe Dream</Company>
     <Description>Pascal CRT-Unit-style console for modern .NET. Tiny, dependency-free, trim- and AOT-clean. Truecolor with NO_COLOR and 16-color fallback.</Description>
     <PackageTags>console;ansi;truecolor;crt;pascal;cli;terminal</PackageTags>
-    <PackageProjectUrl>https://github.com/chloe-dream/retro-crt</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/chloe-dream/retro-crt</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/SACRVM/retro-crt</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/SACRVM/retro-crt</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>

@@ -15,7 +15,7 @@ security fixes. Older versions are not patched.
 Please **do not** open a public GitHub issue for security problems.
 
 Instead, report privately via GitHub's
-[security advisories form](https://github.com/chloe-dream/retro-crt/security/advisories/new),
+[security advisories form](https://github.com/SACRVM/retro-crt/security/advisories/new),
 or e-mail **chloe.bernette@gmail.com** with `retro-crt` in the subject.
 
 You can expect:

@@ -1,9 +1,9 @@
 # Retro.Crt
 
-[![ci](https://github.com/chloe-dream/retro-crt/actions/workflows/ci.yml/badge.svg)](https://github.com/chloe-dream/retro-crt/actions/workflows/ci.yml)
-[![docs](https://github.com/chloe-dream/retro-crt/actions/workflows/docs.yml/badge.svg)](https://chloe-dream.github.io/retro-crt)
+[![ci](https://github.com/SACRVM/retro-crt/actions/workflows/ci.yml/badge.svg)](https://github.com/SACRVM/retro-crt/actions/workflows/ci.yml)
+[![docs](https://github.com/SACRVM/retro-crt/actions/workflows/docs.yml/badge.svg)](https://sacrvm.github.io/retro-crt)
 [![nuget](https://img.shields.io/nuget/v/Retro.Crt.svg)](https://www.nuget.org/packages/Retro.Crt)
-[![license](https://img.shields.io/github/license/chloe-dream/retro-crt.svg)](LICENSE)
+[![license](https://img.shields.io/github/license/SACRVM/retro-crt.svg)](LICENSE)
 
 **Tiny, zero-dep, AOT-clean Pascal-CRT charm for .NET CLIs.**
 
@@ -62,7 +62,7 @@ using (Crt.WithStyle(Color.Yellow, bold: true))
 > separate casts via `scripts/record-fallback.ps1`.
 <!-- TODO: record asciinema casts via ./scripts/record-demo.{ps1,sh} — see CONTRIBUTING.md -->
 
-API reference: <https://chloe-dream.github.io/retro-crt>.
+API reference: <https://sacrvm.github.io/retro-crt>.
 Targets `net10.0`. No third-party dependencies.
 
 ## Why
@@ -607,7 +607,7 @@ same as a string for composing (e.g. dropping a clickable URL into a
 `Table` cell).
 
 ```csharp
-Crt.WriteLink("docs", "https://github.com/chloe-dream/retro-crt");
+Crt.WriteLink("docs", "https://github.com/SACRVM/retro-crt");
 ```
 
 Both are capability-aware: when output isn't a real terminal (redirected,
@@ -761,7 +761,7 @@ catch (OperationCanceledException) { /* terminal is in a clean state */ }
 ## Building from source
 
 ```bash
-git clone https://github.com/chloe-dream/retro-crt
+git clone https://github.com/SACRVM/retro-crt
 cd retro-crt
 dotnet build
 dotnet test
