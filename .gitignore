@@ -62,3 +62,6 @@ BenchmarkDotNet.Artifacts/
 
 # Sync-conflict debris (Syncthing-style duplicated trees)
 *_conflict_parent/
+
+# Firepit + Claude Code — shared config versioned, runtime/personal local
+.firepit/knowledge.db*
