@@ -53,7 +53,7 @@ public class TableRendererTests
         var actual = TableRenderer.RenderPlain(
             ["Name", "Age"],
             [
-                ["Chloe", "26"],
+                ["Alice", "26"],
                 ["Wolf", "5"],
             ],
             boxBorders: true);
@@ -62,7 +62,7 @@ public class TableRendererTests
             "┌───────┬─────┐\n" +
             "│ Name  │ Age │\n" +
             "├───────┼─────┤\n" +
-            "│ Chloe │ 26  │\n" +
+            "│ Alice │ 26  │\n" +
             "│ Wolf  │ 5   │\n" +
             "└───────┴─────┘\n";
 
@@ -75,13 +75,13 @@ public class TableRendererTests
         var actual = TableRenderer.RenderPlain(
             ["Name", "Age"],
             [
-                ["Chloe", "26"],
+                ["Alice", "26"],
             ],
             boxBorders: false);
 
         var expected =
             " Name   Age \n" +
-            " Chloe  26  \n";
+            " Alice  26  \n";
 
         Assert.Equal(expected, actual);
     }

@@ -5,7 +5,7 @@ argument-hint: [core|tui|all] [test|patch|minor|major|<x.y.z>]
 
 # /release — cut a Retro.Crt release
 
-You are cutting a Retro.Crt release. Follow these steps **exactly**, in order. **Never skip the confirmation step.** Speak to Chloe in German; commit messages and tag names stay English.
+You are cutting a Retro.Crt release. Follow these steps **exactly**, in order. **Never skip the confirmation step.** Speak to the owner in German; commit messages and tag names stay English.
 
 ## Argument
 
@@ -40,7 +40,7 @@ For `all`: run Steps 1–9 fully for `core`, then start Steps 1–9 again for `t
 
 ## Step 1 — Sanity checks
 
-Run all four. If any fails, stop and report to Chloe — do not proceed.
+Run all four. If any fails, stop and report to the owner — do not proceed.
 
 ```bash
 git rev-parse --abbrev-ref HEAD                                    # must be 'main'
@@ -86,7 +86,7 @@ For `all` with auto-detect: each package classifies independently; one may bump 
 
 ## Step 4 — Show the plan, ask for confirmation
 
-Print to Chloe in German, one block per package being released, exactly like:
+Print to the owner in German, one block per package being released, exactly like:
 
 ```
 Paket: Retro.Crt (core)
@@ -101,9 +101,9 @@ Paket: Retro.Crt (core)
 
 Then list the commits since the package's last tag, grouped by prefix (feat / fix / chore / docs / refactor / test / build / other), as a sanity check.
 
-**If `$ARGUMENTS` token 2 is `test`: stop here. Do not change any files. Tell Chloe „Trockenlauf — nichts geändert."**
+**If `$ARGUMENTS` token 2 is `test`: stop here. Do not change any files. Tell the owner „Trockenlauf — nichts geändert."**
 
-Otherwise: ask **„OK so? [j/n]"** and wait for her answer.
+Otherwise: ask **„OK so? [j/n]"** and wait for the answer.
 - `j` / `ja` / `y` / `yes` → continue to Step 5 for each package in order
 - anything else → abort, change nothing
 
@@ -129,7 +129,7 @@ Edit `<CSPROJ>` line ~9: change `<Version>OLD</Version>` to `<Version>NEW</Versi
 dotnet build <CSPROJ> --configuration Release --nologo
 ```
 
-This catches PublicAPI drift errors locally before the tag goes out. If it fails, **stop**, show the error to Chloe, leave the working tree as-is so she can inspect — do not commit, do not tag, do not push.
+This catches PublicAPI drift errors locally before the tag goes out. If it fails, **stop**, show the error to the owner, leave the working tree as-is for inspection — do not commit, do not tag, do not push.
 
 ## Step 8 — Commit, tag, push
 
@@ -168,4 +168,4 @@ Do **not** poll or wait for the CI run — just hand off.
 - Never use `--no-verify` or `--force` on any git command.
 - Never touch `.csproj` fields other than `<Version>`.
 - Never mix tag schemes: `v*` is core-only, `tui-v*` is tui-only. A commit message like `release: tui-v0.1.0` paired with a `v0.1.0` tag (or vice versa) is wrong; double-check before pushing.
-- If anything is unclear or smells wrong (e.g., no commits since last tag, csproj/tag version mismatch, weird state), stop and ask Chloe instead of guessing.
+- If anything is unclear or smells wrong (e.g., no commits since last tag, csproj/tag version mismatch, weird state), stop and ask the owner instead of guessing.

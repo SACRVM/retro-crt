@@ -79,11 +79,11 @@ public class PromptIntegrationTests
     public void Ask_returns_typed_input()
     {
         using var c = ConsoleCapture.Start(ansi: true);
-        Console.SetIn(new StringReader("Chloe\n"));
+        Console.SetIn(new StringReader("Alice\n"));
 
         var name = Prompt.Ask("Name?");
 
-        Assert.Equal("Chloe", name);
+        Assert.Equal("Alice", name);
         Assert.Contains("Name?", c.Out);
     }
 
